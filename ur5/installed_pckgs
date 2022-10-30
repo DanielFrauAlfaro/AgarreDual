@@ -1,0 +1,40 @@
+---------------------- Packages-UR Drivers -----------------
+git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src/Universal_Robots_ROS_Driver
+ sudo apt install industrial-robot-status-interface
+ sudo apt install ros-noetic-industrial-robot-status-interface
+ sudo apt install ros-noetic-scaled-joint-trajectory-controller
+ sudo apt install ros-noetic-speed-scaling-interface
+ sudo apt install ros-noetic-speed-scaling-state-controller
+ sudo apt install ros-noetic-ur-msgs
+ sudo apt install ros-noetic-pass-through-controllers
+ sudo apt install ros-noetic-ur-client-library
+ 
+
+ //Instalar MoveIt
+ sudo apt install ros-noetic-moveit-core
+ sudo apt install ros-noetic-moveit-ros-move-group
+ sudo apt install ros-noetic-moveit 
+ 
+ // Instalar ROS Control
+ sudo apt-get install ros-noetic-ros-control ros-noetic-ros-controllers
+ 
+ 
+  - Simulacion en RVIZ
+ sudo apt-get install ros-noetic-moveit-visual-tools
+ sudo apt-get install ros-noetic-moveit-ros-visualization
+ ------------------- Webs ------------------
+ ROS UR Drivers: https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
+ Universal Robots Repo: https://github.com/ros-industrial/universal_robot
+
+
+  - Cambios
+   - + ../ur_gazebo/controller/ur5_controller_params.yaml: archivo YAML con los parámetros de las ganancias de los controladores PID de cada articulación
+   - M ../ur_descriptions/urdf/ur.transmission.xacro: en este archivo están las transmisiones de las articulaciones (PositionJointInterface) se cambia el ${hw_transmission} por EffortJointInterface
+   - M ../ur_gazebo/launch/ur5.launch: 
+   	· se comentan las líneas del controlador por defecto y se añade el controlador PID de cada articulación con su spawner
+  	· se añade al spawn del modelo la posición del shulder_lift_joint y elbow_joint
+  	· se cambia el argumento paused a true --> la simluación empieza parada, al luego activarla el robot se coloca en la posición indicada en 	   los argumentos del spawner
+  	
+  	
+  - Páginas Web:
+    - Tutorial ROS Control: https://roboticscasual.com/ros-tutorial-control-the-ur5-robot-with-ros_control-tuning-a-pid-controller/
