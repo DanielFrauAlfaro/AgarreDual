@@ -1,8 +1,0 @@
-prefix=/home/daniel/Desktop/ur5/install
-
-Name: moveit_setup
-Description: Description of moveit_setup
-Version: 0.3.0
-Cflags: 
-Libs: -L${prefix}/lib 
-Requires: 
