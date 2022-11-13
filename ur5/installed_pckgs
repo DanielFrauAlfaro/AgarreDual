@@ -38,3 +38,8 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
   	
   - Páginas Web:
     - Tutorial ROS Control: https://roboticscasual.com/ros-tutorial-control-the-ur5-robot-with-ros_control-tuning-a-pid-controller/
+    
+    
+  - Conexión con Matlab:
+    - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
+
