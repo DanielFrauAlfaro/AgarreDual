@@ -8,3 +8,4 @@ las inversas, los valores no eran del todo correctas.
     Se configuró un paquete de MoveIT para el UR5, así se consigue incorporar el planificador de trayectorias (o coger de ahí las posiciones finales)
 Se añadió el launch demo.launch de la carpeta launch de ur_moveit para ello. Además se cambió el nombre del robot_state_publisher del launch que lanzaba
 el robot (más concretamente el tag de "name") para que no interfiera con el del move_group
+    En cuanto al Phantom, se han visitado las webs para la instalación de los drivers y paquetes necesarios para leer los datos de este.
