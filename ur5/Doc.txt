@@ -1,10 +1,11 @@
 ------------------------- Documentacion ------------------
 
     Se clonó el repositorio de Universal Robots. 
-    Se crearon los controladores de ROS Control
+    Se crearon los controladores de ROS Control. 
+    (2 h)
     
     Se probó a hacer el control cartesiano con la Robotic Toolbox de Peter Corke en Python, pero no acabó de funcionar porque no se calculaban bien
-las inversas, los valores no eran del todo correctas.
+las inversas, los valores no eran del todo correctas. Aunque se le indicaba que fuera en la dirección positiva del eje X, las otras posiciones variaban
     Se configuró un paquete de MoveIT para el UR5, así se consigue incorporar el planificador de trayectorias (o coger de ahí las posiciones finales)
 Se añadió el launch demo.launch de la carpeta launch de ur_moveit para ello. Además se cambió el nombre del robot_state_publisher del launch que lanzaba
 el robot (más concretamente el tag de "name") para que no interfiera con el del move_group
@@ -14,3 +15,24 @@ robot_state_publisher, desde donde el move_group pueda calcular las trayectorias
 Los incrementos de posición no serán muy grandes por lo que las trayectorias no deberían tardar mucho en calcularse. Además, se pueden establecer saltos
 grandes o incluso calcular el salto de posición respecto a al actual y ponerlo en el planning, para que solo salga un elemento, el final
     En cuanto al Phantom, se han visitado las webs para la instalación de los drivers y paquetes necesarios para leer los datos de este.
+    (4 h)
+
+    Finalmente, al probar el framework de MoveIT se comprobó que este acercamiento no era el adecuado (todo esto con un programa que reaccione a las 
+pulsaciones del teclado), ya que las trayectorias que se calculaban no eran correctas; al poner intervalos muy cortos el robot adoptaba 
+configuraciones erráticas para alcanzarlos. Además, no siempre se cnoseguía planificar el 100% de la trayectoria. 
+    Volviendo al método en el que se usa la Robotic Toolbox, se cambió el orden en el que se multiplicaban la matriz de transformación actual con la
+del desplazamiento (poniendo primero la del desplazamiento), con lo que finalmente si que se conseguía moverse en las direcciones indicadas. Esto es
+por el orden de las operaciones, al hacerlo de la manera original se variaban los valores del desplazamiento con las rotaciones de la matriz de 
+rotación dentro de la transformada homogénea. 
+    Una vez se tenía un movimiento correcto, se probó a hacer la teleoperación con las teclas del teclado, moviendo el robot en cada eje por separado,
+además de actuar sobre los ángulos RPY del robot. El programa está hecho entorno a una función de ámbito privado (move) que recibe una matriz de
+transformación homogénea y mueve el robot a la posición deseada con la orientación requerida. 
+    Para la aplicación real, se tendría que usar unos suscriptores para escuchar los valores del dispositivo háptico Phantom Omni, de manera que a 
+cada iteración se modifique la posición del robot. De los topics se recobiría (presumiblemente) un mensaje tipo geometry_msgs/Pose, con lo que se
+podría usar la Robotic Toolbox de Python para crear una matriz de transformación homogénea.
+    Con todo, habría que tener cuidado tanto con la frecuencia de envío de datos desde el Phantom (el programa no se debe de interrumpir en exceso, 
+se tendrían datos irrelevantes que estarían consumiendo ancho de banda, ...) como con la presencia de singularidades en el control (lo que podría
+llevar a situaciones imprevisibles fuera del espacio de trabajo o en configuraciones imposibles, como superposición de eslabones). Esto último se
+podría solucionar con el cálculo y monitorización de la manipulabilidad, del determinante de la jacobiana o mediante el establecimiento de límites
+articulares para cada una de las articualciones.
+    (6 h)
