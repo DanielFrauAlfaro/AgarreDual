@@ -1,0 +1,8 @@
+# CMake generated Testfile for 
+# Source directory: /home/daniel/Desktop/AgarreDual/ur5/src/universal_robot/ur5_e_moveit_config
+# Build directory: /home/daniel/Desktop/AgarreDual/ur5/build/universal_robot/ur5_e_moveit_config
+# 
+# This file includes the relevant testing commands required for 
+# testing this directory and lists subdirectories to be tested as well.
+add_test(_ctest_ur5_e_moveit_config_roslaunch-check_tests_moveit_planning_execution.xml "/home/daniel/Desktop/AgarreDual/ur5/build/catkin_generated/env_cached.sh" "/usr/bin/python3" "/opt/ros/noetic/share/catkin/cmake/test/run_tests.py" "/home/daniel/Desktop/AgarreDual/ur5/build/test_results/ur5_e_moveit_config/roslaunch-check_tests_moveit_planning_execution.xml.xml" "--return-code" "/usr/bin/cmake -E make_directory /home/daniel/Desktop/AgarreDual/ur5/build/test_results/ur5_e_moveit_config" "/opt/ros/noetic/share/roslaunch/cmake/../scripts/roslaunch-check -o \"/home/daniel/Desktop/AgarreDual/ur5/build/test_results/ur5_e_moveit_config/roslaunch-check_tests_moveit_planning_execution.xml.xml\" \"/home/daniel/Desktop/AgarreDual/ur5/src/universal_robot/ur5_e_moveit_config/tests/moveit_planning_execution.xml\" ")
+set_tests_properties(_ctest_ur5_e_moveit_config_roslaunch-check_tests_moveit_planning_execution.xml PROPERTIES  _BACKTRACE_TRIPLES "/opt/ros/noetic/share/catkin/cmake/test/tests.cmake;160;add_test;/opt/ros/noetic/share/roslaunch/cmake/roslaunch-extras.cmake;66;catkin_run_tests_target;/home/daniel/Desktop/AgarreDual/ur5/src/universal_robot/ur5_e_moveit_config/CMakeLists.txt;10;roslaunch_add_file_check;/home/daniel/Desktop/AgarreDual/ur5/src/universal_robot/ur5_e_moveit_config/CMakeLists.txt;0;")

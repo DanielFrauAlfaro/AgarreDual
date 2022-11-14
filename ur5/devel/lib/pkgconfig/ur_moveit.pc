@@ -1,0 +1,8 @@
+prefix=/home/daniel/Desktop/AgarreDual/ur5/devel
+
+Name: ur_moveit
+Description: Description of ur_moveit
+Version: 0.3.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
