@@ -8,3 +8,8 @@ las inversas, los valores no eran del todo correctas.
     Se configuró un paquete de MoveIT para el UR5, así se consigue incorporar el planificador de trayectorias (o coger de ahí las posiciones finales)
 Se añadió el launch demo.launch de la carpeta launch de ur_moveit para ello. Además se cambió el nombre del robot_state_publisher del launch que lanzaba
 el robot (más concretamente el tag de "name") para que no interfiera con el del move_group
+    Luego, se vio que esto no era óptimo, pues se tenían dos modelos paralelos, lo cual resultaría ineficiente. Por lo tanto, se mantuvo un solo 
+robot_state_publisher, desde donde el move_group pueda calcular las trayectorias.
+    Al final, el objetivo del move_group es calcular las cinemática inversa del robot, por lo que se va a intentar coger siempre el último elemento.
+Los incrementos de posición no serán muy grandes por lo que las trayectorias no deberían tardar mucho en calcularse. Además, se pueden establecer saltos
+grandes o incluso calcular el salto de posición respecto a al actual y ponerlo en el planning, para que solo salga un elemento, el final
