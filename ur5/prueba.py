@@ -25,7 +25,7 @@ class Controller():
         # ROS parameters: node, publishers and subscribers
         rospy.init_node("main_controller", anonymous=False)
         
-        self.__rate = rospy.Rate(10)
+        self.__rate = rospy.Rate(10)        # Rate
         
         self.__joints_com = []
         self.__joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=10))
@@ -43,7 +43,7 @@ class Controller():
         # self.joints_state.append(rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener))
         # self.joints_state.append(rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener))
 
-        # Position increment for simulation
+        # Position and angle increment for simulation
         self.__incr = 0.01
         self.__incr_ = 0.01
         
@@ -56,7 +56,7 @@ class Controller():
             self.__joints_com[i].publish(self.__q[i])
             self.__rate.sleep()
     
-# ----------------------- Each move case -----------------------    
+# ----------------------- Each move case (X, Y, Z, ROLL, PITCH, YAW) -----------------------    
     def move_x(self):
         T = self.__ur5.fkine(self.__q)
         print(T)
@@ -128,6 +128,7 @@ class Controller():
         T = T * T_
         
         self.__move(T)
+        
 # ---------------- Home position ----------------
     def home(self):    
         self.__q = self.__q0
@@ -135,7 +136,8 @@ class Controller():
         for i in range(5):
             self.__joints_com[i].publish(self.__q[i])
             self.__rate.sleep()
-    
+
+# ----------------- Callbacks for the joint controller state Subscribers ------------------
     def __shoulder_pan_listener(self,data):    
         self.__q[0] = data.set_point
     def __shoulder_lift_listener(self,data):
@@ -185,7 +187,8 @@ def callback(tile):
     
     else:
         ur5.home()
-        
+
+# ------------------ Main --------------------
 if __name__ == '__main__':
     with kb.Listener(callback) as listener:
 	    listener.join()     
