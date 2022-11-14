@@ -13,3 +13,4 @@ robot_state_publisher, desde donde el move_group pueda calcular las trayectorias
     Al final, el objetivo del move_group es calcular las cinemática inversa del robot, por lo que se va a intentar coger siempre el último elemento.
 Los incrementos de posición no serán muy grandes por lo que las trayectorias no deberían tardar mucho en calcularse. Además, se pueden establecer saltos
 grandes o incluso calcular el salto de posición respecto a al actual y ponerlo en el planning, para que solo salga un elemento, el final
+    En cuanto al Phantom, se han visitado las webs para la instalación de los drivers y paquetes necesarios para leer los datos de este.
