@@ -26,4 +26,7 @@ sol = ur5.ikine_LM(T,q0 = q)
 
 # ur5.teach()
 
-ur5.DH
+print(ur5.base)
+ur5.base = SE3.RPY(0,0,pi)
+print(ur5.base)
+ur5.teach()
