@@ -18,7 +18,9 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
  // Instalar ROS Control
  sudo apt-get install ros-noetic-ros-control ros-noetic-ros-controllers
  
- 
+ // Instalar Robotic Toolbox
+  pip3 install roboticstoolbox-python
+
   - Simulacion en RVIZ
  sudo apt-get install ros-noetic-moveit-visual-tools
  sudo apt-get install ros-noetic-moveit-ros-visualization
@@ -38,7 +40,8 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
   	
   - Páginas Web:
     - Tutorial ROS Control: https://roboticscasual.com/ros-tutorial-control-the-ur5-robot-with-ros_control-tuning-a-pid-controller/
-    
+    - Python Robotic Toolbox (instalar): https://pypi.org/project/roboticstoolbox-python/
+    - Python Robotic Toolbox (DOC): https://petercorke.github.io/robotics-toolbox-python/intro.html
     
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
