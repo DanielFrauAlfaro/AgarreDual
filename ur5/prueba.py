@@ -13,9 +13,29 @@ import numpy as np
 import rospy
 from std_msgs.msg import Float64
 from control_msgs.msg import JointControllerState
+from geometry_msgs.msg import Pose
 from pynput import keyboard as kb
 import math
 import time
+
+def get_quaternion_from_euler(roll, pitch, yaw):
+  """
+  Convert an Euler angle to a quaternion.
+   
+  Input
+    :param roll: The roll (rotation around x-axis) angle in radians.
+    :param pitch: The pitch (rotation around y-axis) angle in radians.
+    :param yaw: The yaw (rotation around z-axis) angle in radians.
+ 
+  Output
+    :return qx, qy, qz, qw: The orientation in quaternion [x,y,z,w] format
+  """
+  qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+  qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
+  qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
+  qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
+ 
+  return [qx, qy, qz, qw]
  
  # Transformar de cuaternios a ángulos de Euler
 def euler_from_quaternion(x, y, z, w):
@@ -53,6 +73,9 @@ class Controller():
         
         # ROS parameters: node, publishers and subscribers
         rospy.init_node("main_controller", anonymous=False)
+        
+        # rospy.Publisher('/pose', Pose, queue_size=10)
+        rospy.Subscriber('/pose', Pose, self.__callback)
                 
         self.__joints_com = []
         self.__joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=1))
@@ -77,8 +100,6 @@ class Controller():
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)
-        
-        # mask: vector de traslacion x,y,z y rotacion r,p,y
         
         for i in range(6):
             self.__joints_com[i].publish(q.q[i])
@@ -112,21 +133,15 @@ class Controller():
         
         T = T_ * T                      # The increment homogeneus matrix is pre-multiplied 
         
-        print(T)
-        
-        T_t = T.t
-        T_eul = T.eul()
-        
-        
         self.__move(T)
-        print(time.time() - t)
-        
+                
+                
     def move_x_(self):
         T = self.__ur5.fkine(self.__q)
         T_ = SE3(-self.__incr, 0, 0.0)
         T = T_ * T
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -135,7 +150,7 @@ class Controller():
         T_ = SE3(0, self.__incr, 0.0)
         T = T_ * T
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -144,7 +159,7 @@ class Controller():
         T_ = SE3(0, -self.__incr, 0.0)
         T = T_ * T
         
-        print(T)
+        # print(T)
 
         self.__move(T) 
     
@@ -153,7 +168,7 @@ class Controller():
         T_ = SE3(0, 0, self.__incr)
         T = T_ * T
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -162,7 +177,7 @@ class Controller():
         T_ = SE3(0, 0, -self.__incr)
         T = T_ * T
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -171,7 +186,7 @@ class Controller():
         T_ = SE3.RPY(self.__incr_, 0, 0)
         T = T * T_                          # In angle-movement, the increment is post-multiplied
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -180,7 +195,7 @@ class Controller():
         T_ = SE3.RPY(-self.__incr_, 0, 0)
         T = T * T_
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -189,7 +204,7 @@ class Controller():
         T_ = SE3.RPY(0, self.__incr_, 0)
         T = T * T_
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -198,7 +213,7 @@ class Controller():
         T_ = SE3.RPY(0, -self.__incr_, 0)
         T = T * T_
         
-        print(T)
+        # print(T)
 
         self.__move(T)
     
@@ -207,7 +222,7 @@ class Controller():
         T_ = SE3.RPY(0, 0, self.__incr_)
         T = T * T_
         
-        print(T)
+        # print(T)
 
         self.__move(T)
         
@@ -216,7 +231,7 @@ class Controller():
         T_ = SE3.RPY(0, 0, -self.__incr_)
         T = T * T_
         
-        print(T)
+        # print(T)
 
         self.__move(T)
 
