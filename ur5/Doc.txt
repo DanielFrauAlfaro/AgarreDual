@@ -55,4 +55,11 @@ que, para una articulación tan pequeña solo bastaba componente proporcional --
 llamado RQT.
     (3 h) --> 16 / 11 / 22
 
+
+    Se ha buscado el repositorio de RobotIQ para descargar los modelos URDF de los manipuladores que hay en el laboratorio y con los que se va a trabajar a la hora del robot real. 
+Los modelos del repositorio original no se consiguieron fusionar con el modelo del robot (con el comando "connected on" no funcionaba). Por ello, se buscaron tutoriales y documentación
+para unir dos modelos URDF. Finalmente, se encontró uno para añadirlo al modelo aunque no sea del repositorio oficial. 
+    (2 h) --> 18 / 11 / 22
+
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
+
