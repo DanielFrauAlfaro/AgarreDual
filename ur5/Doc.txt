@@ -83,21 +83,31 @@ tipo XACRO, por lo que se optó por otra opción. En el fichero "robotiq_arg2f_1
 por lo que añadió otro parámetro, el "parent" de la pinza. Luego, en el archivo "robotiq_arg2f.xacro", en la macro de "robotiq_arg2f_base_link" se 
 añadió una "joint" de tipo "fixed" junto con un parámetro más, de manera que el "parent" sería ese nuevo parámetro y el "child" el propio "link" 
 que se define dentro de esa misma MACRO.
-    Así, haciendo un "include" de "robotiq_arg2f_140_model_macro.xacro" en el archivo "ur5_robot.irdf.launch" especificando como parámetro del
+    Así, haciendo un "include" de "robotiq_arg2f_140_model_macro.xacro" en el archivo "ur5_robot.urdf.launch" especificando como parámetro del
 "robotiq_arg2f_140" el link "ee_link" o "tool0" del UR5 se consigue añadir la pinza al modelo de Gazebo. Al lanzar el launch tal cual está, se 
 importa el modelo, pero se lanza un error, ya que hay "joints" que no tienen controlador, con lo que se va a proceder a añadirlo.
     
     Lo primero que habría que hacer es comprobar que tipo de transmisiones en las "joints" viene por defecto en los paquetes de RobotIQ. Esta
 configuración se declara en el archivo "robotiq_arg2f_transmission.xacro", donde se ver que son de tipo "transmission_interface/SimpleTransmission"
-con el "hardwareInterface" configuado como "PositionJointInterface", lo que resulta correcto para el control que se está realizando (un control en
-posición del robot y la pinza). Así, se puede definir mediante ROS - Control controladores de posición para cada una de las articulaciones de la 
-pinza, el nombre de las cuales se puede ver en la interfaz de usuario de Gazebo (navegando por el menú de la derecha y accediendo al apartado de 
-"joints") o buscando las definiciones de "joint" en el archivo "robotiq_arg2f_140_model_macro.xacro".
+con el "hardwareInterface" configuado como "PositionJointInterface", lo que resulta no correcto para el control que se está realizando (un control en
+posición del robot y la pinza), lo correcto sería que fueran interfaces de esfuerzo (EffotJointInterface). Así, se puede definir mediante 
+ROS - Control controladores de posición para cada una de las articulaciones de la pinza, el nombre de las cuales se puede ver en la interfaz 
+de usuario de Gazebo (navegando por el menú de la derecha y accediendo al apartado de "joints") o buscando las definiciones de "joint" en el 
+archivo "robotiq_arg2f_140_model_macro.xacro".
     Al crear los controladores se observó que daba errores al cargarlos en la simulación (no detectaba la "joint" en los recursos). Esto se puede 
-deber a que no se definen bien las transmisiones en los archivos de MACRO. Solucionar esto requeriría hacer ficheros nuevos de coniguración 
-(nuevas macros) similares a las que se usan en los del UR5, ya que en los .xacro de RobotIQ no se hacen como se está utilizando en el proyecto.
-Otra opción sería ejecutarlo y generar un controlador adecuado a los ficheros de RobotIQ.
-    (3 h) --> 20 / 11 / 22
+deber a que no se definen bien las transmisiones en los archivos de MACRO, solamente la del "finger_joint" en el fichero "robotiq_arg2f_transmission".xacro". Solucionar esto requeriría hacer ficheros nuevos de coniguración (nuevas macros) similares a las que se usan en los del UR5, ya que en los .xacro de RobotIQ no se hacen como se está utilizando en el proyecto.
+Otra opción sería ejecutarlo, o generar un controlador adecuado a los ficheros de RobotIQ. Al final, se tomó la primera solución; dentro del fichero
+.xacro de las transmisiones se definieron todas las hardwareInterface de todas las "joints", definiéndolas como EffotJointInterface. 
+    Por otro lado, se definieron los valores de las ganancias PID de los controladores de cada articulación de la pinza con una estructura similar 
+a la del controlador del brazo. Las ganancias se definen con valores muy bajos, pues son articulaciones pequeñas y aún se tienen que ajustar en 
+este momento. Por lo tanto, en el archivo .launch se carga el controlador con un "controller_manager" con un nombre diferente.
+    Luego, al lanzar la simulación se observaba que se cargaba el modelo, pero la pinza no tenía colisión y estaba mal colocada en el último eslabón
+del UR5. El primer problema se solucuionó añdadiendo unos comandos en el fichero "robotiq_arg2f_140_model_macro.xacro" donde se activa la colisión
+de los elementos "link" en la simulación de Gazebo. Luego, se cambió el parámetro "parent" que se le daba en el fichero "ur5_robot.urdf.xacro", de
+"ee_link" a "tool0", para que esté alineado con el robot. Después, se lanzó la simulación y se probó a mover el robot para comprobar que lo hacía
+con normalidad. Además, se ha cambiado el origen de la unión entre la pinza y el efector final del robot para evitar que esté uno metido dentro del
+otro, lo que provoca que estén colisionando constantemente, lo que da lugar a vibraciones o clipeos.
+    (5 h) --> 20 / 11 / 22
 
 
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC

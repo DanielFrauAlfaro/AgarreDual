@@ -28,9 +28,6 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
   - Simulacion en RVIZ
  sudo apt-get install ros-noetic-moveit-visual-tools
  sudo apt-get install ros-noetic-moveit-ros-visualization
- ------------------- Webs ------------------
- ROS UR Drivers: https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
- Universal Robots Repo: https://github.com/ros-industrial/universal_robot
 
 
   - Cambios
@@ -44,16 +41,23 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
    - + robotiq: proyecto con archivos URDF del gripper de ROBOTIQ (solo el 85)
    - M ../robotiq/robotiq_arg2f.xacro: se añade un parámetro "parent". Se añade una joint en la macro de "robotiq_arg2f_base_link" con el parent
    del parámetro y el base_link del propio link definido en la macro
-   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model_macro.xacro: se define el parámetro de "parent" en la macro "robotiq_arg2f_140"
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model_macro.xacro: se define el parámetro de "parent" en la macro "robotiq_arg2f_140". Se definen los comandos para activar la auto - colisión de los modelados.
    - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model.xacro: se añade el parámetro "parent" a la macro "robotiq_arg2f_140"
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_transmission.xacro: Se añadieron las "hardwareInterface" de cada una de las articulaciones
    - M ../universal_robots/ur_description/urdf/ur5_robot.launch: se incluye el archivo .xacro "robotiq_arg2f_140_model_macro.xacro"
-  	
+   - M ../universal_robots/ur_gazebo/launch/ur5_robot.launch: se incluye el controlador de la pinza
+   - + ../universal_robots/ur_gazebo/controllers/arg2f_140_controller.yaml: Se ha creado un controlador para las articulaciones de la pinza de
+   RobotIQ
+
+
   - Páginas Web:
     - Tutorial ROS Control: https://roboticscasual.com/ros-tutorial-control-the-ur5-robot-with-ros_control-tuning-a-pid-controller/
     - Python Robotic Toolbox (instalar): https://pypi.org/project/roboticstoolbox-python/
     - Python Robotic Toolbox (DOC): https://petercorke.github.io/robotics-toolbox-python/intro.html
     - UR5 with gripper Tutorial: https://roboticscasual.com/ros-tutorial-how-to-create-a-moveit-config-for-the-ur5-and-a-gripper/ (UNSUSED)
     - UR5 with gripper (summer_repository): https://www.youtube.com/watch?v=4zsZUm7T3LA
+    - ROS UR Drivers: https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
+    - Universal Robots Repo: https://github.com/ros-industrial/universal_robot
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
