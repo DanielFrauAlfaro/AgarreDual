@@ -95,18 +95,6 @@ class Controller():
         # Position and angle increment for simulation
         self.__incr = 0.005
         self.__incr_ = 0.05
-        
-        T = self.__ur5.fkine(self.__q)
-        v = T.eul()
-        (x,y,z,w) = get_quaternion_from_euler(v[0], v[1], v[2])
-        print(T)
-        print(v)
-        print("------")
-        print(x)
-        print(y)
-        print(z)
-        print(w)
-        
     
         
 # --------------------- Move the desired homogeneus transform -----------------
