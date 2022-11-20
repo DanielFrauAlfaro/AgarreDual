@@ -68,8 +68,8 @@ class Controller():
         self.__ur5.base = SE3.RPY(0,0,pi)      # Rotate robot base so it matches Gazebo model
         
         # Joint position vector: actual and home
-        self.__q = [0, -1.5, 1 , 0.0, 0.0, 0.0]
-        self.__q0 = [0, -1.5, 1 , 0.0, 0.0, 0.0]
+        self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
+        self.__q0 = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # ROS parameters: node, publishers and subscribers
         rospy.init_node("main_controller", anonymous=False)
@@ -95,6 +95,18 @@ class Controller():
         # Position and angle increment for simulation
         self.__incr = 0.005
         self.__incr_ = 0.05
+        
+        T = self.__ur5.fkine(self.__q)
+        v = T.eul()
+        (x,y,z,w) = get_quaternion_from_euler(v[0], v[1], v[2])
+        print(T)
+        print(v)
+        print("------")
+        print(x)
+        print(y)
+        print(z)
+        print(w)
+        
     
         
 # --------------------- Move the desired homogeneus transform -----------------
