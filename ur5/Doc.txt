@@ -61,5 +61,44 @@ Los modelos del repositorio original no se consiguieron fusionar con el modelo d
 para unir dos modelos URDF. Finalmente, se encontró uno para añadirlo al modelo aunque no sea del repositorio oficial. 
     (2 h) --> 18 / 11 / 22
 
+
+    Para añadir la pinza se deben hacer algunas modificaciones en los archivos URDF del repositorio ofifcial de RobotIQ. Las primeras pruebas se 
+hicieron basándose en un tutorial en el que se cogía una pinza de tres dedos, pero al colocarla en el modelo se observaban muchas oscilaciones e
+impreciosiones en el control incluso del brazo UR5. Se estima que lo que puede causar este fenómeno es la colisión entre los elementos físicos de
+la simulacion. Por ello se intentó añadir otra pinza, la robotiq_2F_140 (una pinza con dos dedos)
+    Este otro modelo era más complicado y en un inicio no se tenía claro como incluirla directamente. Se lanzó uno de los archivos launch para 
+visualizar la pinza y ver que "links" tenía; si se quiere añadir el modelo de la pinza al modelo del brazo se tiene que crear una "joint" que tenga
+como "parent" al efector final del brazo y como "child" a la base o conector de la pinza. Este segundo elemento era el que se estaría buscando al
+lanzar este launch.
+    El archivo que se lanzó fue el "roslaunch robotiq_2f_140_gripper_visualization test_robotiq_arg_2f_140_model.launch", donde se lanza un entorno
+en RVIZ con la pinza. Ahí, en la pestaña de "Links" se fueron eliminando hasta que se identificó el conector, con el nombre "robotiq_arg2f_140". Luego
+se vio cual era el fichero URDF que se estaba importando dentro del archivo .launch, el cual es el "robotiq_arg2f_140_model.xacro". En ese fichero,
+se declara una MACRO de otro XACRO (EXPLICAR QUE SON LOS ARCHIVOS .XACRO), una que se importa desde el fichero "robotiq_arg2f_140_model_macro.xacro"
+    El último fichero mencionado es un conjunto de macros que conforman la pinza de dos dedos RobotIQ 2F 140. Al final del fichero es donde se
+encuentra la macro correspondiente al conector, que a su vez define en otra fichero de macros .xacro, el "robotiq_arg2f.xacro".
+    Una vez llegados a este punto, se hicieron pruebas para intentar añadir la pinza al modelo URDF del robot UR5 de la carpeta "/ur_description/
+urdf/ur5_robot.urdf.xacro". Lo primero que se hizo fue intentar eliminar todas las sub-macros que definen cada "joint" y "link", pero daba errores
+por las diferentes referencias a otros ficheros y macros. Seguir por este camino implicaría conocer en profundidad el funcionamiento de los ficheros
+tipo XACRO, por lo que se optó por otra opción. En el fichero "robotiq_arg2f_140_model.xacro" se definía un parámetro para la macro "robotiq_arg2f_140",
+por lo que añadió otro parámetro, el "parent" de la pinza. Luego, en el archivo "robotiq_arg2f.xacro", en la macro de "robotiq_arg2f_base_link" se 
+añadió una "joint" de tipo "fixed" junto con un parámetro más, de manera que el "parent" sería ese nuevo parámetro y el "child" el propio "link" 
+que se define dentro de esa misma MACRO.
+    Así, haciendo un "include" de "robotiq_arg2f_140_model_macro.xacro" en el archivo "ur5_robot.irdf.launch" especificando como parámetro del
+"robotiq_arg2f_140" el link "ee_link" o "tool0" del UR5 se consigue añadir la pinza al modelo de Gazebo. Al lanzar el launch tal cual está, se 
+importa el modelo, pero se lanza un error, ya que hay "joints" que no tienen controlador, con lo que se va a proceder a añadirlo.
+    
+    Lo primero que habría que hacer es comprobar que tipo de transmisiones en las "joints" viene por defecto en los paquetes de RobotIQ. Esta
+configuración se declara en el archivo "robotiq_arg2f_transmission.xacro", donde se ver que son de tipo "transmission_interface/SimpleTransmission"
+con el "hardwareInterface" configuado como "PositionJointInterface", lo que resulta correcto para el control que se está realizando (un control en
+posición del robot y la pinza). Así, se puede definir mediante ROS - Control controladores de posición para cada una de las articulaciones de la 
+pinza, el nombre de las cuales se puede ver en la interfaz de usuario de Gazebo (navegando por el menú de la derecha y accediendo al apartado de 
+"joints") o buscando las definiciones de "joint" en el archivo "robotiq_arg2f_140_model_macro.xacro".
+    Al crear los controladores se observó que daba errores al cargarlos en la simulación (no detectaba la "joint" en los recursos). Esto se puede 
+deber a que no se definen bien las transmisiones en los archivos de MACRO. Solucionar esto requeriría hacer ficheros nuevos de coniguración 
+(nuevas macros) similares a las que se usan en los del UR5, ya que en los .xacro de RobotIQ no se hacen como se está utilizando en el proyecto.
+Otra opción sería ejecutarlo y generar un controlador adecuado a los ficheros de RobotIQ.
+    (3 h) --> 20 / 11 / 22
+
+
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
 
