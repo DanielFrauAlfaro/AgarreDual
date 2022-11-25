@@ -1,23 +1,15 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
-  <arg name="paused" default="true" doc="Starts gazebo in paused mode" />
-  <arg name="gui" default="true" doc="Starts gazebo gui" />
-  
-  <!-- startup simulated world -->
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" default="worlds/empty.world"/>
-    <arg name="paused" value="$(arg paused)"/>
-    <arg name="gui" value="$(arg gui)"/>
-  </include>
+  <arg name='origin' default='-x 0 -y 0 -z 0.005'/>
+  <arg name='robot_name' default='ur5'/>
 
   <!-- send robot urdf to param server -->
   <include file="$(find ur_description)/launch/ur5_upload.launch">
-    <arg name="limited" value="$(arg limited)"/>
+    <arg name="limited" value="false"/>
   </include>
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
-  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.005 -model ur5 -J shoulder_lift_joint -1.5 -J elbow_joint 1.0 -J wrist_2_joint 1.57" respawn="false" output="screen" />
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model $(arg robot_name) $(arg origin) -model $(arg robot_name) -J shoulder_lift_joint -1.5 -J elbow_joint 1.0 -J wrist_2_joint 1.57" respawn="false" output="screen" />
 
   <!-- MODIFICATIONS -->
   <!--
@@ -31,7 +23,7 @@
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
 
   <rosparam file="$(find ur_gazebo)/controller/arg2f_140_controller.yaml" command="load"/>
-  <node name="controller_spawner_gripper" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="left_inner_finger_joint_position_controller left_inner_knuckle_joint_position_controller right_inner_knuckle_joint_position_controller right_outer_knuckle_joint_position_controller right_inner_finger_joint_position_controller joint_state_controller" />
+  <node name="controller_spawner_gripper" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="left_inner_finger_joint_position_controller left_inner_knuckle_joint_position_controller right_inner_knuckle_joint_position_controller right_outer_knuckle_joint_position_controller right_inner_finger_joint_position_controller finger_joint_position_controller joint_state_controller_gripper" />
 
 
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
