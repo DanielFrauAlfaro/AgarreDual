@@ -15,6 +15,14 @@
     transmission_hw_interface="$(arg transmission_hw_interface)"
   />
 
+
+  <xacro:include filename="$(find ur_description)/urdf/camera/camera.urdf.xacro"/>
+  <xacro:camera_v0 parent="base_link">
+	     <origin xyz="1.0 -1.0 0.15" rpy="0 -0.2 2.39"/>
+  </xacro:camera_v0>
+
+  <xacro:camera_gazebo_v0 />
+
   <link name="world" />
 
   <joint name="world_joint" type="fixed">
@@ -24,6 +32,6 @@
   </joint>
 
    <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" />
-  <xacro:robotiq_arg2f_140 prefix="" parent="ee_link"/>
+  <xacro:robotiq_arg2f_140 prefix="" parent="tool0"/>
 
 </robot>
