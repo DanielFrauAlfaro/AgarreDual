@@ -110,5 +110,20 @@ otro, lo que provoca que estén colisionando constantemente, lo que da lugar a v
     (5 h) --> 20 / 11 / 22
 
 
+    Se ha creado un fichero de Python a modo de controlador en velocidad, aunque no se ha especificado ningún controlador de este tipo, sino que se toma
+un controlador en posición al que se le pasan los diferenciales que se reciben desde el dispositivo de control. De esta manera, se tiene la misma 
+estructura que con el controlador anterior pero con un bucle infinito de control. En éste, se va aumentando el valor de un vector de incrementos 
+([x, y, z, roll, pitch, yaw]) según los valores que se reciben desde un topic conectado a la interfaz (ya sea el Phantom o una interfaz propia). Se
+calcula la matriz de transformación homogénea del incremento (de momento solo se controlan los tres primeros grados de libertad) y se multiplica por
+la matriz de transformación actual. La matriz resultado de esta operación se envía como parámetro a la función que se encarga de mover el robot 
+(publicar en el topic de las articulaciones y hacer la cinemática inversa).
+    Por otro lado, se ha añadido un fichero .launch a los que ya habían presentes, uno cuya finalidad es la de cargar dos robots al mundo Gazebo de
+la simulación, incluyendo el fichero ur5.launch dos veces en distintos espacios de nombres (ns). Las modificaciones se han realizado sobre el launch
+original del ur5, donde se han eliminado los arugumentos, así como el spawner del mundo de Gazebo; si este comando estuviera dentro de ur5.launch
+se cargarían dos mundos diferentes, sin posibilidad de interactuar entre ellos. Luego, se argumentan varios parámetros que se le pasan al fichero, uno
+que correspondería con el nombre del robot (ur5_1 o ur5_2), ya que el simulador no es capaz de cargar dos modelos que se llamen igual. Además de que
+se definien posiciones distintas para los dos robots medante otro argumento siguiendo el formato del spawner del modelo del robot en Gazebo.
+    (2.5 h) --> 25 / 11 / 22
+
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
 
