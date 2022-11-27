@@ -27,7 +27,7 @@
     <joint name="${prefix}base" type="fixed">
       		<parent link="${parent}"/>
       		<child link="${prefix}robotiq_arg2f_base_link"/>
-          <origin xyz="0.0 0.0 0.001" rpy="0 0 1.57"/>
+          <origin xyz="0.0 0.0 0.005" rpy="0 0 1.57"/>
     	</joint>
   </xacro:macro>
 
@@ -43,4 +43,7 @@
     <xacro:inner_finger prefix="${prefix}" fingerprefix="${fingerprefix}" stroke="${stroke}"/>
     <xacro:inner_knuckle prefix="${prefix}" fingerprefix="${fingerprefix}" stroke="${stroke}"/>
   </xacro:macro>
+
+    
+
 </robot>
