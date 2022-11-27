@@ -190,23 +190,4 @@
     <xacro:right_outer_knuckle_joint prefix="${prefix}"/>
     <xacro:robotiq_arg2f_transmission prefix="${prefix}"/>
   </xacro:macro>
-
-    <gazebo reference="left_outer_knuckle">
-      <selfCollide>true</selfCollide>
-    </gazebo>
-    <gazebo reference="left_inner_finger">
-      <selfCollide>true</selfCollide>
-    </gazebo>
-    <gazebo reference="left_inner_knuckle">
-      <selfCollide>true</selfCollide>
-    </gazebo>
-    <gazebo reference="right_inner_knuckle">
-      <selfCollide>true</selfCollide>
-    </gazebo>
-    <gazebo reference="right_outer_knuckle">
-      <selfCollide>true</selfCollide>
-    </gazebo>
-    <gazebo reference="right_inner_finger">
-      <selfCollide>true</selfCollide>
-    </gazebo>
 </robot>
