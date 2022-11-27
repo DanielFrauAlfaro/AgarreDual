@@ -125,5 +125,30 @@ que correspondería con el nombre del robot (ur5_1 o ur5_2), ya que el simulador
 se definien posiciones distintas para los dos robots medante otro argumento siguiendo el formato del spawner del modelo del robot en Gazebo.
     (2.5 h) --> 25 / 11 / 22
 
+
+    En esta sesión, lo primero que se ha intentado hacer es conceguir que la pinza se importe correctamente a la simulación; según viene en el
+repositorio de RobotIQ, no se importa bien en Gazebo. Las articulaciones en los modelos DAE no tienen agujeros, por lo que se tienen que definir 
+joints en los ficheros de configuración URDF. En el que viene por defecto haría falta definir una, la que une el inner_finger con el inner_knuckle
+de cada uno de los dedos de la pinza. Definirla manualmente es complicado, pues habría que definir la posición de la joint y hacerlo es difícil a 
+la vez que no resultaría preciso del todo. Así, buscando en algunos repositorios se encontró que si se definían las joints como un grupo de movimiento
+coordinado entre ellos, se puede corregir y que se muestren bien todas ellas. Esta modificación se introduce en el fichero de transmissions del
+gripper 140 2F. Esta solución consigue que se vea bien en la simulación, aunque no permite el control directamente con ROS-Control (las joints 
+están fijas), por lo que se va a optar por la planificación de trayectorias con MoveIT, ya que solo se requerirían de dos movimientos; abrir y 
+cerrar, que se definirían previamente.
+    Luego, se pasó a hacer un controlador en velocidad. Al importarlo tal cual en la simulación se observó que el robot caía por su propio peso,
+esto se debía a que, al ser en velocidad, al principio no recibe comandos de velocidad por lo que el motor no tiene que mantener ninguna referencia
+de entrada. Si no está preparado o configurado para mantener posición, el motor se suelta y deja ir la articulación. Por lo tanto, la solución que se
+ha elegido es la de crear un script de Pyhton, un nodo, cuya función sea la de mantener la velocidad del motor aun cuando no recibe comandos de 
+movimiento; el procedimiento es el siguiente: se recogen los datos del joint_state_publisher de cada una de las articualciones, el process_value 
+(valor_actual) y el set_point (el comando que se le envía a la articulación desde el topic de .../command). Una vez se tienen cada uno de ellos, se
+ejerce un control en bucle cerrado, donde se calcula el error en velocidad (set_point - process_value) y este se envía al controlador articular en
+velocidad de cada articualción. Al principio, el robot oscilaba mucho y no se conseguía mantener bien la posición, debido a que los valores PID de
+los controladores articulares eran incorrectos. De esta manera, se procedió a ajustarlos, primero modificándolos en el .yaml y relanzando la
+simulación (el robot se caía al suelo y no se podía ver con claridad su funcionamiento) y luego mediante RQT y el plugin de Dynamic Reconfigure, 
+ajustando los valores de ganancia PID. Generalmente, se seleccionaron controladores PD, con valores bajos del apartado derivativo. Respecto a las
+magnitudes proporcionales, son bastante más bajas que las del controlador en posición, aunque en este punto se tienen que ajustar del todo, ya que 
+el robot vibra y no se ha comprobado su comportamiento ante el control en velocidad externo; aquí solo se mantiene sin caerse.
+    (4 h) --> 29 / 11 / 22
+
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
 

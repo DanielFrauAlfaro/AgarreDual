@@ -44,10 +44,21 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
    - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model_macro.xacro: se define el parámetro de "parent" en la macro "robotiq_arg2f_140". Se definen los comandos para activar la auto - colisión de los modelados.
    - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model.xacro: se añade el parámetro "parent" a la macro "robotiq_arg2f_140"
    - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_transmission.xacro: Se añadieron las "hardwareInterface" de cada una de las articulaciones
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_transmission.xacro: se añadió el plugin de robotiq_group (suprime el de
+   arribe)
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model_macro.xacro: se anulan las autocolisiones
    - M ../universal_robots/ur_description/urdf/ur5_robot.launch: se incluye el archivo .xacro "robotiq_arg2f_140_model_macro.xacro"
    - M ../universal_robots/ur_gazebo/launch/ur5_robot.launch: se incluye el controlador de la pinza
    - + ../universal_robots/ur_gazebo/controllers/arg2f_140_controller.yaml: Se ha creado un controlador para las articulaciones de la pinza de
    RobotIQ
+   - M ../universal_robots/ur_gazebo/ur5.launch: se modifica para que admita la llamada desde otro archivo launch con varios argumentos y parámetros
+   para seleccionar los nombres. También se eliminan los spawns de gazebo y el mundo
+   - + ../unversal_robots/ur_gazebo/launch/ur5_2.launch: launch para dos robots. Se ejecutan los spawns del mundo y gazebo.
+   - + ../unversal_robots/ur_gazebo/launch/ur5_.launch: launch para lanzar un solo robot UR5. También se puede lanzar con el controlador en bucle
+   cerrado de velocidad
+   - + ../universal_robots/ur_gazebo/controller/ur5_vel_controller.yaml: ganancias PID para el control de velocidad, con otro tipo de controlador 
+   (effort_controoler/JointVelocityController)
+   - + ../vel: paquete para el control de velocidad en bucle cerrado
 
 
   - Páginas Web:
@@ -58,6 +69,8 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
     - UR5 with gripper (summer_repository): https://www.youtube.com/watch?v=4zsZUm7T3LA
     - ROS UR Drivers: https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
     - Universal Robots Repo: https://github.com/ros-industrial/universal_robot
+    - RobotIQ gripper Mimic (Forun): https://github.com/ros-industrial/robotiq/issues/150
+    - roboticsgroup_gazebo_plugins: https://github.com/roboticsgroup/roboticsgroup_gazebo_plugins
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
