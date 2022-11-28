@@ -116,13 +116,14 @@ class Controller():
         while not rospy.is_shutdown():
             
             for i in range(6):    
-                incr[i] += self.__incr[i]/10.0
+                incr[i] = self.__incr[i] / 5.0
             
             T = SE3(incr[0], incr[1], incr[2])
             T_ = SE3.RPY(incr[3], incr[4], incr[5])
             
             T = T * T_or
-                    
+            T_or = T
+            
             self.__move(T)
             
     
@@ -156,17 +157,17 @@ class Controller():
 
 # ----------------- Callbacks for the joint controller state Subscribers ------------------
     def __shoulder_pan_listener(self,data):    
-        self.__q[0] = data.set_point
+        self.__q[0] = data.process_value
     def __shoulder_lift_listener(self,data):
-        self.__q[1] = data.set_point
+        self.__q[1] = data.process_value
     def __elbow_listener(self,data):
-        self.__q[2] = data.set_point
+        self.__q[2] = data.process_value
     def __wrist_1_listener(self,data):
-        self.__q[3] = data.set_point
+        self.__q[3] = data.process_value
     def __wrist_2_listener(self,data):
-        self.__q[4] = data.set_point
+        self.__q[4] = data.process_value
     def __wrist_3_listener(self,data):
-        self.__q[5] = data.set_point
+        self.__q[5] = data.process_value
         
         
 # Controller object
