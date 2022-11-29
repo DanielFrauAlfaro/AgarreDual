@@ -28,7 +28,7 @@
         <arg name="gui" value="$(arg gui)"/>
     </include>
 
-  <rosparam file="$(find ur_gazebo)/controller/ur5_controller_params.yaml" command="load"/>
+  <rosparam file="$(find ur_gazebo)/controller/ur5_vel_controller.yaml" command="load"/>
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
 
   <rosparam file="$(find ur_gazebo)/controller/arg2f_140_controller.yaml" command="load"/>
@@ -38,5 +38,5 @@
   respawn="false" output="screen">
   </node>
 
-  <!--node name="vel" pkg="vel" type="vel.py" output="screen"/-->
+  <node name="vel" pkg="vel" type="vel.py" output="screen"/>
 </launch>
