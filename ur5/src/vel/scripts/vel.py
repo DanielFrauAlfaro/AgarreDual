@@ -6,6 +6,8 @@ import rospy
 
 set_point = []
 process_value = []
+joints_com = []
+
 
 for i in range(6):
     set_point.append(0.0)
@@ -40,7 +42,6 @@ rospy.Subscriber('/wrist_1_joint_position_controller/state', JointControllerStat
 rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, wrist_2_listener)
 rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, wrist_3_listener)
 
-joints_com = []
 
 joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=10))
 joints_com.append(rospy.Publisher('/shoulder_lift_joint_position_controller/command', Float64, queue_size=10))
