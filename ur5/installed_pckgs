@@ -71,6 +71,7 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
     - Universal Robots Repo: https://github.com/ros-industrial/universal_robot
     - RobotIQ gripper Mimic (Forun): https://github.com/ros-industrial/robotiq/issues/150
     - roboticsgroup_gazebo_plugins: https://github.com/roboticsgroup/roboticsgroup_gazebo_plugins
+    - install libncurses5-dev: https://zoomadmin.com/HowToInstall/UbuntuPackage/libncurses5-dev
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
