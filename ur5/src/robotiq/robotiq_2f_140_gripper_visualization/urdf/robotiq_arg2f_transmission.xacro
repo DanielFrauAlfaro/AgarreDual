@@ -35,7 +35,7 @@
         <mimicJoint>${prefix}right_inner_knuckle_joint</mimicJoint>
       </plugin>
     </gazebo>
-
+    <!--
     <transmission name="${prefix}left_inner_finger_joint_trans">
       <type>transmission_interface/SimpleTransmission</type>
       <joint name="${prefix}left_inner_finger_joint">
@@ -84,6 +84,6 @@
       <actuator name="${prefix}finger_joint_motor">
         <mechanicalReduction>1</mechanicalReduction>
       </actuator>
-    </transmission>
+    </transmission> -->
   </xacro:macro>
 </robot>
