@@ -16,7 +16,7 @@ for i in range(6):
 
 def shoulder_pan_listener(data):    
     process_value[0] = data.process_value
-    set_point[0] = data.set_point
+    set_point[0] = data.set_point + 0.3
 def shoulder_lift_listener(data):
     process_value[1] = data.process_value
     set_point[1] = data.set_point
@@ -50,7 +50,7 @@ joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', 
 joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=10))
 joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=10))
 
-r = rospy.Rate(10)
+r = rospy.Rate(50)
 
 process_value_msgs = []
 for j in range(6):
