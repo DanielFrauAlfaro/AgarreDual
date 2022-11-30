@@ -150,5 +150,18 @@ magnitudes proporcionales, son bastante más bajas que las del controlador en po
 el robot vibra y no se ha comprobado su comportamiento ante el control en velocidad externo; aquí solo se mantiene sin caerse.
     (4 h) --> 29 / 11 / 22
 
+    Se ha ido comprobando el  comportamiento del controlador en velocidad del bucle cerrado. Se observó que, aunque mantenía la velocidad de las
+articulaciones, no se conseguía que al mandarle mensajes de movimiento los hiciera correctamente. Esto es debido a que está intentando mantener el
+set_point del joint_state, que puede no estar coordinado con la publicación del command, por lo que hay veces que se publica la velocidad deseada
+pero el controlador intenta mantener la velocidad inicial (0.0 en este caso). 
+    Se intentó crear topics adicionales con los que mandar la velocidad para no indicarla directamente en el commando pero seguí surgiendo el 
+mismo problema. Hasta aquí se intentaba hacer un enfoque asíncrono; no se coordinan los envíos de mensajes (lo que es erróneo). Así, haciendo pruebas,
+se vio que en el callback del joint_state, si se le suma la velocidad deseada a la variable que almacena el set_point, se consigue la velocidad que 
+se indica, al menos con la primera articulación. Así, la ejecución se haría de manera síncrona, pues los comandos de movimiento que presumiblemente
+se mandarían desde otro topic tendrían que esperar a que se recibiera mensajes desde el joint_state_publisher del robot.
+    ###################################### [PENDIENTE DE PRUEBA CON TODAS LAS ARTICULACIONES] ##########################################
+    (1 h) --> 30 / 11 / 22
+
+
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
 
