@@ -16,7 +16,7 @@ for i in range(6):
 
 def shoulder_pan_listener(data):    
     process_value[0] = data.process_value
-    set_point[0] = data.set_point + 0.3
+    set_point[0] = data.set_point  # + 0.3
 def shoulder_lift_listener(data):
     process_value[1] = data.process_value
     set_point[1] = data.set_point
