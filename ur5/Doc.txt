@@ -158,10 +158,39 @@ pero el controlador intenta mantener la velocidad inicial (0.0 en este caso).
 mismo problema. Hasta aquí se intentaba hacer un enfoque asíncrono; no se coordinan los envíos de mensajes (lo que es erróneo). Así, haciendo pruebas,
 se vio que en el callback del joint_state, si se le suma la velocidad deseada a la variable que almacena el set_point, se consigue la velocidad que 
 se indica, al menos con la primera articulación. Así, la ejecución se haría de manera síncrona, pues los comandos de movimiento que presumiblemente
-se mandarían desde otro topic tendrían que esperar a que se recibiera mensajes desde el joint_state_publisher del robot.
-    ###################################### [PENDIENTE DE PRUEBA CON TODAS LAS ARTICULACIONES] ##########################################
+se mandarían desde otro topic tendrían que esperar a que se recibiera mensajes desde el joint_state_publisher del robot. Es necesario que el nodo
+que ejecuta el controlador en velocidad en bucle cerrado debe iniciarse junto con la simulación, y esta debe estar pausada al lanzarse, para que 
+no obtenga valores indeseados al empezar y se caiga.
     (1 h) --> 30 / 11 / 22
 
+
+    Se ha intentado instalar los drivers para el Phantom Omni en Linux. Para ello, se ha seguido los tutoriales que se ofrecen en la página web de
+OpenHaptics. Se crearon las carpetas correspondientes y se realizaron los pasos para conectarse al Phantom mediante Ethernet; se conecta el dispositivo,
+se entra en la configuración del ordenador, el apartado "Redes / Network" y se identifica el dispositivo cableado conectado por Ethernet. Luego,
+se establece que se conecten localmente. Finalmente se desconecta y conecta el dispositivo al ordenador. 
+    Después de segui estos pasos se podía calibrar el Phantom y hacer algunas demos, por lo que el ordenador está recibiendo datos del Phantom. Se
+intentó ejecutar algunos de los scripts de OpenHaptics, pero se producían errores de ejecución. De esta manera, se probó a instalar algunos 
+proyectos realizados en Linux que hacían uso del Phantom Omni, aunque eran muy antiguos y las versiones tanto de Linux como de ROS incompatibles. 
+Además de que se indicaba en todos ellos (y en el oficial también) que no era posible conectar varios Phantom al mismo equipo. Así, se llegó al 
+repositorio de jhu, donde se indicaban los pasos para la instalación de los drivers del Phantom en Linux 20.04 (con ROS Noetic). Instalando las 
+librerías indicadas y descargando las herramientas de catkin correspondientes a versiones anteriores (especificando python3 como la versión de
+Python) se pudo compilar el proyecto en el ordenador propio, solo que había un ejemplo de una de las librería en el directorio src/cisst-saw/sawControllers/examples
+en el que se intoducía un paquete que producía errores al compilar por un paquete que no encontraba. Como no se encontró la instalación ni el modo 
+de realizarla se decidió desinstalarlo, pues era un ejemplo y no pasaba nada (en principio) si se prescindía de él.
+    Por otro lado, se han creado los topic por los que se pasa la posición cartesiana del robot y el índice de manipulabilidad, con el objetivo de
+que el nodo de ROS correspondiente al Phantom Omni sea capaz de suscribirse a éstos y ejercer fuerza sobre el operador.
+    Finalmente, se ha empezado a hacer el controlador de velocidad en bucle cerrado del robot para que sea capaz de recibir comando de velocidad 
+desde otros nodos, y no solo sea capaz de mantener la velocidad actual. Para ello, se crearon varios topics donde se recoje la información articular
+de los comandos deseados que se quieren mandar al robot. Luego, esos valores se sumaban en el callback al set_point, para hacerlo de manera síncrona.
+Así, se podían mandar mensajes de velocidad, aunque se producían oscilaciones en los movimientos y algunas inestabilidades en unas articualciones
+daban comportamientos no deseados en otras (acoplamiento general). Así, se empezó a ajustar las ganancias PID de los controladores articulares
+del robot. Ajustando estos valores, se observaron comportamientos menos oscilatorios pero que no eran del todo aceptables para realizar un control
+preciso. Lo que ocurría era que el control en bucle cerrado actuaba con una frecuencia demasiado elevada, lo que provocaba que el controlador no 
+parara de corregir desviaciones mínimas en las articulaciones. De esta manera, se bajó la frecuencia de funcionamiento del script de Python. Luego,
+se aplicó un enfoque más parecido al que se tiene en teoría de control tradicional; hasta ahora se usaba la diferencia entre el punto detectado de la
+articulación y el valor que se quiere dar. Ahora, se suma al comando que se manda al robot la posición deseada menos la que actualmente tiene (el 
+error). Aun así, el comportamiento era bastante similar, siendo la disminución de la frecuencia el factor determinante para este problema.
+    (5 h) --> 31 / 11/ 22
 
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
 
