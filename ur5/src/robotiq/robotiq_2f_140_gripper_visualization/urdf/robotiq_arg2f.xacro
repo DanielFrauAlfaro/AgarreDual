@@ -27,7 +27,7 @@
     <joint name="${prefix}base" type="fixed">
       		<parent link="${parent}"/>
       		<child link="${prefix}robotiq_arg2f_base_link"/>
-          <origin xyz="0.0 0.0 0.005" rpy="0 0 1.57"/>
+          <origin xyz="0.0 0.0 0.006" rpy="0 0 1.57"/>
     	</joint>
   </xacro:macro>
 
