@@ -60,6 +60,7 @@ def euler_from_quaternion(x, y, z, w):
      
         return roll_x, pitch_y, yaw_z # in radians
 
+
 # Main class for the controller
 class Controller():
     def __init__(self):
@@ -92,10 +93,12 @@ class Controller():
         rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
         rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
 
+        self.__cart_pos = rospy.Publisher('/cart_pos', Pose, queue_size=10)
+        self.__manip = rospy.Publisher('/manipulability', Float64, queue_size=10)
+        
         # Position and angle increment for simulation
         self.__incr = 0.005
         self.__incr_ = 0.05
-    
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
@@ -103,6 +106,25 @@ class Controller():
         
         for i in range(6):
             self.__joints_com[i].publish(q.q[i])
+            
+        m = self.__ur5.manipulability(self.__q ,  axes="trans")
+        self.__manip.publish(m)
+        
+        pose = Pose()
+        
+        trans = T.t
+        eul = T.eul()
+        
+        pose.position.x = trans[0]
+        pose.position.y = trans[1]
+        pose.position.z = trans[2]
+        
+        pose.orientation.x = eul[0]
+        pose.orientation.y = eul[1]
+        pose.orientation.z = eul[2]
+        
+        self.__cart_pos.publish(pose)
+
 
     
 # -------------------- Callback for the haptic topic --------------------------
