@@ -157,17 +157,17 @@ class Controller():
 
 # ----------------- Callbacks for the joint controller state Subscribers ------------------
     def __shoulder_pan_listener(self,data):    
-        self.__q[0] = data.process_value
+        self.__q[0] = data.set_point
     def __shoulder_lift_listener(self,data):
-        self.__q[1] = data.process_value
+        self.__q[1] = data.set_point
     def __elbow_listener(self,data):
-        self.__q[2] = data.process_value
+        self.__q[2] = data.set_point
     def __wrist_1_listener(self,data):
-        self.__q[3] = data.process_value
+        self.__q[3] = data.set_point
     def __wrist_2_listener(self,data):
-        self.__q[4] = data.process_value
+        self.__q[4] = data.set_point
     def __wrist_3_listener(self,data):
-        self.__q[5] = data.process_value
+        self.__q[5] = data.set_point
         
         
 # Controller object
