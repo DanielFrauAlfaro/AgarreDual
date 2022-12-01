@@ -9,7 +9,7 @@ import rospy
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import Image
 
-from cv_bridge import CvBridge, CvBridgeError
+from cv_bridge import CvBridge
 import cv2 as cv
 import numpy as np
 
