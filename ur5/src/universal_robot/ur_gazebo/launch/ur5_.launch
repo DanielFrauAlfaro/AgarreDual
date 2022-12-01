@@ -5,6 +5,8 @@
   <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
   <arg name="paused" default="true" doc="Starts gazebo in paused mode" />
   <arg name="gui" default="true" doc="Starts gazebo gui" />
+  <arg name="mode" default="position"/>
+
   <!-- send robot urdf to param server -->
   <include file="$(find ur_description)/launch/ur5_upload.launch">
     <arg name="limited" value="false"/>
@@ -28,15 +30,19 @@
         <arg name="gui" value="$(arg gui)"/>
     </include>
 
-  <rosparam file="$(find ur_gazebo)/controller/ur5_controller_params.yaml" command="load"/>
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
+  <group if="$(eval arg('mode') == 'position')">
+    <rosparam file="$(find ur_gazebo)/controller/ur5_controller_params.yaml" command="load"/>
+  </group>
 
-  <rosparam file="$(find ur_gazebo)/controller/arg2f_140_controller.yaml" command="load"/>
-  <node name="controller_spawner_gripper" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="left_inner_finger_joint_position_controller left_inner_knuckle_joint_position_controller right_inner_knuckle_joint_position_controller right_outer_knuckle_joint_position_controller right_inner_finger_joint_position_controller finger_joint_position_controller joint_state_controller_gripper" />
+  <group unless="$(eval arg('mode') == 'position')">
+    <rosparam file="$(find ur_gazebo)/controller/ur5_vel_controller.yaml" command="load"/>
+    <node name="vel" pkg="vel" type="vel.py" output="screen"/>
+  </group>
 
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
   respawn="false" output="screen">
   </node>
 
-  <!--node name="vel" pkg="vel" type="vel.py" output="screen"/-->
+  
 </launch>
