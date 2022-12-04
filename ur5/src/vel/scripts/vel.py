@@ -77,7 +77,9 @@ joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', 
 joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=10))
 joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=10))
 
-r = rospy.Rate(10)
+r = rospy.Rate(15)
+
+g = [0.8, 0.8, 0.8, 1, 0.5, 1]
 
 process_value_msgs = []
 for j in range(6):
@@ -85,6 +87,6 @@ for j in range(6):
 
 while not rospy.is_shutdown():
     for k in range(6):
-        process_value_msgs[k].data +=  (q[k] - process_value[k])*0.8
+        process_value_msgs[k].data +=  (q[k] - process_value[k])*g[k]
         joints_com[k].publish(process_value_msgs[k])
     r.sleep()
