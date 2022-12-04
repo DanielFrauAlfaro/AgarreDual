@@ -198,6 +198,16 @@ se hacía, se encontraron con los mismos problemas que con el de velocidad (sobr
 controladores otra vez, pues se está aplicando otro paradigma de control. En un primer ajuste de los controladores se observó que oscilaban mucho
 al detenerse después de realizar un movimiento, por lo que se va a intentar solucionar este problema, aumentando las ganancias proporcionales y 
 ajustando la derivativa.
+    Para ajustar las ganancias se tiene en cuenta los valores PD en el controlador de posición; el proporcional para disminuir el tiempo de subida del 
+sistema (aunque se aumentan las oscilaciones a medida que se incrementa la magnitud) y el derivativo, que amortigua las oscilaciones aunque ralentiza 
+el sistema. De esta manera, se intnenta conseguir una actuación lo suficientemente rápida para que se llegue bien a las posiciones de consigna pero 
+con pocas oscilaciones (para que cuando no se manden más se mantenga en la posición y no oscile).
+    Por otro lado, para el controlador de posición se han ajustado las ganancias del controlador, sobretodo las de la muñeca.
+    El problema de la frecuencia ha sido muy importante en ambos controladores; con cambiar la frecuencia de envío de datos así como a la que trabaja el
+bucle cerrado se deben cambiar las ganancias del controlador. En RQT, estableciendo una frecuencia de publicación de unos 50 Hz se ajustaron los valores PID.
+Aún así, también se aumentó la frecuencia a la que funcionaba el script del control en bucle cerrado.
+    (5 h) --> 4 / 12 / 22
+
 
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
 
