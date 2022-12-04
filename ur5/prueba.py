@@ -79,12 +79,12 @@ class Controller():
         rospy.Subscriber('/pose', Pose, self.__callback)
                 
         self.__joints_com = []
-        self.__joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=1))
-        self.__joints_com.append(rospy.Publisher('/shoulder_lift_joint_position_controller/command', Float64, queue_size=1))
-        self.__joints_com.append(rospy.Publisher('/elbow_joint_position_controller/command', Float64, queue_size=1))
-        self.__joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', Float64, queue_size=1))
-        self.__joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=1))
-        self.__joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=1))
+        self.__joints_com.append(rospy.Publisher('/j1', Float64, queue_size=10))
+        self.__joints_com.append(rospy.Publisher('/j2', Float64, queue_size=10))
+        self.__joints_com.append(rospy.Publisher('/j3', Float64, queue_size=10))
+        self.__joints_com.append(rospy.Publisher('/j4', Float64, queue_size=10))
+        self.__joints_com.append(rospy.Publisher('/j5', Float64, queue_size=10))
+        self.__joints_com.append(rospy.Publisher('/j6', Float64, queue_size=10))
 
         rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
         rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
@@ -266,17 +266,17 @@ class Controller():
 
 # ----------------- Callbacks for the joint controller state Subscribers ------------------
     def __shoulder_pan_listener(self,data):    
-        self.__q[0] = data.set_point
+        self.__q[0] = data.process_value
     def __shoulder_lift_listener(self,data):
-        self.__q[1] = data.set_point
+        self.__q[1] = data.process_value
     def __elbow_listener(self,data):
-        self.__q[2] = data.set_point
+        self.__q[2] = data.process_value
     def __wrist_1_listener(self,data):
-        self.__q[3] = data.set_point
+        self.__q[3] = data.process_value
     def __wrist_2_listener(self,data):
-        self.__q[4] = data.set_point
+        self.__q[4] = data.process_value
     def __wrist_3_listener(self,data):
-        self.__q[5] = data.set_point
+        self.__q[5] = data.process_value
         
         
 # Controller object
