@@ -32,6 +32,7 @@
 
   <group if="$(eval arg('mode') == 'position')">
     <rosparam file="$(find ur_gazebo)/controller/ur5_controller_params.yaml" command="load"/>
+    <node name="vel" pkg="vel" type="pos.py" output="screen"/>
   </group>
 
   <group unless="$(eval arg('mode') == 'position')">
