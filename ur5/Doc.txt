@@ -192,5 +192,12 @@ articulación y el valor que se quiere dar. Ahora, se suma al comando que se man
 error). Aun así, el comportamiento era bastante similar, siendo la disminución de la frecuencia el factor determinante para este problema.
     (5 h) --> 31 / 11/ 22
 
+
+    Se está realizando el control en bucle cerrado en posición a partir del que se hizo del de velocidad, siguiendo los mismos principios. Mientras
+se hacía, se encontraron con los mismos problemas que con el de velocidad (sobretodo el problema de la frecuencia). Así, se tuvieron que ajustar los
+controladores otra vez, pues se está aplicando otro paradigma de control. En un primer ajuste de los controladores se observó que oscilaban mucho
+al detenerse después de realizar un movimiento, por lo que se va a intentar solucionar este problema, aumentando las ganancias proporcionales y 
+ajustando la derivativa.
+
     PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
 
