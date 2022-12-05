@@ -37,7 +37,7 @@ def wrist_3_listener(data):
     process_value[5] = data.process_value
     set_point[5] = data.set_point + q[5]
 
-
+'''
 def cb_j1(data):
     q[0] = data.data
 def cb_j2(data):
@@ -50,20 +50,20 @@ def cb_j5(data):
     q[4] = data.data
 def cb_j6(data):
     q[5] = data.data
-    
+    '''
 
 
 
 rospy.init_node("vel", anonymous=True)
 
-
+'''
 rospy.Subscriber('/j1', Float64, cb_j1)
 rospy.Subscriber('/j2', Float64, cb_j2)
 rospy.Subscriber('/j3', Float64, cb_j3)
 rospy.Subscriber('/j4', Float64, cb_j4)
 rospy.Subscriber('/j5', Float64, cb_j5)
 rospy.Subscriber('/j6', Float64, cb_j6)
-
+'''
 
 rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, shoulder_pan_listener)
 rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, shoulder_lift_listener)
@@ -90,6 +90,6 @@ for j in range(6):
 
 while not rospy.is_shutdown():
     for k in range(6):
-        process_value_msgs[k] +=  (q[k] - process_value[k])*g[k]
+        process_value_msgs[k] =  (q[k])
         joints_com[k].publish(process_value_msgs[k])
     r.sleep()
