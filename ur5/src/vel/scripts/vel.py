@@ -77,7 +77,7 @@ joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', 
 joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=10))
 joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=10))
 
-r = rospy.Rate(15)
+r = rospy.Rate(10)
 
 g = [0.8, 0.8, 0.8, 1, 0.5, 1]
 
