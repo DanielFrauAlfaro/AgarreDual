@@ -228,6 +228,13 @@ reloj, la secundaria se podría mover en esa misma dirección en la contraria se
 definió un controlador mediante ROS-Control. Para poder añadirlo, había que cambiar el tipo de transmisión con el que se importaba la pinza; de
 PositionJointInterface a EffortJointInterface. Así, se ajustó el controlador para que cerrara sin provocar oscilaciones que se propagaran al resto
 del brazo robótico.
+    Además, se ha incrementado la frecuencia a la que funcionan los joint_state_publisher para que la pinza pueda seguir comandos de posición de 
+manera más solvente. Al probar con la función seno en RQT se observó que los pasos eran muy bruscos y que daba saltos en vez de seguir una trayectoria
+suave. Esto no influyó en los otros controladores, ya que el de posición sigue funcionando correctamente y el de velocidad está saturado por un
+script que se asegura de publicar correcciones de velocidad a una frecuencia determinada, de manera que los PID funcionen correctamente.
+    Cabe destacar que a veces, al iniciar la simulación, los dedos de la pinza se sueltan y se quedan colgando del robot. De momento no se encontró
+explicación a este problema, aunque si se recompila y se actualiza el source (se ejecuta en el terminal "source devel/setup.bash"), al volver a
+ejecutar el script de simulación aparece la pinza en el robot de manera correcta.
     (3 h) --> 5 / 12 / 22
 
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
