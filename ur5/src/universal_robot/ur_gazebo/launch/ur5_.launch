@@ -32,7 +32,7 @@
 
   <group if="$(eval arg('mode') == 'position')">
     <rosparam file="$(find ur_gazebo)/controller/ur5_controller_params.yaml" command="load"/>
-    <node name="vel" pkg="vel" type="pos.py" output="screen"/>
+    <!--node name="vel" pkg="vel" type="pos.py" output="screen"/-->
   </group>
 
   <group unless="$(eval arg('mode') == 'position')">
@@ -40,10 +40,14 @@
     <node name="vel" pkg="vel" type="vel.py" output="screen"/>
   </group>
 
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
+<rosparam file="$(find ur_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
+
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="gripper shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
   respawn="false" output="screen">
   </node>
+
+  
 
   
 </launch>
