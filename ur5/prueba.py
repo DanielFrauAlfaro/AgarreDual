@@ -79,12 +79,12 @@ class Controller():
         rospy.Subscriber('/pose', Pose, self.__callback)
                 
         self.__joints_com = []
-        self.__joints_com.append(rospy.Publisher('/j1', Float64, queue_size=10))
-        self.__joints_com.append(rospy.Publisher('/j2', Float64, queue_size=10))
-        self.__joints_com.append(rospy.Publisher('/j3', Float64, queue_size=10))
-        self.__joints_com.append(rospy.Publisher('/j4', Float64, queue_size=10))
-        self.__joints_com.append(rospy.Publisher('/j5', Float64, queue_size=10))
-        self.__joints_com.append(rospy.Publisher('/j6', Float64, queue_size=10))
+        self.__joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/elbow_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=100))
 
         rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
         rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
@@ -103,7 +103,7 @@ class Controller():
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)
-        
+                
         for i in range(6):
             self.__joints_com[i].publish(q.q[i])
             
@@ -163,7 +163,6 @@ class Controller():
         T_ = SE3(-self.__incr, 0, 0.0)
         T = T_ * T
         
-        # print(T)
 
         self.__move(T)
     
@@ -172,7 +171,6 @@ class Controller():
         T_ = SE3(0, self.__incr, 0.0)
         T = T_ * T
         
-        # print(T)
 
         self.__move(T)
     
@@ -181,7 +179,6 @@ class Controller():
         T_ = SE3(0, -self.__incr, 0.0)
         T = T_ * T
         
-        # print(T)
 
         self.__move(T) 
     
@@ -190,7 +187,6 @@ class Controller():
         T_ = SE3(0, 0, self.__incr)
         T = T_ * T
         
-        # print(T)
 
         self.__move(T)
     
@@ -199,7 +195,6 @@ class Controller():
         T_ = SE3(0, 0, -self.__incr)
         T = T_ * T
         
-        # print(T)
 
         self.__move(T)
     
@@ -208,7 +203,6 @@ class Controller():
         T_ = SE3.RPY(self.__incr_, 0, 0)
         T = T * T_                          # In angle-movement, the increment is post-multiplied
         
-        # print(T)
 
         self.__move(T)
     
@@ -217,7 +211,6 @@ class Controller():
         T_ = SE3.RPY(-self.__incr_, 0, 0)
         T = T * T_
         
-        # print(T)
 
         self.__move(T)
     
@@ -226,7 +219,6 @@ class Controller():
         T_ = SE3.RPY(0, self.__incr_, 0)
         T = T * T_
         
-        # print(T)
 
         self.__move(T)
     
@@ -235,7 +227,6 @@ class Controller():
         T_ = SE3.RPY(0, -self.__incr_, 0)
         T = T * T_
         
-        # print(T)
 
         self.__move(T)
     
@@ -244,7 +235,6 @@ class Controller():
         T_ = SE3.RPY(0, 0, self.__incr_)
         T = T * T_
         
-        # print(T)
 
         self.__move(T)
         
@@ -253,30 +243,41 @@ class Controller():
         T_ = SE3.RPY(0, 0, -self.__incr_)
         T = T * T_
         
-        # print(T)
 
         self.__move(T)
 
         
 # ---------------- Home position ----------------
-    def home(self):    
+    def home(self):
         for i in range(5):
             self.__joints_com[i].publish(self.__q0[i])
 
 
 # ----------------- Callbacks for the joint controller state Subscribers ------------------
-    def __shoulder_pan_listener(self,data):    
-        self.__q[0] = data.process_value
+    def __shoulder_pan_listener(self,data): 
+          
+        self.__q[0] = data.set_point
+        
     def __shoulder_lift_listener(self,data):
-        self.__q[1] = data.process_value
+        
+        self.__q[1] = data.set_point
+        
     def __elbow_listener(self,data):
-        self.__q[2] = data.process_value
+        
+        self.__q[2] = data.set_point
+        
     def __wrist_1_listener(self,data):
-        self.__q[3] = data.process_value
+       
+        self.__q[3] = data.set_point
+        
     def __wrist_2_listener(self,data):
-        self.__q[4] = data.process_value
+        
+        self.__q[4] = data.set_point
+        
     def __wrist_3_listener(self,data):
-        self.__q[5] = data.process_value
+        
+        self.__q[5] = data.set_point
+        
         
         
 # Controller object
