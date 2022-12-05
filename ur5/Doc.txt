@@ -192,5 +192,43 @@ articulación y el valor que se quiere dar. Ahora, se suma al comando que se man
 error). Aun así, el comportamiento era bastante similar, siendo la disminución de la frecuencia el factor determinante para este problema.
     (5 h) --> 31 / 11/ 22
 
-    PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
+
+    Se está realizando el control en bucle cerrado en posición a partir del que se hizo del de velocidad, siguiendo los mismos principios. Mientras
+se hacía, se encontraron con los mismos problemas que con el de velocidad (sobretodo el problema de la frecuencia). Así, se tuvieron que ajustar los
+controladores otra vez, pues se está aplicando otro paradigma de control. En un primer ajuste de los controladores se observó que oscilaban mucho
+al detenerse después de realizar un movimiento, por lo que se va a intentar solucionar este problema, aumentando las ganancias proporcionales y 
+ajustando la derivativa.
+    Para ajustar las ganancias se tiene en cuenta los valores PD en el controlador de posición; el proporcional para disminuir el tiempo de subida del 
+sistema (aunque se aumentan las oscilaciones a medida que se incrementa la magnitud) y el derivativo, que amortigua las oscilaciones aunque ralentiza 
+el sistema. De esta manera, se intnenta conseguir una actuación lo suficientemente rápida para que se llegue bien a las posiciones de consigna pero 
+con pocas oscilaciones (para que cuando no se manden más se mantenga en la posición y no oscile).
+    Por otro lado, para el controlador de posición se han ajustado las ganancias del controlador, sobretodo las de la muñeca.
+    El problema de la frecuencia ha sido muy importante en ambos controladores; con cambiar la frecuencia de envío de datos así como a la que trabaja el
+bucle cerrado se deben cambiar las ganancias del controlador. En RQT, estableciendo una frecuencia de publicación de unos 50 Hz se ajustaron los valores PID.
+Aún así, también se aumentó la frecuencia a la que funcionaba el script del control en bucle cerrado.
+    (5 h) --> 4 / 12 / 22
+
+
+    Después de hacer la estructura anterior y ver que era muy complicado hacerla funcionar (demasiadas oscilaciones al detener el mandar los datos),
+se dejó como estaba anteriormente, por lo menos en posición. No sería necesario mantener la posición dada pues eso ya lo hace un controlador de
+posición por definición, por lo que simplemente se cargan los controladores articulares. En cuanto al controlador de velocidad, se añadió la pinza
+al modelo para observar su comportamiento ante una carga en el extremo y se observó que sucedía lo mismo que con los primeros controladores de 
+velocidad; el controlador intentaba corregir los errores en velocidad, en este caso producidos por el peso de la pinza, a una frecuencia muy alta,
+por lo que el robot temblaba y las articulaciones oscilaban demasiado. Así, en vez de calibrar otra vez las ganancias PID de cada articulación,
+se disminuyó la frecuencia de trabajo de los controladores. La misma prueba se hizo con el controlador de posición, aunque este si que conseguía 
+mantener los valores de las articualciones con solvencia.
+    Por otro lado, se ha resuelto el problema de la pinza. Para ello, se ha buscado un repositorio Github que incluyera el modelo de la pinza en una
+simulación de Gazebo. Durante la búsqueda se encontró que todos ellos incorporaban MoveIt en sus proyectos, un enfoque alejado del control directo
+que se pretende buscar en este trabajo (MoveIt es un paquete para el control y generación de trayectorias). Aun así, se encontró lo que se buscaba,
+una configuración de la pinza que funcionaba en Gazebo; recordar que el porblema era que había una joint que no estaba presente en los archivos de
+configuración URDF del fabricante. Esto se solucionó haciendo uso del paquete roboticsgroup_gazebo_plugins. Con esto se puede definir que las 
+diferentes joints de la pinza imiten el movimiento de una en específico, la una que se va a mover, siguiendo la geometría y mecansimos implementados.
+Además de elegir la dirección del movimiento resultante. Por ejemplo, si la articulación de referencia se mueve en sentido contrario a las agujas del
+reloj, la secundaria se podría mover en esa misma dirección en la contraria según se quiera. Una vez se tuvo la pinza dentro de la simulación, se 
+definió un controlador mediante ROS-Control. Para poder añadirlo, había que cambiar el tipo de transmisión con el que se importaba la pinza; de
+PositionJointInterface a EffortJointInterface. Así, se ajustó el controlador para que cerrara sin provocar oscilaciones que se propagaran al resto
+del brazo robótico.
+    (3 h) --> 5 / 12 / 22
+
+    BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 

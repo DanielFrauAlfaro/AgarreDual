@@ -6,7 +6,8 @@
 
   <!-- common stuff -->
   <xacro:include filename="$(find ur_description)/urdf/common.gazebo.xacro" />
-
+  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" />  
+  
   <!-- ur5 -->
   <xacro:include filename="$(find ur_description)/urdf/ur5.urdf.xacro" />
 
@@ -31,7 +32,15 @@
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </joint>
 
-  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" />
-  <xacro:robotiq_arg2f_140 prefix="" parent="tool0"/>
+  <!--xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" />
+  <xacro:robotiq_arg2f_140 prefix="" parent="tool0"/-->
+
+   <!-- gripper -->
+    <xacro:robotiq_arg2f_140 prefix="" />
+    <joint name="ur5_ee_link_gripper_base" type="fixed">
+      <parent link= "tool0" />
+      <child link = "robotiq_arg2f_base_link" />
+      <origin xyz=" 0.0 0.0 0.0" rpy="0.0 0.0 ${pi/2}" />
+    </joint>
 
 </robot>
