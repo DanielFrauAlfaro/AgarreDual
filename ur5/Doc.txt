@@ -209,5 +209,26 @@ Aún así, también se aumentó la frecuencia a la que funcionaba el script del 
     (5 h) --> 4 / 12 / 22
 
 
-    PROBAR CADA UNA DE LOS CONTROLADORES POR SEPARADO, DANDOLE VALORES CON RQT TOPIC
+    Después de hacer la estructura anterior y ver que era muy complicado hacerla funcionar (demasiadas oscilaciones al detener el mandar los datos),
+se dejó como estaba anteriormente, por lo menos en posición. No sería necesario mantener la posición dada pues eso ya lo hace un controlador de
+posición por definición, por lo que simplemente se cargan los controladores articulares. En cuanto al controlador de velocidad, se añadió la pinza
+al modelo para observar su comportamiento ante una carga en el extremo y se observó que sucedía lo mismo que con los primeros controladores de 
+velocidad; el controlador intentaba corregir los errores en velocidad, en este caso producidos por el peso de la pinza, a una frecuencia muy alta,
+por lo que el robot temblaba y las articulaciones oscilaban demasiado. Así, en vez de calibrar otra vez las ganancias PID de cada articulación,
+se disminuyó la frecuencia de trabajo de los controladores. La misma prueba se hizo con el controlador de posición, aunque este si que conseguía 
+mantener los valores de las articualciones con solvencia.
+    Por otro lado, se ha resuelto el problema de la pinza. Para ello, se ha buscado un repositorio Github que incluyera el modelo de la pinza en una
+simulación de Gazebo. Durante la búsqueda se encontró que todos ellos incorporaban MoveIt en sus proyectos, un enfoque alejado del control directo
+que se pretende buscar en este trabajo (MoveIt es un paquete para el control y generación de trayectorias). Aun así, se encontró lo que se buscaba,
+una configuración de la pinza que funcionaba en Gazebo; recordar que el porblema era que había una joint que no estaba presente en los archivos de
+configuración URDF del fabricante. Esto se solucionó haciendo uso del paquete roboticsgroup_gazebo_plugins. Con esto se puede definir que las 
+diferentes joints de la pinza imiten el movimiento de una en específico, la una que se va a mover, siguiendo la geometría y mecansimos implementados.
+Además de elegir la dirección del movimiento resultante. Por ejemplo, si la articulación de referencia se mueve en sentido contrario a las agujas del
+reloj, la secundaria se podría mover en esa misma dirección en la contraria según se quiera. Una vez se tuvo la pinza dentro de la simulación, se 
+definió un controlador mediante ROS-Control. Para poder añadirlo, había que cambiar el tipo de transmisión con el que se importaba la pinza; de
+PositionJointInterface a EffortJointInterface. Así, se ajustó el controlador para que cerrara sin provocar oscilaciones que se propagaran al resto
+del brazo robótico.
+    (3 h) --> 5 / 12 / 22
+
+    BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
