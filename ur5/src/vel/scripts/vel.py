@@ -17,22 +17,22 @@ for i in range(6):
 
 def shoulder_pan_listener(data):    
     process_value[0] = data.process_value
-    set_point[0] = data.set_point + q[0]
+
 def shoulder_lift_listener(data):
     process_value[1] = data.process_value
-    set_point[1] = data.set_point + q[1]
+
 def elbow_listener(data):
     process_value[2] = data.process_value
-    set_point[2] = data.set_point + q[2]
+
 def wrist_1_listener(data):
     process_value[3] = data.process_value
-    set_point[3] = data.set_point+ q[3]
+
 def wrist_2_listener(data):
     process_value[4] = data.process_value
-    set_point[4] = data.set_point + q[4]
+
 def wrist_3_listener(data):
     process_value[5] = data.process_value
-    set_point[5] = data.set_point + q[5]
+
 
 
 def cb_j1(data):
