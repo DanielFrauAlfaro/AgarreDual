@@ -237,5 +237,18 @@ explicación a este problema, aunque si se recompila y se actualiza el source (s
 ejecutar el script de simulación aparece la pinza en el robot de manera correcta.
     (3 h) --> 5 / 12 / 22
 
+
+    Para compilar todos los paquetes de RobotIq (hasta ahora no se podía compilar entero porque daba errores) se ha detectado que el paquete de
+"robotiq_3f_gripper_articulated_gazebo_plugins" es el que produce dichos errores. A la hora de manejar el real no debería haber problemas pues se
+trata de algunos plugins para Gazebo, aunque se va a comprobar como se lanza la pinza de tres dedos en la simulación por si habría alguna dependencia
+que hiciera falta.
+    Luego, se ha modificado el robot con el que se estaba trabajando; se estaba usando el UR5 y el que hay en el laboratorio es el UR5e. Así, se 
+cambió el import de la geometría desde la carpeta de robot_description a robot_e_description. Además, se añadieron al fichero ur5e_robot.urdf.xacro
+los ficheros y macros de la pinza para hacerlo igual a lo que se estaba trabajando anteriormente. Este cambio también se realizó en el fichero que
+carga los dos robots en el mundo de Gazbeo.
+    Por otro lado, se ha intentado incluir la pinza de tres dedos dentro de la simulación aunque por alguna razón los dedos empiezan a temblar y a 
+descontrolarse, incluso si se incluye un controlador.
+    (4 h) --> 6 / 12 / 22
+
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
