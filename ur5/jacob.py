@@ -103,7 +103,7 @@ class Controller():
         rospy.Subscriber("/joint_states", JointState, self.__states)
 
         # Position and angle increment for simulation
-        self.__incr = [0,0,0,0,0,0]
+        self.__incr = np.array((0.01, 0, 0.0, 0, 0, 0))
     
     
     def control_loop(self):
