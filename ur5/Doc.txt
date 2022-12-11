@@ -248,7 +248,8 @@ los ficheros y macros de la pinza para hacerlo igual a lo que se estaba trabajan
 carga los dos robots en el mundo de Gazbeo.
     Por otro lado, se ha intentado incluir la pinza de tres dedos dentro de la simulación aunque por alguna razón los dedos empiezan a temblar y a 
 descontrolarse, incluso si se incluye un controlador.
-    (4 h) --> 6 / 12 / 22
+    (4 h) --> 6 / 12 / 22  
+    
 
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
