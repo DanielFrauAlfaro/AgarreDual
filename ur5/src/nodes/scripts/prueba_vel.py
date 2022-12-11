@@ -65,7 +65,15 @@ def euler_from_quaternion(x, y, z, w):
 class Controller():
     def __init__(self):
         # UR5 model in Robotic Toolbox
-        self.__ur5 = rtb.models.DH.UR5()
+        self.__ur5 = rtb.DHRobot([
+            rtb.RevoluteDH(d=0.1625, alpha=pi/2.0),
+            rtb.RevoluteDH(a=-0.425),
+            rtb.RevoluteDH(a = -0.3922),
+            rtb.RevoluteDH(d = 0.1333, alpha=pi/2.0),
+            rtb.RevoluteDH(d = 0.0997, alpha=-pi/2.0),
+            rtb.RevoluteDH(d = 0.0996)
+        ], name="UR5e")
+        
         self.__ur5.base = SE3.RPY(0,0,pi)      # Rotate robot base so it matches Gazebo model
         
         # Joint position vector: actual and home
