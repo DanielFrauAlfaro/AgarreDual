@@ -107,7 +107,7 @@ class Controller():
         self.__incr = 0.005
         self.__incr_ = 0.05
         
-        self.__mode = "vel"
+        self.__mode = "pos"
         self.__incr_vec = [0,0,0,0,0,0]
         
 # --------------------- Move the desired homogeneus transform -----------------
@@ -166,9 +166,9 @@ class Controller():
         while not rospy.is_shutdown(): 
             if self.__mode != "pos":
                 T = SE3(self.__incr_vec[0], self.__incr_vec[1], self.__incr_vec[2])
-                T_ = SE3.RPY(self.__incr_vec[3], self.__incr_vec[4], self.__incr_vec[5])
+                T_rot = SE3.RPY(self.__incr_vec[3], self.__incr_vec[4], self.__incr_vec[5])
                 
-                # T = T * T_            # Cuando los valores lleguen en euler
+                # T = T * T_rot           # Cuando los valores lleguen en euler
                 
                 T = T * T_or
                 T_or = T
