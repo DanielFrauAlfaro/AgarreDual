@@ -38,7 +38,7 @@
   respawn="false" output="screen">
   </node>
 
-  
+  <node name="controller" pkg="nodes" type="prueba.py" output="screen"/>  
 
   
 </launch>
