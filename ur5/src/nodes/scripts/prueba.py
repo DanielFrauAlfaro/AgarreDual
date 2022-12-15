@@ -12,51 +12,10 @@ import rospy
 from std_msgs.msg import Float64
 from control_msgs.msg import JointControllerState
 from geometry_msgs.msg import Pose
+from std_msgs.msg import Int32
 from pynput import keyboard as kb
 import math
 import time
-
-def get_quaternion_from_euler(roll, pitch, yaw):
-  """
-  Convert an Euler angle to a quaternion.
-   
-  Input
-    :param roll: The roll (rotation around x-axis) angle in radians.
-    :param pitch: The pitch (rotation around y-axis) angle in radians.
-    :param yaw: The yaw (rotation around z-axis) angle in radians.
- 
-  Output
-    :return qx, qy, qz, qw: The orientation in quaternion [x,y,z,w] format
-  """
-  qx = np.sin(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) - np.cos(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
-  qy = np.cos(roll/2) * np.sin(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.cos(pitch/2) * np.sin(yaw/2)
-  qz = np.cos(roll/2) * np.cos(pitch/2) * np.sin(yaw/2) - np.sin(roll/2) * np.sin(pitch/2) * np.cos(yaw/2)
-  qw = np.cos(roll/2) * np.cos(pitch/2) * np.cos(yaw/2) + np.sin(roll/2) * np.sin(pitch/2) * np.sin(yaw/2)
- 
-  return [qx, qy, qz, qw]
- 
- # Transformar de cuaternios a ángulos de Euler
-def euler_from_quaternion(x, y, z, w):
-        """
-        Convert a quaternion into euler angles (roll, pitch, yaw)
-        roll is rotation around x in radians (counterclockwise)
-        pitch is rotation around y in radians (counterclockwise)
-        yaw is rotation around z in radians (counterclockwise)
-        """
-        t0 = +2.0 * (w * x + y * z)
-        t1 = +1.0 - 2.0 * (x * x + y * y)
-        roll_x = math.atan2(t0, t1)
-     
-        t2 = +2.0 * (w * y - z * x)
-        t2 = +1.0 if t2 > +1.0 else t2
-        t2 = -1.0 if t2 < -1.0 else t2
-        pitch_y = math.asin(t2)
-     
-        t3 = +2.0 * (w * z + x * y)
-        t4 = +1.0 - 2.0 * (y * y + z * z)
-        yaw_z = math.atan2(t3, t4)
-     
-        return roll_x, pitch_y, yaw_z # in radians
 
 
 # Main class for the controller
@@ -84,7 +43,8 @@ class Controller():
         
         # rospy.Publisher('/pose', Pose, queue_size=10)
         rospy.Subscriber('/pose', Pose, self.__callback)
-                
+        rospy.Subscriber('/move_type', Int32, self.__cb_mode)
+        
         self.__joints_com = []
         self.__joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
@@ -101,7 +61,6 @@ class Controller():
         rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
 
         self.__cart_pos = rospy.Publisher('/cart_pos', Pose, queue_size=10)
-        self.__manip = rospy.Publisher('/manipulability', Float64, queue_size=10)
         
         # Position and angle increment for simulation
         self.__incr = 0.005
@@ -110,20 +69,21 @@ class Controller():
         self.__mode = "pos"
         self.__incr_vec = [0,0,0,0,0,0]
         
+        self.T_or = self.__ur5.fkine(self.__q)
+        
+        
+        
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)
-        
+        self.T_or = T
         for i in range(6):
             self.__joints_com[i].publish(q.q[i])
-            
-        m = self.__ur5.manipulability(self.__q ,  axes="trans")
-        self.__manip.publish(m)
         
         pose = Pose()
         
         trans = T.t
-        eul = T.eul()
+        eul = T.rpy(order='xyz')
         
         pose.position.x = trans[0]
         pose.position.y = trans[1]
@@ -135,6 +95,11 @@ class Controller():
         
         self.__cart_pos.publish(pose)
 
+    def __cb_mode(self, data):
+        if data.data == 0:
+            self.__mode = "pos"
+        else:
+            self.__mode = "vel"
     
 # -------------------- Callback for the haptic topic --------------------------
     def __callback(self, data):
@@ -147,33 +112,46 @@ class Controller():
         z_ = data.orientation.z
         w  = data.orientation.w
             
-        (roll, pitch, yaw) = euler_from_quaternion(x_, y_, z_, w)
+        (roll, pitch, yaw) = (x_, y_, z_)
         
         if self.__mode == "pos":
             T = SE3(x, y, z)
-            T_ = SE3.RPY(roll, pitch, yaw)
+            T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
             
             T = T * T_
+            
             self.__move(T)
         
         else:
             self.__incr_vec = [x/5.0, y/5.0, z/5.0, roll/5.0, pitch/5.0, yaw/5.0]
+            
+            
         
     def control_loop(self):
         
-        T_or = self.__ur5.fkine(self.__q)
+        self.T_or = self.__ur5.fkine(self.__q)
+        
         rate = rospy.Rate(10)
         while not rospy.is_shutdown(): 
+            
             if self.__mode != "pos":
+                
                 T = SE3(self.__incr_vec[0], self.__incr_vec[1], self.__incr_vec[2])
-                T_rot = SE3.RPY(self.__incr_vec[3], self.__incr_vec[4], self.__incr_vec[5])
+                T_rot = SE3.RPY(self.__incr_vec[3], self.__incr_vec[4], self.__incr_vec[5], order='xyz')
                 
-                # T = T * T_rot           # Cuando los valores lleguen en euler
+                T = T * T_rot           # Cuando los valores lleguen en euler
+               
+                if self.__incr_vec[3] == 0.0 and self.__incr_vec[4] == 0.0 and self.__incr_vec[5] == 0.0:
+                    T = T * self.T_or
                 
-                T = T * T_or
-                T_or = T
+                elif self.__incr_vec[0] == 0.0 and self.__incr_vec[1] == 0.0 and self.__incr_vec[2] == 0.0:
+                    T = self.T_or * T
+                
+                self.T_or = T
                 
                 self.__move(T)
+            else:
+                self.__incr_vec = [0,0,0,0,0,0]
             rate.sleep()
         
         
