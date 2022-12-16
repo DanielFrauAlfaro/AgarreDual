@@ -251,5 +251,23 @@ descontrolarse, incluso si se incluye un controlador.
     (4 h) --> 6 / 12 / 22  
     
 
+    A partir del repositorio para poder ejecutar el Phantom Omni en Linux / ROS. En un principio no se pudo ejecutar; se podía calibrar el dispositivo
+pero al lanzar el nodo del driver del Phantom saltaba un error, el puerto al que debía de estar conectado no existía según el sistema operativo. Esto
+se debía a que se estaba usando el conector con salida Ethernet y este no creaba el puerto en el directorio /dev. Probando con el otro tipo de conector,
+el USB, saltaba el mismo fallo. Finalmente se pudo lanzar el programa de los drivers dándole el nombre de "Default Device" y así detectaba el puerto,
+por lo que el nodo se podía lanzar.
+    Ahora se tenía el Phantom funcionando en Linux, y se podían obtener datos a través de sus topics:
+        - /arm/measured_cp: posición cartesiana del efector final
+        - /arm/button1 // /arm/button2: botones
+        - /arm/servo_cf: topic por el que publicar los wrenches para el feedback de fuerza
+    Se realizó un script con el que se recogen datos del measured y se publican en el topic "pose" del controlador de alto nivel del UR5 y se consiguió
+mover en simulación.
+    A parte del Phantom se ha cambiado el controlador que se estaba utilizando; antes se usaba un PID que aunque seguía bien las trayectorias, había
+un poco de oscilación y lentitud en el seguimiento. Por eso se cambió de una interfaz de esfuerzo a una en posición sin especificar PID. Con esto
+el robot va a la posición directamente, sin oscilaciones. Aquí se cambia la transmisión (en el archivo de ur.transmission.xacro) de effort a PositionJointInterface
+y en el ur5_controller_params.yaml se cambia el tipo de effort a position también.
+    (4 h) --> 16 / 12 / 22
+
+
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
