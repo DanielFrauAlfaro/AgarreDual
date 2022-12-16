@@ -1,8 +1,10 @@
 #! /usr/bin/python3
 
 from geometry_msgs.msg import PoseStamped, Pose, WrenchStamped
-from sensor_msgs.msg import Joy
+from sensor_msgs.msg import Joy, Image
 import rospy
+from cv_bridge import CvBridge
+
 
 # Button: sensor_msgs/Joy /arm/button1    /arm/button2
 
@@ -14,23 +16,31 @@ y_limit: 0.2                    * 2
 z_limit: 0.19  - -0.075         * 0.4 // *7
 '''
 
-rospy.init_node("phantom_ctr")
-pub = rospy.Publisher("/pose", Pose, queue_size=10)
-pub_f = rospy.Publisher("/arm/servo_cf", WrenchStamped)
 
 pose = Pose()
+wrench = WrenchStamped()
 
 scale_x = 2
 scale_y = 2
 scale_z1 = 0.4
 scale_z2 = 7
 
-prev_x, prev_y, prev_z = 0.5095, 0.1334, 0.7347
-prev_roll, prev_pitch, prev_yaw = 1.57225399 , 1.07079575, -0.001661
+or_x = 0.5095
+or_y = 0.1334
+or_z = 0.7347
+
+or_roll = 1.57225399
+or_pitch = 1.07079575
+or_yaw = -0.001661
+
+prev_x, prev_y, prev_z = or_x, or_y, or_z
+prev_roll, prev_pitch, prev_yaw = or_roll , or_pitch, or_yaw
 
 xyz = True
 vel_control = False
-change = False
+change = True
+first_frame_cam1 = False
+first_frame_cam2 = False
 
 prev_pose_phantom = Pose()
 act_pose_phantom = Pose()
@@ -39,6 +49,27 @@ prev_pose_phantom.position.x = 0.0
 prev_pose_phantom.position.y = 0.0
 prev_pose_phantom.position.z = 0.0
 
+prev_pose_phantom.orientation.x = 0.0
+prev_pose_phantom.orientation.y = 0.0
+prev_pose_phantom.orientation.z = 0.0
+
+K = 1
+
+frame_ = Image()
+frame2_ = Image()
+bridge = CvBridge()
+
+
+def camera_cb(data):
+    global frame_, first_frame_cam1, bridge
+    frame_ = bridge.imgmsg_to_cv2(data)
+    first_frame_cam1 = True
+    
+def camera_cb2(data):
+    global bridge, frame2_, first_frame_cam2
+    frame2_ = bridge.imgmsg_to_cv2(data)
+    
+    first_frame_cam2 = True
 
 def cart_cb(data):
     global prev_x, prev_y, prev_z
@@ -62,13 +93,13 @@ def cb(data):
     
     if vel_control == False:
         if xyz:
-            pose.position.x = data.pose.position.z * scale_x + 0.5095
-            pose.position.y = data.pose.position.x * scale_y + 0.1334
+            pose.position.x = data.pose.position.z * scale_x + or_x
+            pose.position.y = data.pose.position.x * scale_y + or_y
             
             if pose.position.z > 0:
-                pose.position.z = data.pose.position.y * scale_z1 + 0.7347
+                pose.position.z = data.pose.position.y * scale_z1 + or_z
             else:
-                pose.position.z = data.pose.position.y * scale_z2 + 0.7347
+                pose.position.z = data.pose.position.y * scale_z2 + or_z
             
             pose.orientation.x = prev_roll
             pose.orientation.y = prev_pitch
@@ -82,9 +113,9 @@ def cb(data):
             pose.position.y = prev_y
             pose.position.z = prev_z
 
-            pose.orientation.x = data.pose.position.z + 1.57225399
-            pose.orientation.y = data.pose.position.x + 1.07079575
-            pose.orientation.z = data.pose.position.y + -0.001661
+            pose.orientation.x = data.pose.position.z + or_roll
+            pose.orientation.y = data.pose.position.x + or_pitch
+            pose.orientation.z = data.pose.position.y + or_yaw
             
             prev_pose_phantom.orientation.x = data.pose.position.x
             prev_pose_phantom.orientation.y = data.pose.position.y
@@ -116,10 +147,6 @@ def cb(data):
             pose.orientation.y = data.pose.position.x 
             pose.orientation.z = data.pose.position.y
         
-        
-    
-    
-
 def cb_bt1(data):
     global xyz, change
     
@@ -143,76 +170,73 @@ def cb_bt2(data):
             vel_control = True
 
 
+rospy.init_node("phantom_ctr")
+
+pub = rospy.Publisher("/pose", Pose, queue_size=10)
+pub_f = rospy.Publisher("/arm/servo_cf", WrenchStamped, queue_size=10)
+
 rospy.Subscriber("/arm/measured_cp", PoseStamped,cb)
 rospy.Subscriber("/cart_pos", Pose, cart_cb)
 rospy.Subscriber("/arm/button1", Joy, cb_bt1)
 rospy.Subscriber("/arm/button2", Joy, cb_bt2)
-
-wrench = WrenchStamped()
+rospy.Subscriber("/robot_camera/image_raw", Image, camera_cb)
+rospy.Subscriber("/robot_camera2/image_raw", Image, camera_cb2)
 
 r = rospy.Rate(10)
+
+
 while True:
     if vel_control:
-        wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)
-        wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)
-        wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)
-        pub_f.publish(wrench)
+        wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)*K
+        wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)*K
+        wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)*K
+        
+    
+    else:
+        wrench.wrench.force.x = 0.0
+        wrench.wrench.force.y = 0.0
+        wrench.wrench.force.z = 0.9
+        
     
     if change:
         print("change")
         if vel_control == False:
             if xyz:
-                wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)
-                wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)
-                wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)
+                wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)*K
+                wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)*K
+                wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)*K
                 
                 if (prev_pose_phantom.position.x - act_pose_phantom.position.x) < 0.001 and (prev_pose_phantom.position.y - act_pose_phantom.position.y) < 0.001 and (prev_pose_phantom.position.z - act_pose_phantom.position.z) < 0.001:
                     change = False
             else:
-                wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)
-                wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)
-                wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)
+                wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)*K
+                wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)*K
+                wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)*K
                 
                 if (prev_pose_phantom.orientation.x - act_pose_phantom.position.x) < 0.001 and (prev_pose_phantom.orientation.y - act_pose_phantom.position.y) < 0.001 and (prev_pose_phantom.orientation.z - act_pose_phantom.position.z) < 0.001:
                     change = False
                     
         else:
-            wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)
-            wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)
-            wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)
+            wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)*K
+            wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)*K
+            wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)*K
             
             if (0.0 - act_pose_phantom.position.x) < 0.001 and (0.0 - act_pose_phantom.position.y) < 0.001 and (0.0 - act_pose_phantom.position.z) < 0.001:
                 change = False
-        pub_f.publish(wrench)
-        
+                  
         
     else:
         pub.publish(pose)
+    
+    pub_f.publish(wrench)
         
     r.sleep()
 
 
-frame_ = Image()
-frame2_ = Image()
-bridge = CvBridge()
-a = False
-f = False
-def camera_cb(data):
-    global frame_, a, bridge
-    frame_ = bridge.imgmsg_to_cv2(data)
-    a = True
-    
-def camera_cb2(data):
-    global bridge, frame2_, f
-    frame2_ = bridge.imgmsg_to_cv2(data)
-    
-    f = True
-
-rospy.Subscriber("/robot_camera/image_raw", Image, camera_cb)
-rospy.Subscriber("/robot_camera2/image_raw", Image, camera_cb2)
 
 
-while a==False or f == False:
+
+while first_frame_cam1 == False or first_frame_cam2 == False:
     pass
 
 

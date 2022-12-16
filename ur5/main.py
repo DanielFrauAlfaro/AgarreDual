@@ -17,9 +17,41 @@ from cv_bridge import CvBridge
 import cv2 as cv
 import numpy as np
 
-prev_x, prev_y, prev_z = 0.5095, 0.1334, 0.7347
-prev_roll, prev_pitch, prev_yaw = 1.57225399 , 1.07079575, -0.001661
+or_x = 0.5095
+or_y = 0.1334
+or_z = 0.7347
 
+or_roll = 1.57225399
+or_pitch = 1.07079575
+or_yaw = -0.001661
+
+prev_x, prev_y, prev_z = or_x, or_y, or_z
+prev_roll, prev_pitch, prev_yaw = or_roll , or_pitch, or_yaw
+
+umbral = 0.01
+ready = False
+vel_controller = False
+cb = False
+first_frame_cam1 = False
+first_frame_cam2 = False
+
+frame_ = Image()
+frame2_ = Image()
+bridge = CvBridge()
+
+
+
+def camera_cb(data):
+    global frame_, first_frame_cam1 , bridge
+    frame_ = bridge.imgmsg_to_cv2(data)
+    first_frame_cam1 = True
+    
+def camera_cb2(data):
+    global bridge, frame2_, first_frame_cam2
+    frame2_ = bridge.imgmsg_to_cv2(data)
+    
+    first_frame_cam2 = True
+    
 def cart_cb(data):
     global prev_x, prev_y, prev_z
     global prev_roll, prev_pitch, prev_yaw
@@ -31,22 +63,6 @@ def cart_cb(data):
     prev_roll = data.orientation.x
     prev_pitch = data.orientation.y
     prev_yaw = data.orientation.z
-
-rospy.init_node("nodo")
-pub = rospy.Publisher("/pose", Pose, queue_size=10)
-pubMoveType = rospy.Publisher("/move_type", Int32, queue_size=10) 
-
-rospy.Subscriber("/cart_pos", Pose, cart_cb)
-dpg.create_context()
-
-max_limit = 0.2
-min_limit = -0.2
-umbral = 0.01
-ready = False
-
-
-vel_controller = False
-cb = False
 
 def callbackCheck(sender, app_data, user_data):
     global vel_controller, cb
@@ -130,8 +146,7 @@ def callbackSlider_(sender, app_data, user_data):
     pose.orientation.w = 0.0
        
     pub.publish(pose)
-
-        
+  
 def callbackSlider2_(sender, app_data, user_data):
     global prev_x, prev_roll
     global prev_y, prev_pitch
@@ -156,34 +171,26 @@ def callbackSlider2_(sender, app_data, user_data):
             
     pub.publish(pose)
 
-frame_ = Image()
-frame2_ = Image()
-bridge = CvBridge()
-a = False
-f = False
-def camera_cb(data):
-    global frame_, a, bridge
-    frame_ = bridge.imgmsg_to_cv2(data)
-    a = True
-    
-def camera_cb2(data):
-    global bridge, frame2_, f
-    frame2_ = bridge.imgmsg_to_cv2(data)
-    
-    f = True
 
+
+rospy.init_node("nodo")
+
+pub = rospy.Publisher("/pose", Pose, queue_size=10)
+pubMoveType = rospy.Publisher("/move_type", Int32, queue_size=10) 
+
+rospy.Subscriber("/cart_pos", Pose, cart_cb)
 rospy.Subscriber("/robot_camera/image_raw", Image, camera_cb)
 rospy.Subscriber("/robot_camera2/image_raw", Image, camera_cb2)
 
 
-while a==False or f == False:
+while first_frame_cam1 ==False or first_frame_cam2 == False:
     pass
 
 
 dpg.create_context()
 dpg.create_viewport(title='Teleoperación', width=1460, height=1200)
 dpg.setup_dearpygui()
-# 0.4919, 0.1092, 0.6578
+
 with dpg.window(tag="Controlador", width=800, height=640):
     dpg.add_3d_slider(label="Position XYZ", tag="position_slider", default_value=[0.5095, 0.1334, 0.7347], min_x=-0.7, max_x=0.7, min_y=-0.55, max_y=0.55, min_z=0.0, max_z=0.85, height=200, width=200,callback=callbackSlider, user_data="slider", )
     dpg.add_3d_slider(label="Position RPY", tag="rotation_slider", default_value=[1.57225399 , 1.07079575, -0.001661], min_x=-3.14, max_x=3.14, min_y=-3.14, max_y=3.14, min_z=-3.14, max_z=3.14, height=200, width=200,callback=callbackSlider2, user_data="slider")
