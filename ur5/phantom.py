@@ -211,7 +211,7 @@ def cb(data):
 def cb_bt1(data):
     global xyz, change
     
-    if data.buttons == 1:
+    if data.buttons[0] == 1:
         change = True
         
         if xyz:
@@ -222,7 +222,7 @@ def cb_bt1(data):
 def cb_bt2(data):
     global vel_control, change, pubMoveType
     
-    if data.buttons == 1:
+    if data.buttons[0] == 1:
         change = True
         
         if vel_control:
