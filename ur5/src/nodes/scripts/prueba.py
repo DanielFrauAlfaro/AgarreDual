@@ -13,6 +13,7 @@ from std_msgs.msg import Float64
 from control_msgs.msg import JointControllerState
 from geometry_msgs.msg import Pose
 from std_msgs.msg import Int32
+from sensor_msgs.msg import JointState
 from pynput import keyboard as kb
 import math
 import time
@@ -53,13 +54,7 @@ class Controller():
         self.__joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=100))
 
-        rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
-        rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
-        rospy.Subscriber('/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
-        rospy.Subscriber('/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
-        rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
-        rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
-
+        rospy.Subscriber("/joint_states", JointState, self.__joint_states_cb)
         self.__cart_pos = rospy.Publisher('/cart_pos', Pose, queue_size=10)
         
         # Position and angle increment for simulation
@@ -162,6 +157,9 @@ class Controller():
 
 
 # ----------------- Callbacks for the joint controller state Subscribers ------------------
+    def __joint_states_cb(self, data):
+        self.__q = data.position
+        '''
     def __shoulder_pan_listener(self,data):   
         self.__q[0] = data.process_value
         
@@ -178,7 +176,7 @@ class Controller():
         self.__q[4] = data.process_value
         
     def __wrist_3_listener(self,data):
-        self.__q[5] = data.process_value
+        self.__q[5] = data.process_value'''
         
         
 # Controller object
