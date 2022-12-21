@@ -81,15 +81,15 @@ class Controller():
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
-        if time.time() - self.__prev > self.__interval:
-            q = self.__ur5.ikine_LMS(T,q0 = self.__q)
-            self.T_or = T
-            
-            self.__qp = q.q
-            self.__prev = time.time()
-            
-            for i in range(6):
-                self.__joints_com[i].publish(self.__qp[i])
+        
+        q = self.__ur5.ikine_LMS(T,q0 = self.__q)
+        self.T_or = T
+        
+        self.__qp = q.q
+        
+        
+        for i in range(6):
+            self.__joints_com[i].publish(self.__qp[i])
         
         pose = Pose()
         
@@ -114,28 +114,32 @@ class Controller():
     
 # -------------------- Callback for the haptic topic --------------------------
     def __callback(self, data):
-        x = data.position.x
-        y = data.position.y
-        z = data.position.z
+        if time.time() - self.__prev > self.__interval:
             
-        x_ = data.orientation.x
-        y_ = data.orientation.y
-        z_ = data.orientation.z
-        w  = data.orientation.w
-        
-        (roll, pitch, yaw) = (x_, y_, z_)
-    
-        
-        if self.__mode == "pos":
-            T = SE3(x, y, z)
-            T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
+            self.__prev = time.time()
             
-            T = T * T_
+            x = data.position.x
+            y = data.position.y
+            z = data.position.z
+                
+            x_ = data.orientation.x
+            y_ = data.orientation.y
+            z_ = data.orientation.z
+            w  = data.orientation.w
             
-            self.__move(T)
+            (roll, pitch, yaw) = (x_, y_, z_)
         
-        else:
-            self.__incr_vec = [x/5.0, y/5.0, z/5.0, roll/5.0, pitch/5.0, yaw/5.0]
+            
+            if self.__mode == "pos":
+                T = SE3(x, y, z)
+                T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
+                
+                T = T * T_
+                
+                self.__move(T)
+            
+            else:
+                self.__incr_vec = [x/5.0, y/5.0, z/5.0, roll/5.0, pitch/5.0, yaw/5.0]
             
             
         
