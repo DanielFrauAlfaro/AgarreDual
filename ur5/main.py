@@ -228,6 +228,7 @@ with dpg.window(label="Cámara UR52", pos = [800,500]):
     
 r = rospy.Rate(40)
 dpg.show_viewport()
+
 while dpg.is_dearpygui_running():
     data = np.flip(frame_, 2)
     data = data.ravel()
@@ -258,5 +259,5 @@ while dpg.is_dearpygui_running():
         cb = False
 
     r.sleep()
-
+    
 # On ctrl+c client.stop()# pybullet
