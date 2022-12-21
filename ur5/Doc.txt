@@ -269,5 +269,13 @@ y en el ur5_controller_params.yaml se cambia el tipo de effort a position tambi�
     (4 h) --> 16 / 12 / 22
 
 
+    Para el bucle de control del UR5, se ha cambiado el funcionamiento; hasta ahora se publicaba en las articualciones cada vez que llegaba una nueva
+posición por el topic /pose, lo que hacía que en el momento en el que llegarán muchas posiciones seguidas, la ejecución se ralentizara (se tienen que
+calcular muchas inversas). Para solucionar este problema lo que se hace es en los callbacks se almacena la información y se envía a las articulaciones
+en el bucle principal, que se ejecuta acorde a una frecuencia concreta.
+    También se ha creado un controlador a parte del que usa una interfaz hardware de posición, un que usa una de esfuerzo con un PID incorporado,
+como el que se tenía en un inicio.
+    (3 h) --> 21 / 12 / 22
+
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
