@@ -8,7 +8,7 @@ import spatialmath as sm
 import rospy
 from std_msgs.msg import Int32
 from geometry_msgs.msg import Pose
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CompressedImage
 
 from spatialmath import *
 import roboticstoolbox as rtb
@@ -35,20 +35,20 @@ cb = False
 first_frame_cam1 = False
 first_frame_cam2 = False
 
-frame_ = Image()
-frame2_ = Image()
+frame_ = CompressedImage()
+frame2_ = CompressedImage()
 bridge = CvBridge()
-
 
 
 def camera_cb(data):
     global frame_, first_frame_cam1 , bridge
-    frame_ = bridge.imgmsg_to_cv2(data)
+    frame_ = bridge.compressed_imgmsg_to_cv2(data)
+    
     first_frame_cam1 = True
     
 def camera_cb2(data):
     global bridge, frame2_, first_frame_cam2
-    frame2_ = bridge.imgmsg_to_cv2(data)
+    frame2_ = bridge.compressed_imgmsg_to_cv2(data)
     
     first_frame_cam2 = True
     
@@ -179,8 +179,8 @@ pub = rospy.Publisher("/pose", Pose, queue_size=10)
 pubMoveType = rospy.Publisher("/move_type", Int32, queue_size=10) 
 
 rospy.Subscriber("/cart_pos", Pose, cart_cb)
-rospy.Subscriber("/robot_camera/image_raw", Image, camera_cb)
-rospy.Subscriber("/robot_camera2/image_raw", Image, camera_cb2)
+rospy.Subscriber("/robot_camera/image_raw/compressed", CompressedImage, camera_cb)
+rospy.Subscriber("/robot_camera2/image_raw/compressed", CompressedImage, camera_cb2)
 
 
 while first_frame_cam1 ==False or first_frame_cam2 == False:
@@ -226,7 +226,7 @@ with dpg.window(label="Cámara UR5", pos = [800,0]):
 with dpg.window(label="Cámara UR52", pos = [800,500]):
     dpg.add_image("texture_tag2")
     
-
+r = rospy.Rate(40)
 dpg.show_viewport()
 while dpg.is_dearpygui_running():
     data = np.flip(frame_, 2)
@@ -257,6 +257,6 @@ while dpg.is_dearpygui_running():
         
         cb = False
 
-
+    r.sleep()
 
 # On ctrl+c client.stop()# pybullet
