@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 
 from geometry_msgs.msg import PoseStamped, Pose, WrenchStamped
-from sensor_msgs.msg import Joy, Image
+from sensor_msgs.msg import Joy, ImageCompressed
 from std_msgs.msg import Int32
 import rospy
 from cv_bridge import CvBridge
@@ -34,8 +34,8 @@ pose = Pose()
 wrench = WrenchStamped()
 
 # Mensajes para las imagenes
-frame_ = Image()
-frame2_ = Image()
+frame_ = ImageCompressed()
+frame2_ = ImageCompressed()
 bridge = CvBridge()
 
 # Factor de escala de los movimientos 
@@ -81,18 +81,17 @@ prev_pose_phantom.orientation.z = 0.0
 
 # Ganancia del feedback de fuerza
 K = 1
-
+limit = 0.001
 
 # Callbacks de las camaras
 def camera_cb(data):
     global frame_, first_frame_cam1, bridge
-    frame_ = bridge.imgmsg_to_cv2(data)
+    frame_ = bridge.compressed_imgmsg_to_cv2(data)
     first_frame_cam1 = True
     
 def camera_cb2(data):
     global bridge, frame2_, first_frame_cam2
-    frame2_ = bridge.imgmsg_to_cv2(data)
-    
+    frame2_ = bridge.compressed_imgmsg_to_cv2(data)
     first_frame_cam2 = True
 
 # Callback de la posicion cartesiana del robot
@@ -156,7 +155,7 @@ def cb(data):
             pose.position.x = data.pose.position.z * scale_x + or_x
             pose.position.y = data.pose.position.x * scale_y + or_y
             
-            if pose.position.z > 0:
+            if prev_z > 0:
                 pose.position.z = data.pose.position.y * scale_z1 + or_z
             else:
                 pose.position.z = data.pose.position.y * scale_z2 + or_z
@@ -187,15 +186,21 @@ def cb(data):
         if xyz:
             pose.position.x = data.pose.position.z
             pose.position.y = data.pose.position.x
-            
-            if pose.position.z > 0:
-                pose.position.z = data.pose.position.y
-            else:
-                pose.position.z = data.pose.position.y
+            pose.position.z = data.pose.position.y  
             
             pose.orientation.x = 0.0
             pose.orientation.y = 0.0
             pose.orientation.z = 0.0
+            
+            # Se transforma la POSICIÓN del robot a la que debería tener en el Phantom
+            prev_pose_phantom.position.x = (prev_y - or_y) / scale_y
+            
+            if prev_z > 0.0:
+                prev_pose_phantom.position.y = (prev_z - or_z) / scale_z1
+            else:
+                prev_pose_phantom.position.y = (prev_z - or_z) / scale_z2
+            
+            prev_pose_phantom.position.z = (prev_x - or_x) / scale_x
             
             
         else:
@@ -207,6 +212,12 @@ def cb(data):
             pose.orientation.y = data.pose.position.x 
             pose.orientation.z = data.pose.position.y
 
+            # Se transforma la ORIENTACIÓN del robot a la que debería tener en el Phantom
+            prev_pose_phantom.orientation.x = prev_y - or_pitch
+            prev_pose_phantom.orientation.y = prev_z - or_yaw
+            prev_pose_phantom.orientation.z = prev_x - or_roll
+         
+            
 # Callbacks de los botones
 def cb_bt1(data):
     global xyz, change
@@ -246,89 +257,11 @@ rospy.Subscriber("/arm/measured_cp", PoseStamped,cb)
 rospy.Subscriber("/cart_pos", Pose, cart_cb)
 rospy.Subscriber("/arm/button1", Joy, cb_bt1)
 rospy.Subscriber("/arm/button2", Joy, cb_bt2)
-rospy.Subscriber("/robot_camera/image_raw", Image, camera_cb)
-rospy.Subscriber("/robot_camera2/image_raw", Image, camera_cb2)
-
-# Rate
-r = rospy.Rate(10)
-
-# Bucle infinito
-'''
-    - 1. Si se está en velocidad, el phantom intenta ir al centro para que si se suelta no mande incrementos.
-       Si se está en posición, mantiene el Phantom sin moverse, compensando la gravedad (wrench obtenido experimentalmente)
-    
-    - 2. Si se pordujo un cambio (se presionó cualquiera de los botones para cambiar uno de los modos) ...
-        - 2.1 ... Si hay control en POSICIÓN ...
-            - 2.1.1 ... al cambio intentará volver a la anterior posición del Phantom registrada para la POSICIÓN del robot hasta cierto umbral
-            - 2.1.2 ... al cambio intentará volver a la anterior posición del Phantom registrada para la ORIENTACIÓN del robot hasta cierto umbral
-        
-        - 2.2 ... Si hay control en VELOCIDAD mandará el Phantom al 0.0 (no considera posiciones anteriores, en velocidad siempre va al 0.0) 
-        considerando cierto umbral
-    
-    - 3. Si no hubo cambio, se está funcionando normal, entonces envía las posiciones al robot
-         
-    - 4. Se publican los Wrenches calculados según el caso
-    
-'''
-while not rospy.is_shutdown():
-    # 1 --
-    if vel_control:
-        wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)*K
-        wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)*K
-        wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)*K
-        
-    
-    else:
-        wrench.wrench.force.x = 0.0
-        wrench.wrench.force.y = 0.0
-        wrench.wrench.force.z = 0.9
-      
-        
-    # 2 --
-    if change:
-        print("change")
-        # 2.1 --
-        if vel_control == False:
-            # 2.1.1 --
-            if xyz:
-                wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)*K
-                wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)*K
-                wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)*K
-                
-                if (prev_pose_phantom.position.x - act_pose_phantom.position.x) < 0.001 and (prev_pose_phantom.position.y - act_pose_phantom.position.y) < 0.001 and (prev_pose_phantom.position.z - act_pose_phantom.position.z) < 0.001:
-                    change = False
-            
-            # 2.1.2 --
-            else:
-                wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)*K
-                wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)*K
-                wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)*K
-                
-                if (prev_pose_phantom.orientation.x - act_pose_phantom.position.x) < 0.001 and (prev_pose_phantom.orientation.y - act_pose_phantom.position.y) < 0.001 and (prev_pose_phantom.orientation.z - act_pose_phantom.position.z) < 0.001:
-                    change = False
-        
-        # 2.2 --          
-        else:
-            wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)*K
-            wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)*K
-            wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)*K
-            
-            if (0.0 - act_pose_phantom.position.x) < 0.001 and (0.0 - act_pose_phantom.position.y) < 0.001 and (0.0 - act_pose_phantom.position.z) < 0.001:
-                change = False
-                  
-    # 3 --   
-    else:
-        pub.publish(pose)
-    
-    # 4 --
-    pub_f.publish(wrench)
-        
-    r.sleep()
+rospy.Subscriber("/robot_camera/image_raw/compressed", ImageCompressed, camera_cb)
+rospy.Subscriber("/robot_camera2/image_raw/compressed", ImageCompressed, camera_cb2)
 
 
-
-####################### Interfaz visual #######################
-
+# Espera a los primeros frames de las cámaras 
 while first_frame_cam1 == False or first_frame_cam2 == False:
     pass
 
@@ -363,8 +296,87 @@ with dpg.window(label="Cámara UR52", pos = [800,500]):
     
 
 dpg.show_viewport()
-while dpg.is_dearpygui_running():
-    data = np.flip(frame_, 2)
+
+
+# Rate
+r = rospy.Rate(10)
+
+# Bucle infinito
+'''
+    - 1. Si se está en velocidad, el phantom intenta ir al centro para que si se suelta no mande incrementos.
+       Si se está en posición, mantiene el Phantom sin moverse, compensando la gravedad (wrench obtenido experimentalmente)
+    
+    - 2. Si se pordujo un cambio (se presionó cualquiera de los botones para cambiar uno de los modos) ...
+        - 2.1 ... Si hay control en POSICIÓN ...
+            - 2.1.1 ... al cambio intentará volver a la anterior posición del Phantom registrada para la POSICIÓN del robot hasta cierto umbral
+            - 2.1.2 ... al cambio intentará volver a la anterior posición del Phantom registrada para la ORIENTACIÓN del robot hasta cierto umbral
+        
+        - 2.2 ... Si hay control en VELOCIDAD mandará el Phantom al 0.0 (no considera posiciones anteriores, en velocidad siempre va al 0.0) 
+        considerando cierto umbral
+    
+    - 3. Si no hubo cambio, se está funcionando normal, entonces envía las posiciones al robot
+         
+    - 4. Se publican los Wrenches calculados según el caso
+    
+    - 5. Se muestra la interfaz de usuario con las imágenes de las cámaras
+'''
+while not rospy.is_shutdown():
+    # 1 --
+    if vel_control:
+        wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)*K
+        wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)*K
+        wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)*K
+        
+    
+    else:
+        wrench.wrench.force.x = 0.0
+        wrench.wrench.force.y = 0.0
+        wrench.wrench.force.z = 0.9
+      
+        
+    # 2 --
+    if change:
+        print("change")
+        # 2.1 --
+        if not vel_control:
+            # 2.1.1 --
+            if xyz:
+                wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)*K
+                wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)*K
+                wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)*K
+                
+                if (prev_pose_phantom.position.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.position.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.position.z - act_pose_phantom.position.z) < limit:
+                    change = False
+            
+            # 2.1.2 --
+            else:
+                wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)*K
+                wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)*K
+                wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)*K
+                
+                if (prev_pose_phantom.orientation.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.orientation.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.orientation.z - act_pose_phantom.position.z) < limit:
+                    change = False
+        
+        # 2.2 --          
+        else:
+            wrench.wrench.force.x = (0.0 - act_pose_phantom.position.x)*K
+            wrench.wrench.force.y = (0.0 - act_pose_phantom.position.y)*K
+            wrench.wrench.force.z = (0.0 - act_pose_phantom.position.z)*K
+            
+            if (0.0 - act_pose_phantom.position.x) < limit and (0.0 - act_pose_phantom.position.y) < limit and (0.0 - act_pose_phantom.position.z) < limit:
+                change = False
+                  
+    # 3 --   
+    else:
+        pub.publish(pose)
+    
+    
+    # 4 --
+    pub_f.publish(wrench)
+    
+    
+    # 5 --
+    '''data = np.flip(frame_, 2)
     data = data.ravel()
     data = np.asfarray(data, dtype='f')
     texture_data = np.true_divide(data, 255.0)
@@ -376,4 +388,7 @@ while dpg.is_dearpygui_running():
     texture_data2 = np.true_divide(data2, 255.0)
     dpg.set_value("texture_tag2", texture_data2)
 
-    dpg.render_dearpygui_frame()
+    dpg.render_dearpygui_frame()'''
+    
+    
+    r.sleep()
