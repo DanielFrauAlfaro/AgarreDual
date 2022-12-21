@@ -73,15 +73,15 @@ class Controller():
         self.__incr_vec = [0,0,0,0,0,0]
         
         self.T_or = self.__ur5.fkine(self.__q)
-        
+        self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)
         self.T_or = T
-        for i in range(6):
-            self.__joints_com[i].publish(q.q[i])
+        
+        self.__qp = q.q
         
         pose = Pose()
         
@@ -114,8 +114,9 @@ class Controller():
         y_ = data.orientation.y
         z_ = data.orientation.z
         w  = data.orientation.w
-            
+        
         (roll, pitch, yaw) = (x_, y_, z_)
+    
         
         if self.__mode == "pos":
             T = SE3(x, y, z)
@@ -134,7 +135,7 @@ class Controller():
         
         self.T_or = self.__ur5.fkine(self.__q)
         
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(20)
         while not rospy.is_shutdown(): 
             
             if self.__mode != "pos":
@@ -155,6 +156,10 @@ class Controller():
                 self.__move(T)
             else:
                 self.__incr_vec = [0,0,0,0,0,0]
+                
+            for i in range(6):
+                self.__joints_com[i].publish(self.__qp[i])
+                
             rate.sleep()
         
         
