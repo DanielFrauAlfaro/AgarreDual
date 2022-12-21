@@ -17,6 +17,7 @@ from sensor_msgs.msg import JointState
 from pynput import keyboard as kb
 import math
 import time
+from pynput import keyboard
 
 
 # Main class for the controller
@@ -158,9 +159,10 @@ class Controller():
         
         
 # ---------------- Home position ----------------
-    def home(self):
-        for i in range(5):
-            self.__joints_com[i].publish(self.__q0[i])
+    def home(self, key):
+        if key == keyboard.Key.esc:
+            for i in range(5):
+                self.__joints_com[i].publish(self.__q0[i])
 
 
 # ----------------- Callbacks for the joint controller state Subscribers ------------------
@@ -188,4 +190,7 @@ ur5 = Controller()
 
 # ------------------ Main --------------------
 if __name__ == '__main__':
+    listener = keyboard.Listener(on_press=ur5.home)
+    listener.start()
+    print("pass")
     ur5.control_loop()    
