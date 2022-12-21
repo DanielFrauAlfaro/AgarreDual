@@ -7,6 +7,7 @@ import rospy
 from cv_bridge import CvBridge
 import dearpygui.dearpygui as dpg
 import numpy as np
+import cv2
 
 
 # Button: sensor_msgs/Joy /arm/button1    /arm/button2
@@ -265,7 +266,7 @@ rospy.Subscriber("/robot_camera2/image_raw/compressed", ImageCompressed, camera_
 while first_frame_cam1 == False or first_frame_cam2 == False:
     pass
 
-
+'''
 dpg.create_context()
 dpg.create_viewport(title='Teleoperación', width=1460, height=1200)
 dpg.setup_dearpygui()
@@ -295,7 +296,7 @@ with dpg.window(label="Cámara UR52", pos = [800,500]):
     dpg.add_image("texture_tag2")
     
 
-dpg.show_viewport()
+dpg.show_viewport()'''
 
 
 # Rate
@@ -373,7 +374,11 @@ while not rospy.is_shutdown():
     
     # 4 --
     pub_f.publish(wrench)
+
+    numpy_horizontal = np.hstack((frame_, frame2_))
     
+    cv2.imshow("UR5", numpy_horizontal)
+    cv2.waitKey(1)
     
     # 5 --
     '''data = np.flip(frame_, 2)
