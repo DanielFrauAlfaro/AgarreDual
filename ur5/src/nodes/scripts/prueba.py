@@ -75,13 +75,21 @@ class Controller():
         self.T_or = self.__ur5.fkine(self.__q)
         self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
+        self.__interval = 0.1
+        self.__prev = time.time()
+        
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
-        q = self.__ur5.ikine_LMS(T,q0 = self.__q)
-        self.T_or = T
-        
-        self.__qp = q.q
+        if time.time() - self.__prev > self.__interval:
+            q = self.__ur5.ikine_LMS(T,q0 = self.__q)
+            self.T_or = T
+            
+            self.__qp = q.q
+            self.__prev = time.time()
+            
+            for i in range(6):
+                self.__joints_com[i].publish(self.__qp[i])
         
         pose = Pose()
         
@@ -135,7 +143,7 @@ class Controller():
         
         self.T_or = self.__ur5.fkine(self.__q)
         
-        rate = rospy.Rate(20)
+        rate = rospy.Rate(18)
         while not rospy.is_shutdown(): 
             
             if self.__mode != "pos":
@@ -157,9 +165,7 @@ class Controller():
             else:
                 self.__incr_vec = [0,0,0,0,0,0]
                 
-            for i in range(6):
-                self.__joints_com[i].publish(self.__qp[i])
-                
+                    
             rate.sleep()
         
         
