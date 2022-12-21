@@ -192,5 +192,4 @@ ur5 = Controller()
 if __name__ == '__main__':
     listener = keyboard.Listener(on_press=ur5.home)
     listener.start()
-    print("pass")
     ur5.control_loop()    
