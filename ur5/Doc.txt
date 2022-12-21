@@ -278,6 +278,11 @@ como el que se tenía en un inicio.
     Al final, para obligar al bucle de control a funcionar a cierta frecuencia lo que se hace es tener ejecutar el callback cada vez que pasa un 
 intervalo de tiempo específico. Siempre que se envía un dato de posición cartesiana se llama al callback correspondiente, pero su contenido solo se
 ejecutará si ha pasado cierto tiempo desde la última ejecución. Así se evita que se ralentice.
+    La razón por la cual la librería de ROS del Phantom solo funciona si a la hora de la calibración se llama el dispositivo como "Default Device" es
+porque el proyecto de Github define una serie de ficheros de configuración. En el que se lanza por defecto con el nodo de ROS se llama al fichero
+sawSensablePhantomDefaultDevice.json, donde se define el espacio de nombres que se va a usar (a la hora de lanzar los topics, el /arm, por si se
+tiene más de un Phantom) y el nombre de la configuración, que en este caso es "Default Device". Para lanzarlo con otro nombre habría que crear otro
+fichero con una configuración propia y llamarlo como argumento al lanzar el driver del Phantom del proyecto.
     (3 h) --> 21 / 12 / 22
 
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
