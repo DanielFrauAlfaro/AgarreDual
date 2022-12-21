@@ -149,74 +149,75 @@ def cb(data):
     # 1. --
     act_pose_phantom.position = data.pose.position
     
-    # 2 --
-    if vel_control == False:
-        # 2.1 --
-        if xyz:
-            pose.position.x = data.pose.position.z * scale_x + or_x
-            pose.position.y = data.pose.position.x * scale_y + or_y
-            
-            if prev_z > 0:
-                pose.position.z = data.pose.position.y * scale_z1 + or_z
-            else:
-                pose.position.z = data.pose.position.y * scale_z2 + or_z
-            
-            pose.orientation.x = prev_roll
-            pose.orientation.y = prev_pitch
-            pose.orientation.z = prev_yaw
-            
-            prev_pose_phantom.position = data.pose.position
-            
-        # 2.2 --    
-        else:
-            pose.position.x = prev_x
-            pose.position.y = prev_y
-            pose.position.z = prev_z
-
-            pose.orientation.x = data.pose.position.z + or_roll
-            pose.orientation.y = data.pose.position.x + or_pitch
-            pose.orientation.z = data.pose.position.y + or_yaw
-            
-            prev_pose_phantom.orientation.x = data.pose.position.x
-            prev_pose_phantom.orientation.y = data.pose.position.y
-            prev_pose_phantom.orientation.z = data.pose.position.z
+    if not change:
+        # 2 --
+        if vel_control == False:
+            # 2.1 --
+            if xyz:
+                pose.position.x = data.pose.position.z * scale_x + or_x
+                pose.position.y = data.pose.position.x * scale_y + or_y
                 
-        
-    # 3 --
-    else:
-        if xyz:
-            pose.position.x = data.pose.position.z
-            pose.position.y = data.pose.position.x
-            pose.position.z = data.pose.position.y  
-            
-            pose.orientation.x = 0.0
-            pose.orientation.y = 0.0
-            pose.orientation.z = 0.0
-            
-            # Se transforma la POSICIÓN del robot a la que debería tener en el Phantom
-            prev_pose_phantom.position.x = (prev_y - or_y) / scale_y
-            
-            if prev_z > 0.0:
-                prev_pose_phantom.position.y = (prev_z - or_z) / scale_z1
+                if prev_z > 0:
+                    pose.position.z = data.pose.position.y * scale_z1 + or_z
+                else:
+                    pose.position.z = data.pose.position.y * scale_z2 + or_z
+                
+                pose.orientation.x = prev_roll
+                pose.orientation.y = prev_pitch
+                pose.orientation.z = prev_yaw
+                
+                prev_pose_phantom.position = data.pose.position
+                
+            # 2.2 --    
             else:
-                prev_pose_phantom.position.y = (prev_z - or_z) / scale_z2
+                pose.position.x = prev_x
+                pose.position.y = prev_y
+                pose.position.z = prev_z
+
+                pose.orientation.x = data.pose.position.z + or_roll
+                pose.orientation.y = data.pose.position.x + or_pitch
+                pose.orientation.z = data.pose.position.y + or_yaw
+                
+                prev_pose_phantom.orientation.x = data.pose.position.x
+                prev_pose_phantom.orientation.y = data.pose.position.y
+                prev_pose_phantom.orientation.z = data.pose.position.z
+                    
             
-            prev_pose_phantom.position.z = (prev_x - or_x) / scale_x
-            
-            
+        # 3 --
         else:
-            pose.position.x = 0.0
-            pose.position.y = 0.0
-            pose.position.z = 0.0
+            if xyz:
+                pose.position.x = data.pose.position.z
+                pose.position.y = data.pose.position.x
+                pose.position.z = data.pose.position.y  
+                
+                pose.orientation.x = 0.0
+                pose.orientation.y = 0.0
+                pose.orientation.z = 0.0
+                
+                # Se transforma la POSICIÓN del robot a la que debería tener en el Phantom
+                prev_pose_phantom.position.x = (prev_y - or_y) / scale_y
+                
+                if prev_z > 0.0:
+                    prev_pose_phantom.position.y = (prev_z - or_z) / scale_z1
+                else:
+                    prev_pose_phantom.position.y = (prev_z - or_z) / scale_z2
+                
+                prev_pose_phantom.position.z = (prev_x - or_x) / scale_x
+                
+                
+            else:
+                pose.position.x = 0.0
+                pose.position.y = 0.0
+                pose.position.z = 0.0
 
-            pose.orientation.x = data.pose.position.z
-            pose.orientation.y = data.pose.position.x 
-            pose.orientation.z = data.pose.position.y
+                pose.orientation.x = data.pose.position.z
+                pose.orientation.y = data.pose.position.x 
+                pose.orientation.z = data.pose.position.y
 
-            # Se transforma la ORIENTACIÓN del robot a la que debería tener en el Phantom
-            prev_pose_phantom.orientation.x = prev_y - or_pitch
-            prev_pose_phantom.orientation.y = prev_z - or_yaw
-            prev_pose_phantom.orientation.z = prev_x - or_roll
+                # Se transforma la ORIENTACIÓN del robot a la que debería tener en el Phantom
+                prev_pose_phantom.orientation.x = prev_y - or_pitch
+                prev_pose_phantom.orientation.y = prev_z - or_yaw
+                prev_pose_phantom.orientation.z = prev_x - or_roll
          
             
 # Callbacks de los botones
