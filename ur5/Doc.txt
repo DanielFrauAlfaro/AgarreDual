@@ -275,6 +275,9 @@ calcular muchas inversas). Para solucionar este problema lo que se hace es en lo
 en el bucle principal, que se ejecuta acorde a una frecuencia concreta.
     También se ha creado un controlador a parte del que usa una interfaz hardware de posición, un que usa una de esfuerzo con un PID incorporado,
 como el que se tenía en un inicio.
+    Al final, para obligar al bucle de control a funcionar a cierta frecuencia lo que se hace es tener ejecutar el callback cada vez que pasa un 
+intervalo de tiempo específico. Siempre que se envía un dato de posición cartesiana se llama al callback correspondiente, pero su contenido solo se
+ejecutará si ha pasado cierto tiempo desde la última ejecución. Así se evita que se ralentice.
     (3 h) --> 21 / 12 / 22
 
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
