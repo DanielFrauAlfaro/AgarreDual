@@ -290,7 +290,7 @@ fichero con una configuración propia y llamarlo como argumento al lanzar el dri
 cartesiano, para que se lance uno en cada robot. En ese nodo, se ha añadido la gestión de argumentos de ejecución, ya que solamente llamarlo no es 
 suficiente; se tiene que suscribir a los topics con el nombre cambiado, por lo que necesita el espacio de nombres de cada robot. Además, lo topics
 en los que publica (como el /pose para mandar consignas cartesianas) también deben ser distintos para cada robot, sino se moverían a la vez ante una
-publicación (estarían suscritos al mismo topic). Por eso también se le aplica el cambio de nombre por argumentos.
+publicación (estarían suscritos al mismo topic). Por eso también se le aplica el cambio de nombre por argumentos con el nombre del robot.
     (1 h) --> 24 / 12 / 22
 
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
