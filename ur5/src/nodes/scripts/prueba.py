@@ -55,12 +55,12 @@ class Controller():
         self.__joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=100))
         
-        rospy.Publisher('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
-        rospy.Publisher('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
-        rospy.Publisher('/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
-        rospy.Publisher('/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
-        rospy.Publisher('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
-        rospy.Publisher('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
+        rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
+        rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
+        rospy.Subscriber('/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
+        rospy.Subscriber('/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
+        rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
+        rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
 
 
         self.__cart_pos = rospy.Publisher('/cart_pos', Pose, queue_size=10)
@@ -176,6 +176,8 @@ class Controller():
 # ---------------- Home position ----------------
     def home(self, key):
         if key == keyboard.Key.esc:
+            self.__q = self.__q0
+            self.__qp = self.__q0
             for i in range(5):
                 self.__joints_com[i].publish(self.__q0[i])
 
