@@ -82,16 +82,13 @@ class Controller():
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
-        print("INVERSA")
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)
         self.T_or = T
-        print("INVERSA")
         self.__qp = q.q
         
         
         for i in range(6):
             self.__joints_com[i].publish(self.__qp[i])
-        print("PUB")
         pose = Pose()
         
         trans = T.t
@@ -115,9 +112,7 @@ class Controller():
     
 # -------------------- Callback for the haptic topic --------------------------
     def __callback(self, data):
-        print("CALLBACK")
         if time.time() - self.__prev > self.__interval:
-            print("ENTRA")
             
             self.__prev = time.time()
             
