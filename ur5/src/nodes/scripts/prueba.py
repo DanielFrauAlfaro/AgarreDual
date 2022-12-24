@@ -4,6 +4,7 @@
 ######## IMPORTANTE ############
 # INSTALAR ROBOTIC TOOLBOX EN PYTHON: pip3 install roboticstoolbox-python
 
+import  sys
 from spatialmath import *
 import roboticstoolbox as rtb
 from math import pi
@@ -22,7 +23,7 @@ from pynput import keyboard
 
 # Main class for the controller
 class Controller():
-    def __init__(self):
+    def __init__(self, name):
         # UR5 model in Robotic Toolbox
                 
         self.__ur5 = rtb.DHRobot([
@@ -41,29 +42,29 @@ class Controller():
         self.__q0 = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # ROS parameters: node, publishers and subscribers
-        rospy.init_node("main_controller", anonymous=False)
+        rospy.init_node(name+"_main_controller", anonymous=False)
         
         # rospy.Publisher('/pose', Pose, queue_size=10)
-        rospy.Subscriber('/pose', Pose, self.__callback)
-        rospy.Subscriber('/move_type', Int32, self.__cb_mode)
+        rospy.Subscriber('/' + name + '/pose', Pose, self.__callback)
+        rospy.Subscriber('/' + name + '/move_type', Int32, self.__cb_mode)
         
         self.__joints_com = []
-        self.__joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/elbow_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
         
-        rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
-        rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
-        rospy.Subscriber('/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
-        rospy.Subscriber('/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
-        rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
-        rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
+        rospy.Subscriber('/' + name + '/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
+        rospy.Subscriber('/' + name + '/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
+        rospy.Subscriber('/' + name + '/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
+        rospy.Subscriber('/' + name + '/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
+        rospy.Subscriber('/' + name + '/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
+        rospy.Subscriber('/' + name + '/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
 
 
-        self.__cart_pos = rospy.Publisher('/cart_pos', Pose, queue_size=10)
+        self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
         
         # Position and angle increment for simulation
         self.__incr = 0.005
@@ -81,16 +82,16 @@ class Controller():
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
-        
+        print("INVERSA")
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)
         self.T_or = T
-        
+        print("INVERSA")
         self.__qp = q.q
         
         
         for i in range(6):
             self.__joints_com[i].publish(self.__qp[i])
-        
+        print("PUB")
         pose = Pose()
         
         trans = T.t
@@ -114,7 +115,9 @@ class Controller():
     
 # -------------------- Callback for the haptic topic --------------------------
     def __callback(self, data):
+        print("CALLBACK")
         if time.time() - self.__prev > self.__interval:
+            print("ENTRA")
             
             self.__prev = time.time()
             
@@ -201,12 +204,15 @@ class Controller():
     def __wrist_3_listener(self,data):
         self.__q[5] = data.process_value
         
-        
-# Controller object
-ur5 = Controller()
+
 
 # ------------------ Main --------------------
 if __name__ == '__main__':
+    name = sys.argv[1]
+    print(name)
+    ur5 = Controller(name)
+
     listener = keyboard.Listener(on_press=ur5.home)
     listener.start()
+
     ur5.control_loop()    
