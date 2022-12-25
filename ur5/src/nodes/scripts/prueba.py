@@ -44,10 +44,11 @@ class Controller():
         # ROS parameters: node, publishers and subscribers
         rospy.init_node(name+"_main_controller", anonymous=False)
         
-        # rospy.Publisher('/pose', Pose, queue_size=10)
+        # Subscriber para recibir posiciones y el modo de movimiento
         rospy.Subscriber('/' + name + '/pose', Pose, self.__callback)
         rospy.Subscriber('/' + name + '/move_type', Int32, self.__cb_mode)
         
+        # Lista de publisher de las articulaciones
         self.__joints_com = []
         self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
@@ -56,6 +57,7 @@ class Controller():
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
         
+        # Subscribers de los joint_states
         rospy.Subscriber('/' + name + '/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
         rospy.Subscriber('/' + name + '/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
         rospy.Subscriber('/' + name + '/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
@@ -63,33 +65,35 @@ class Controller():
         rospy.Subscriber('/' + name + '/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
         rospy.Subscriber('/' + name + '/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
 
-
+        # Se publica la posición cartesiana
         self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
         
-        # Position and angle increment for simulation
-        self.__incr = 0.005
-        self.__incr_ = 0.05
-        
+        # Modo de funcionamiento
         self.__mode = "pos"
+        
+        # Incrementos
         self.__incr_vec = [0,0,0,0,0,0]
         
+        # Origen
         self.T_or = self.__ur5.fkine(self.__q)
         self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
+        # Intervalos para ajustar la frecuencia de funcionamiento
         self.__interval = 0.1
         self.__prev = time.time()
         
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
-        q = self.__ur5.ikine_LMS(T,q0 = self.__q)
-        self.T_or = T
+        q = self.__ur5.ikine_LMS(T,q0 = self.__q)       # Inversa: obtiene las posiciones articulares a través de la posición
+        self.T_or = T                                   # Actualiza la T actual
         self.__qp = q.q
         
-        
-        for i in range(6):
+        for i in range(6):                              # Se envían los valores
             self.__joints_com[i].publish(self.__qp[i])
-        pose = Pose()
+        
+        
+        pose = Pose()                                   # Se codifica el mensaje de la posición cartesiana actual
         
         trans = T.t
         eul = T.rpy(order='xyz')
@@ -104,6 +108,8 @@ class Controller():
         
         self.__cart_pos.publish(pose)
 
+
+# --------------- Callback para cambiar el modo de funcionamiento ------------
     def __cb_mode(self, data):
         if data.data == 0:
             self.__mode = "pos"
@@ -112,23 +118,20 @@ class Controller():
     
 # -------------------- Callback for the haptic topic --------------------------
     def __callback(self, data):
-        if time.time() - self.__prev > self.__interval:
+        if time.time() - self.__prev > self.__interval:         # Solo se ejecuta cuando pasa el intervalo
             
-            self.__prev = time.time()
+            self.__prev = time.time()                           # Actualiza el intervalo
             
-            x = data.position.x
+            x = data.position.x                                 # Obtiene las posiciones
             y = data.position.y
             z = data.position.z
                 
-            x_ = data.orientation.x
-            y_ = data.orientation.y
-            z_ = data.orientation.z
-            w  = data.orientation.w
+            roll = data.orientation.x
+            pitch = data.orientation.y
+            yaw = data.orientation.z
             
-            (roll, pitch, yaw) = (x_, y_, z_)
-        
-            
-            if self.__mode == "pos":
+            # Si está en posición obtiene transformada y llama a la función de movimiento
+            if self.__mode == "pos":                
                 T = SE3(x, y, z)
                 T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
                 
@@ -136,20 +139,24 @@ class Controller():
                 
                 self.__move(T)
             
+            # Si está en velocidad, asigna los incrementos
             else:
                 self.__incr_vec = [x/5.0, y/5.0, z/5.0, roll/5.0, pitch/5.0, yaw/5.0]
             
             
         
+# ------------------------ Bucle de control ------------------------
     def control_loop(self):
         
         self.T_or = self.__ur5.fkine(self.__q)
-        
         rate = rospy.Rate(18)
+        
+        # El bucle solo ejecuta funciones si está en velocidad; necesita incrementar los valores
         while not rospy.is_shutdown(): 
             
             if self.__mode != "pos":
                 
+                # Se montan las matrices de transformación
                 T = SE3(self.__incr_vec[0], self.__incr_vec[1], self.__incr_vec[2])
                 T_rot = SE3.RPY(self.__incr_vec[3], self.__incr_vec[4], self.__incr_vec[5], order='xyz')
                 
@@ -178,6 +185,8 @@ class Controller():
             self.__qp = self.__q0
             for i in range(5):
                 self.__joints_com[i].publish(self.__q0[i])
+                
+            self.T_or = self.__ur5.fkine(self.__q0)
 
 
 # ----------------- Callbacks for the joint controller state Subscribers ------------------
