@@ -293,7 +293,10 @@ en los que publica (como el /pose para mandar consignas cartesianas) también de
 publicación (estarían suscritos al mismo topic). Por eso también se le aplica el cambio de nombre por argumentos con el nombre del robot.
     (1 h) --> 24 / 12 / 22
 
-
+    Cambié el disco duro externo por una SSD (para ganar en velocidad de ejecución, sobretodo en los primeros momentos después de iniciar sesión) y para liberar uno de los puertos USB. Al reinstalar el repositorio junto con todos sus paquetes, surgió el error de que el robot en simulación se caía al suelo, como si sus controladores no funcionasen. Para solucionar este problema (o al menos parcialmente) se añadió un botón de Home, en la tecla ESC mediante la librería pynput.
+    (1 h) --> 27 / 12 / 22
+    
+    
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
