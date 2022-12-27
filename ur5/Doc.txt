@@ -293,5 +293,8 @@ en los que publica (como el /pose para mandar consignas cartesianas) también de
 publicación (estarían suscritos al mismo topic). Por eso también se le aplica el cambio de nombre por argumentos con el nombre del robot.
     (1 h) --> 24 / 12 / 22
 
+
+INSTALL sudo apt-get install ros-noetic-soem
+
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
