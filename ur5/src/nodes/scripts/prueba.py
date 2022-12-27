@@ -42,31 +42,31 @@ class Controller():
         self.__q0 = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # ROS parameters: node, publishers and subscribers
-        rospy.init_node(name+"_main_controller", anonymous=False)
+        rospy.init_node("main_controller", anonymous=False)
         
         # Subscriber para recibir posiciones y el modo de movimiento
-        rospy.Subscriber('/' + name + '/pose', Pose, self.__callback)
-        rospy.Subscriber('/' + name + '/move_type', Int32, self.__cb_mode)
+        rospy.Subscriber('/pose', Pose, self.__callback)
+        rospy.Subscriber('/move_type', Int32, self.__cb_mode)
         
         # Lista de publisher de las articulaciones
         self.__joints_com = []
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/elbow_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=100))
         
         # Subscribers de los joint_states
-        rospy.Subscriber('/' + name + '/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
-        rospy.Subscriber('/' + name + '/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
-        rospy.Subscriber('/' + name + '/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
-        rospy.Subscriber('/' + name + '/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
-        rospy.Subscriber('/' + name + '/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
-        rospy.Subscriber('/' + name + '/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
+        rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
+        rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
+        rospy.Subscriber('/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
+        rospy.Subscriber('/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
+        rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
+        rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
 
         # Se publica la posición cartesiana
-        self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
+        self.__cart_pos = rospy.Publisher('/cart_pos', Pose, queue_size=10)
         
         # Modo de funcionamiento
         self.__mode = "pos"
@@ -181,8 +181,8 @@ class Controller():
 # ---------------- Home position ----------------
     def home(self, key):
         if key == keyboard.Key.esc:
-            self.__q = self.__q0
-            self.__qp = self.__q0
+            self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
+            self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             for i in range(5):
                 self.__joints_com[i].publish(self.__q0[i])
                 
@@ -212,9 +212,8 @@ class Controller():
 
 # ------------------ Main --------------------
 if __name__ == '__main__':
-    name = sys.argv[1]
-    print(name)
-    ur5 = Controller(name)
+
+    ur5 = Controller("")
 
     listener = keyboard.Listener(on_press=ur5.home)
     listener.start()
