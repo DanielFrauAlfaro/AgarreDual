@@ -56,14 +56,8 @@ class Controller():
         self.__joints_com.append(rospy.Publisher('/wrist_1_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/wrist_2_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/wrist_3_joint_position_controller/command', Float64, queue_size=100))
-        
-        # Subscribers de los joint_states
-        rospy.Subscriber('/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
-        rospy.Subscriber('/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
-        rospy.Subscriber('/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
-        rospy.Subscriber('/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
-        rospy.Subscriber('/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
-        rospy.Subscriber('/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
+
+        rospy.Subscriber('/joint_states', JointState, self.__joint_state_cb)
 
         # Se publica la posición cartesiana
         self.__cart_pos = rospy.Publisher('/cart_pos', Pose, queue_size=10)
@@ -81,6 +75,9 @@ class Controller():
         # Intervalos para ajustar la frecuencia de funcionamiento
         self.__interval = 0.1
         self.__prev = time.time()
+
+        self.__interval2 = 0.2
+        self.__prev2 = time.time()
         
         
 # --------------------- Move the desired homogeneus transform -----------------
@@ -88,10 +85,6 @@ class Controller():
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)       # Inversa: obtiene las posiciones articulares a través de la posición
         self.T_or = T                                   # Actualiza la T actual
         self.__qp = q.q
-        
-        for i in range(6):                              # Se envían los valores
-            self.__joints_com[i].publish(self.__qp[i])
-        
         
         pose = Pose()                                   # Se codifica el mensaje de la posición cartesiana actual
         
@@ -153,6 +146,8 @@ class Controller():
         
         # El bucle solo ejecuta funciones si está en velocidad; necesita incrementar los valores
         while not rospy.is_shutdown(): 
+            for i in range(6):                              # Se envían los valores
+                self.__joints_com[i].publish(self.__qp[i])
             
             if self.__mode != "pos":
                 
@@ -181,34 +176,39 @@ class Controller():
 # ---------------- Home position ----------------
     def home(self, key):
         if key == keyboard.Key.esc:
-            self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
+            # self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             for i in range(5):
                 self.__joints_com[i].publish(self.__q0[i])
+
+            self.T_or = self.__ur5.fkine([0, -1.5, 1 , 0.0, 1.57, 0.0])
                 
-            self.T_or = self.__ur5.fkine(self.__q0)
+        
+    def __joint_state_cb(self, data):
+        if time.time() - self.__prev2 > self.__interval2:         # Solo se ejecuta cuando pasa el intervalo
+            
+            self.__prev2 = time.time()   
 
-
-# ----------------- Callbacks for the joint controller state Subscribers ------------------
-    def __shoulder_pan_listener(self,data):   
-        self.__q[0] = data.process_value
-        
-    def __shoulder_lift_listener(self,data):
-        self.__q[1] = data.process_value
-        
-    def __elbow_listener(self,data):
-        self.__q[2] = data.process_value
-        
-    def __wrist_1_listener(self,data):
-        self.__q[3] = data.process_value
-        
-    def __wrist_2_listener(self,data):
-        self.__q[4] = data.process_value
-        
-    def __wrist_3_listener(self,data):
-        self.__q[5] = data.process_value
-        
-
+            for i in range(len(data.name)):
+                if data.name[i] == "shoulder_lift_joint":
+                    
+                    self.__q[0] = data.position[i]
+                elif data.name[i] == "shoulder_pan_joint":
+                    
+                    self.__q[1] = data.position[i]
+                elif data.name[i] == "elbow_joint":
+                    
+                    self.__q[2] = data.position[i]
+                elif data.name[i] == "wrist_1_joint":
+                    
+                    self.__q[3] = data.position[i]
+                elif data.name[i] == "wrist_2_joint":
+                   
+                    self.__q[4] = data.position[i]
+                elif data.name[i] == "wrist_3_joint":
+                    
+                    self.__q[5] = data.position[i]
+           
 
 # ------------------ Main --------------------
 if __name__ == '__main__':
