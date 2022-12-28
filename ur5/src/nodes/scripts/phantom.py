@@ -379,7 +379,8 @@ while not rospy.is_shutdown():
                   
     # 3 --   
     else:
-        pub.publish(pose)
+        pass
+        # pub.publish(pose)
     
     # 4 --
     pub_f.publish(wrench)
@@ -397,6 +398,11 @@ while not rospy.is_shutdown():
     else:
         mode = mode + "RPY"
     
+    shape = frame2_.shape
+
+    zeros = np.zeros((int(shape[0]), int(shape[1]/2),3), dtype="uint8")
+    
+
     zeros = cv2.putText(zeros, "Modo: " + mode, (15,50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (128, 0, 128), 2, cv2.LINE_AA)
     zeros = cv2.putText(zeros, "X: " + str(round(prev_x,2)) + "   Y: " + str(round(prev_y,2)) + "   Z: " + str(round(prev_z,2)), (15,100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (128, 128, 0), 1, cv2.LINE_AA)
     zeros = cv2.putText(zeros, "Roll: " + str(round(prev_roll,2)) + "  Pitch: " + str(round(prev_pitch,2)) + "  Yaw: " + str(round(prev_yaw,2)), (15,150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (128, 128, 0), 1, cv2.LINE_AA)
@@ -407,9 +413,9 @@ while not rospy.is_shutdown():
     zeros = cv2.putText(zeros, "Q3: " + str(round(q[3],2)), (15,260), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 128, 128), 1, cv2.LINE_AA)
     zeros = cv2.putText(zeros, "Q4: " + str(round(q[4],2)), (15,280), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 128, 128), 1, cv2.LINE_AA)
     zeros = cv2.putText(zeros, "Q5: " + str(round(q[5],2)), (15,300), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 128, 128), 1, cv2.LINE_AA)
-
     
-    numpy_horizontal = np.hstack((frame_, frame2_, zeros))
+    numpy_horizontal = np.hstack((frame_, frame2_,zeros))
+
     cv2.imshow("UR5", numpy_horizontal)
     
     cv2.waitKey(1)
