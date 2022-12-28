@@ -76,7 +76,7 @@ class Controller():
         self.__interval = 0.1
         self.__prev = time.time()
 
-        self.__interval2 = 0.2
+        self.__interval2 = 0.05
         self.__prev2 = time.time()
         
         
