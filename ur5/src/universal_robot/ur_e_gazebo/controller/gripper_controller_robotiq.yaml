@@ -1,4 +1,0 @@
-gripper:
-  type: effort_controllers/JointPositionController
-  joint: finger_joint
-  pid: {p: 4.7, i: 0.0, d: 0.2, i_clmap_min: -100.0, i_clamp_max: 100.0}

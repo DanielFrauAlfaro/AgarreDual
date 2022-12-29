@@ -1,3 +1,0 @@
----------------- INSTRUCCIONES DE SIMULACION ------------
-  - roslaunch ur_e_gazebo ur5_.launch
-  - (en otra terminal) python3 main.py
