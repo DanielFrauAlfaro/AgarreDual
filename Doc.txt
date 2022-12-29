@@ -1,0 +1,306 @@
+------------------------- Documentacion ------------------
+
+    Se clonó el repositorio de Universal Robots. 
+    Se crearon los controladores de ROS Control. 
+    (2 h) --> (fin de semana de primera tutoria)
+    
+    Se probó a hacer el control cartesiano con la Robotic Toolbox de Peter Corke en Python, pero no acabó de funcionar porque no se calculaban bien
+las inversas, los valores no eran del todo correctas. Aunque se le indicaba que fuera en la dirección positiva del eje X, las otras posiciones variaban
+    Se configuró un paquete de MoveIT para el UR5, así se consigue incorporar el planificador de trayectorias (o coger de ahí las posiciones finales)
+Se añadió el launch demo.launch de la carpeta launch de ur_moveit para ello. Además se cambió el nombre del robot_state_publisher del launch que lanzaba
+el robot (más concretamente el tag de "name") para que no interfiera con el del move_group
+    Luego, se vio que esto no era óptimo, pues se tenían dos modelos paralelos, lo cual resultaría ineficiente. Por lo tanto, se mantuvo un solo 
+robot_state_publisher, desde donde el move_group pueda calcular las trayectorias.
+    Al final, el objetivo del move_group es calcular las cinemática inversa del robot, por lo que se va a intentar coger siempre el último elemento.
+Los incrementos de posición no serán muy grandes por lo que las trayectorias no deberían tardar mucho en calcularse. Además, se pueden establecer saltos
+grandes o incluso calcular el salto de posición respecto a al actual y ponerlo en el planning, para que solo salga un elemento, el final
+    En cuanto al Phantom, se han visitado las webs para la instalación de los drivers y paquetes necesarios para leer los datos de este.
+    (4 h) --> 13 / 11 / 22
+    
+
+    Finalmente, al probar el framework de MoveIT se comprobó que este acercamiento no era el adecuado (todo esto con un programa que reaccione a las 
+pulsaciones del teclado), ya que las trayectorias que se calculaban no eran correctas; al poner intervalos muy cortos el robot adoptaba 
+configuraciones erráticas para alcanzarlos. Además, no siempre se cnoseguía planificar el 100% de la trayectoria. 
+    Volviendo al método en el que se usa la Robotic Toolbox, se cambió el orden en el que se multiplicaban la matriz de transformación actual con la
+del desplazamiento (poniendo primero la del desplazamiento), con lo que finalmente si que se conseguía moverse en las direcciones indicadas. Esto es
+por el orden de las operaciones, al hacerlo de la manera original se variaban los valores del desplazamiento con las rotaciones de la matriz de 
+rotación dentro de la transformada homogénea. 
+    Una vez se tenía un movimiento correcto, se probó a hacer la teleoperación con las teclas del teclado, moviendo el robot en cada eje por separado,
+además de actuar sobre los ángulos RPY del robot. El programa está hecho entorno a una función de ámbito privado (move) que recibe una matriz de
+transformación homogénea y mueve el robot a la posición deseada con la orientación requerida. 
+    Para la aplicación real, se tendría que usar unos suscriptores para escuchar los valores del dispositivo háptico Phantom Omni, de manera que a 
+cada iteración se modifique la posición del robot. De los topics se recobiría (presumiblemente) un mensaje tipo geometry_msgs/Pose, con lo que se
+podría usar la Robotic Toolbox de Python para crear una matriz de transformación homogénea. La mayoría de métodos y atributos se han declarado como
+privados
+    Con todo, habría que tener cuidado tanto con la frecuencia de envío de datos desde el Phantom (el programa no se debe de interrumpir en exceso, 
+se tendrían datos irrelevantes que estarían consumiendo ancho de banda, ...) como con la presencia de singularidades en el control (lo que podría
+llevar a situaciones imprevisibles fuera del espacio de trabajo o en configuraciones imposibles, como superposición de eslabones). Esto último se
+podría solucionar con el cálculo y monitorización de la manipulabilidad, del determinante de la jacobiana o mediante el establecimiento de límites
+articulares para cada una de las articualciones.
+    (6 h) --> 14 / 11 / 22
+
+    Se ha cambiado la función para la inversa (de ikine_LM a ikine_LM) ya que esta última la obtiene más rápido (10 veces más rápido). 
+    Se ha eliminado el elemento del Rate, que se usaba para poner a dormir al sistema cada vez que se publicaba un mensaje en los commands, 
+retrasaba mucho la ejecución y su presencia no era determinante.
+    Se ha cambiado el método por el cual se cierra el bucle; ya no se coge del modelo de MoveIT sino que se cogen directamente del modelo de Gazebo
+mediante los topics ".../state"
+    Se está usando la herramienta "time" para mirar el tiempo que tardan las ejecuciones. 
+    Se ha creado la función del callback, para que reciba un mensaje tipo Pose y pase los comandos al robot.
+    Se han ajustado los valores de los controladores, ya que en la simulacion, cuando se le enviaban comandos de posicion a cada una de las 
+articualciones, el robot oscilaba mucho (sobretodo con las últimas tres, que tenían valores muy bajos). El ajuste se consiguió moviendo el robot
+en cartesiano y viendo como reaccionaban a los cambios. En función del comportamiento, se aumentaba la ganancia proporcional o derivativa (la
+integral no se usa, ya que en teleoperación introduciría retardos en la ejecución). El caso más crítico era el de la sexta articulación (el 
+wrist_3) que vibraba demasiado; esto se debía a que tenía demasiada ganancia, tanto derivativa como proporcional, por lo que se llegó a la conclusión
+que, para una articulación tan pequeña solo bastaba componente proporcional --> Esta actividad ha sido llevada a cabo mediante el framework de ROS
+llamado RQT.
+    (3 h) --> 16 / 11 / 22
+
+
+    Se ha buscado el repositorio de RobotIQ para descargar los modelos URDF de los manipuladores que hay en el laboratorio y con los que se va a trabajar a la hora del robot real. 
+Los modelos del repositorio original no se consiguieron fusionar con el modelo del robot (con el comando "connected on" no funcionaba). Por ello, se buscaron tutoriales y documentación
+para unir dos modelos URDF. Finalmente, se encontró uno para añadirlo al modelo aunque no sea del repositorio oficial. 
+    (2 h) --> 18 / 11 / 22
+
+
+    Para añadir la pinza se deben hacer algunas modificaciones en los archivos URDF del repositorio ofifcial de RobotIQ. Las primeras pruebas se 
+hicieron basándose en un tutorial en el que se cogía una pinza de tres dedos, pero al colocarla en el modelo se observaban muchas oscilaciones e
+impreciosiones en el control incluso del brazo UR5. Se estima que lo que puede causar este fenómeno es la colisión entre los elementos físicos de
+la simulacion. Por ello se intentó añadir otra pinza, la robotiq_2F_140 (una pinza con dos dedos)
+    Este otro modelo era más complicado y en un inicio no se tenía claro como incluirla directamente. Se lanzó uno de los archivos launch para 
+visualizar la pinza y ver que "links" tenía; si se quiere añadir el modelo de la pinza al modelo del brazo se tiene que crear una "joint" que tenga
+como "parent" al efector final del brazo y como "child" a la base o conector de la pinza. Este segundo elemento era el que se estaría buscando al
+lanzar este launch.
+    El archivo que se lanzó fue el "roslaunch robotiq_2f_140_gripper_visualization test_robotiq_arg_2f_140_model.launch", donde se lanza un entorno
+en RVIZ con la pinza. Ahí, en la pestaña de "Links" se fueron eliminando hasta que se identificó el conector, con el nombre "robotiq_arg2f_140". Luego
+se vio cual era el fichero URDF que se estaba importando dentro del archivo .launch, el cual es el "robotiq_arg2f_140_model.xacro". En ese fichero,
+se declara una MACRO de otro XACRO (EXPLICAR QUE SON LOS ARCHIVOS .XACRO), una que se importa desde el fichero "robotiq_arg2f_140_model_macro.xacro"
+    El último fichero mencionado es un conjunto de macros que conforman la pinza de dos dedos RobotIQ 2F 140. Al final del fichero es donde se
+encuentra la macro correspondiente al conector, que a su vez define en otra fichero de macros .xacro, el "robotiq_arg2f.xacro".
+    Una vez llegados a este punto, se hicieron pruebas para intentar añadir la pinza al modelo URDF del robot UR5 de la carpeta "/ur_description/
+urdf/ur5_robot.urdf.xacro". Lo primero que se hizo fue intentar eliminar todas las sub-macros que definen cada "joint" y "link", pero daba errores
+por las diferentes referencias a otros ficheros y macros. Seguir por este camino implicaría conocer en profundidad el funcionamiento de los ficheros
+tipo XACRO, por lo que se optó por otra opción. En el fichero "robotiq_arg2f_140_model.xacro" se definía un parámetro para la macro "robotiq_arg2f_140",
+por lo que añadió otro parámetro, el "parent" de la pinza. Luego, en el archivo "robotiq_arg2f.xacro", en la macro de "robotiq_arg2f_base_link" se 
+añadió una "joint" de tipo "fixed" junto con un parámetro más, de manera que el "parent" sería ese nuevo parámetro y el "child" el propio "link" 
+que se define dentro de esa misma MACRO.
+    Así, haciendo un "include" de "robotiq_arg2f_140_model_macro.xacro" en el archivo "ur5_robot.urdf.launch" especificando como parámetro del
+"robotiq_arg2f_140" el link "ee_link" o "tool0" del UR5 se consigue añadir la pinza al modelo de Gazebo. Al lanzar el launch tal cual está, se 
+importa el modelo, pero se lanza un error, ya que hay "joints" que no tienen controlador, con lo que se va a proceder a añadirlo.
+    
+    Lo primero que habría que hacer es comprobar que tipo de transmisiones en las "joints" viene por defecto en los paquetes de RobotIQ. Esta
+configuración se declara en el archivo "robotiq_arg2f_transmission.xacro", donde se ver que son de tipo "transmission_interface/SimpleTransmission"
+con el "hardwareInterface" configuado como "PositionJointInterface", lo que resulta no correcto para el control que se está realizando (un control en
+posición del robot y la pinza), lo correcto sería que fueran interfaces de esfuerzo (EffotJointInterface). Así, se puede definir mediante 
+ROS - Control controladores de posición para cada una de las articulaciones de la pinza, el nombre de las cuales se puede ver en la interfaz 
+de usuario de Gazebo (navegando por el menú de la derecha y accediendo al apartado de "joints") o buscando las definiciones de "joint" en el 
+archivo "robotiq_arg2f_140_model_macro.xacro".
+    Al crear los controladores se observó que daba errores al cargarlos en la simulación (no detectaba la "joint" en los recursos). Esto se puede 
+deber a que no se definen bien las transmisiones en los archivos de MACRO, solamente la del "finger_joint" en el fichero "robotiq_arg2f_transmission".xacro". Solucionar esto requeriría hacer ficheros nuevos de coniguración (nuevas macros) similares a las que se usan en los del UR5, ya que en los .xacro de RobotIQ no se hacen como se está utilizando en el proyecto.
+Otra opción sería ejecutarlo, o generar un controlador adecuado a los ficheros de RobotIQ. Al final, se tomó la primera solución; dentro del fichero
+.xacro de las transmisiones se definieron todas las hardwareInterface de todas las "joints", definiéndolas como EffotJointInterface. 
+    Por otro lado, se definieron los valores de las ganancias PID de los controladores de cada articulación de la pinza con una estructura similar 
+a la del controlador del brazo. Las ganancias se definen con valores muy bajos, pues son articulaciones pequeñas y aún se tienen que ajustar en 
+este momento. Por lo tanto, en el archivo .launch se carga el controlador con un "controller_manager" con un nombre diferente.
+    Luego, al lanzar la simulación se observaba que se cargaba el modelo, pero la pinza no tenía colisión y estaba mal colocada en el último eslabón
+del UR5. El primer problema se solucuionó añdadiendo unos comandos en el fichero "robotiq_arg2f_140_model_macro.xacro" donde se activa la colisión
+de los elementos "link" en la simulación de Gazebo. Luego, se cambió el parámetro "parent" que se le daba en el fichero "ur5_robot.urdf.xacro", de
+"ee_link" a "tool0", para que esté alineado con el robot. Después, se lanzó la simulación y se probó a mover el robot para comprobar que lo hacía
+con normalidad. Además, se ha cambiado el origen de la unión entre la pinza y el efector final del robot para evitar que esté uno metido dentro del
+otro, lo que provoca que estén colisionando constantemente, lo que da lugar a vibraciones o clipeos.
+    (5 h) --> 20 / 11 / 22
+
+
+    Se ha creado un fichero de Python a modo de controlador en velocidad, aunque no se ha especificado ningún controlador de este tipo, sino que se toma
+un controlador en posición al que se le pasan los diferenciales que se reciben desde el dispositivo de control. De esta manera, se tiene la misma 
+estructura que con el controlador anterior pero con un bucle infinito de control. En éste, se va aumentando el valor de un vector de incrementos 
+([x, y, z, roll, pitch, yaw]) según los valores que se reciben desde un topic conectado a la interfaz (ya sea el Phantom o una interfaz propia). Se
+calcula la matriz de transformación homogénea del incremento (de momento solo se controlan los tres primeros grados de libertad) y se multiplica por
+la matriz de transformación actual. La matriz resultado de esta operación se envía como parámetro a la función que se encarga de mover el robot 
+(publicar en el topic de las articulaciones y hacer la cinemática inversa).
+    Por otro lado, se ha añadido un fichero .launch a los que ya habían presentes, uno cuya finalidad es la de cargar dos robots al mundo Gazebo de
+la simulación, incluyendo el fichero ur5.launch dos veces en distintos espacios de nombres (ns). Las modificaciones se han realizado sobre el launch
+original del ur5, donde se han eliminado los arugumentos, así como el spawner del mundo de Gazebo; si este comando estuviera dentro de ur5.launch
+se cargarían dos mundos diferentes, sin posibilidad de interactuar entre ellos. Luego, se argumentan varios parámetros que se le pasan al fichero, uno
+que correspondería con el nombre del robot (ur5_1 o ur5_2), ya que el simulador no es capaz de cargar dos modelos que se llamen igual. Además de que
+se definien posiciones distintas para los dos robots medante otro argumento siguiendo el formato del spawner del modelo del robot en Gazebo.
+    (2.5 h) --> 25 / 11 / 22
+
+
+    En esta sesión, lo primero que se ha intentado hacer es conceguir que la pinza se importe correctamente a la simulación; según viene en el
+repositorio de RobotIQ, no se importa bien en Gazebo. Las articulaciones en los modelos DAE no tienen agujeros, por lo que se tienen que definir 
+joints en los ficheros de configuración URDF. En el que viene por defecto haría falta definir una, la que une el inner_finger con el inner_knuckle
+de cada uno de los dedos de la pinza. Definirla manualmente es complicado, pues habría que definir la posición de la joint y hacerlo es difícil a 
+la vez que no resultaría preciso del todo. Así, buscando en algunos repositorios se encontró que si se definían las joints como un grupo de movimiento
+coordinado entre ellos, se puede corregir y que se muestren bien todas ellas. Esta modificación se introduce en el fichero de transmissions del
+gripper 140 2F. Esta solución consigue que se vea bien en la simulación, aunque no permite el control directamente con ROS-Control (las joints 
+están fijas), por lo que se va a optar por la planificación de trayectorias con MoveIT, ya que solo se requerirían de dos movimientos; abrir y 
+cerrar, que se definirían previamente.
+    Luego, se pasó a hacer un controlador en velocidad. Al importarlo tal cual en la simulación se observó que el robot caía por su propio peso,
+esto se debía a que, al ser en velocidad, al principio no recibe comandos de velocidad por lo que el motor no tiene que mantener ninguna referencia
+de entrada. Si no está preparado o configurado para mantener posición, el motor se suelta y deja ir la articulación. Por lo tanto, la solución que se
+ha elegido es la de crear un script de Pyhton, un nodo, cuya función sea la de mantener la velocidad del motor aun cuando no recibe comandos de 
+movimiento; el procedimiento es el siguiente: se recogen los datos del joint_state_publisher de cada una de las articualciones, el process_value 
+(valor_actual) y el set_point (el comando que se le envía a la articulación desde el topic de .../command). Una vez se tienen cada uno de ellos, se
+ejerce un control en bucle cerrado, donde se calcula el error en velocidad (set_point - process_value) y este se envía al controlador articular en
+velocidad de cada articualción. Al principio, el robot oscilaba mucho y no se conseguía mantener bien la posición, debido a que los valores PID de
+los controladores articulares eran incorrectos. De esta manera, se procedió a ajustarlos, primero modificándolos en el .yaml y relanzando la
+simulación (el robot se caía al suelo y no se podía ver con claridad su funcionamiento) y luego mediante RQT y el plugin de Dynamic Reconfigure, 
+ajustando los valores de ganancia PID. Generalmente, se seleccionaron controladores PD, con valores bajos del apartado derivativo. Respecto a las
+magnitudes proporcionales, son bastante más bajas que las del controlador en posición, aunque en este punto se tienen que ajustar del todo, ya que 
+el robot vibra y no se ha comprobado su comportamiento ante el control en velocidad externo; aquí solo se mantiene sin caerse.
+    (4 h) --> 29 / 11 / 22
+
+    Se ha ido comprobando el  comportamiento del controlador en velocidad del bucle cerrado. Se observó que, aunque mantenía la velocidad de las
+articulaciones, no se conseguía que al mandarle mensajes de movimiento los hiciera correctamente. Esto es debido a que está intentando mantener el
+set_point del joint_state, que puede no estar coordinado con la publicación del command, por lo que hay veces que se publica la velocidad deseada
+pero el controlador intenta mantener la velocidad inicial (0.0 en este caso). 
+    Se intentó crear topics adicionales con los que mandar la velocidad para no indicarla directamente en el commando pero seguí surgiendo el 
+mismo problema. Hasta aquí se intentaba hacer un enfoque asíncrono; no se coordinan los envíos de mensajes (lo que es erróneo). Así, haciendo pruebas,
+se vio que en el callback del joint_state, si se le suma la velocidad deseada a la variable que almacena el set_point, se consigue la velocidad que 
+se indica, al menos con la primera articulación. Así, la ejecución se haría de manera síncrona, pues los comandos de movimiento que presumiblemente
+se mandarían desde otro topic tendrían que esperar a que se recibiera mensajes desde el joint_state_publisher del robot. Es necesario que el nodo
+que ejecuta el controlador en velocidad en bucle cerrado debe iniciarse junto con la simulación, y esta debe estar pausada al lanzarse, para que 
+no obtenga valores indeseados al empezar y se caiga.
+    (1 h) --> 30 / 11 / 22
+
+
+    Se ha intentado instalar los drivers para el Phantom Omni en Linux. Para ello, se ha seguido los tutoriales que se ofrecen en la página web de
+OpenHaptics. Se crearon las carpetas correspondientes y se realizaron los pasos para conectarse al Phantom mediante Ethernet; se conecta el dispositivo,
+se entra en la configuración del ordenador, el apartado "Redes / Network" y se identifica el dispositivo cableado conectado por Ethernet. Luego,
+se establece que se conecten localmente. Finalmente se desconecta y conecta el dispositivo al ordenador. 
+    Después de segui estos pasos se podía calibrar el Phantom y hacer algunas demos, por lo que el ordenador está recibiendo datos del Phantom. Se
+intentó ejecutar algunos de los scripts de OpenHaptics, pero se producían errores de ejecución. De esta manera, se probó a instalar algunos 
+proyectos realizados en Linux que hacían uso del Phantom Omni, aunque eran muy antiguos y las versiones tanto de Linux como de ROS incompatibles. 
+Además de que se indicaba en todos ellos (y en el oficial también) que no era posible conectar varios Phantom al mismo equipo. Así, se llegó al 
+repositorio de jhu, donde se indicaban los pasos para la instalación de los drivers del Phantom en Linux 20.04 (con ROS Noetic). Instalando las 
+librerías indicadas y descargando las herramientas de catkin correspondientes a versiones anteriores (especificando python3 como la versión de
+Python) se pudo compilar el proyecto en el ordenador propio, solo que había un ejemplo de una de las librería en el directorio src/cisst-saw/sawControllers/examples
+en el que se intoducía un paquete que producía errores al compilar por un paquete que no encontraba. Como no se encontró la instalación ni el modo 
+de realizarla se decidió desinstalarlo, pues era un ejemplo y no pasaba nada (en principio) si se prescindía de él.
+    Por otro lado, se han creado los topic por los que se pasa la posición cartesiana del robot y el índice de manipulabilidad, con el objetivo de
+que el nodo de ROS correspondiente al Phantom Omni sea capaz de suscribirse a éstos y ejercer fuerza sobre el operador.
+    Finalmente, se ha empezado a hacer el controlador de velocidad en bucle cerrado del robot para que sea capaz de recibir comando de velocidad 
+desde otros nodos, y no solo sea capaz de mantener la velocidad actual. Para ello, se crearon varios topics donde se recoje la información articular
+de los comandos deseados que se quieren mandar al robot. Luego, esos valores se sumaban en el callback al set_point, para hacerlo de manera síncrona.
+Así, se podían mandar mensajes de velocidad, aunque se producían oscilaciones en los movimientos y algunas inestabilidades en unas articualciones
+daban comportamientos no deseados en otras (acoplamiento general). Así, se empezó a ajustar las ganancias PID de los controladores articulares
+del robot. Ajustando estos valores, se observaron comportamientos menos oscilatorios pero que no eran del todo aceptables para realizar un control
+preciso. Lo que ocurría era que el control en bucle cerrado actuaba con una frecuencia demasiado elevada, lo que provocaba que el controlador no 
+parara de corregir desviaciones mínimas en las articulaciones. De esta manera, se bajó la frecuencia de funcionamiento del script de Python. Luego,
+se aplicó un enfoque más parecido al que se tiene en teoría de control tradicional; hasta ahora se usaba la diferencia entre el punto detectado de la
+articulación y el valor que se quiere dar. Ahora, se suma al comando que se manda al robot la posición deseada menos la que actualmente tiene (el 
+error). Aun así, el comportamiento era bastante similar, siendo la disminución de la frecuencia el factor determinante para este problema.
+    (5 h) --> 31 / 11/ 22
+
+
+    Se está realizando el control en bucle cerrado en posición a partir del que se hizo del de velocidad, siguiendo los mismos principios. Mientras
+se hacía, se encontraron con los mismos problemas que con el de velocidad (sobretodo el problema de la frecuencia). Así, se tuvieron que ajustar los
+controladores otra vez, pues se está aplicando otro paradigma de control. En un primer ajuste de los controladores se observó que oscilaban mucho
+al detenerse después de realizar un movimiento, por lo que se va a intentar solucionar este problema, aumentando las ganancias proporcionales y 
+ajustando la derivativa.
+    Para ajustar las ganancias se tiene en cuenta los valores PD en el controlador de posición; el proporcional para disminuir el tiempo de subida del 
+sistema (aunque se aumentan las oscilaciones a medida que se incrementa la magnitud) y el derivativo, que amortigua las oscilaciones aunque ralentiza 
+el sistema. De esta manera, se intnenta conseguir una actuación lo suficientemente rápida para que se llegue bien a las posiciones de consigna pero 
+con pocas oscilaciones (para que cuando no se manden más se mantenga en la posición y no oscile).
+    Por otro lado, para el controlador de posición se han ajustado las ganancias del controlador, sobretodo las de la muñeca.
+    El problema de la frecuencia ha sido muy importante en ambos controladores; con cambiar la frecuencia de envío de datos así como a la que trabaja el
+bucle cerrado se deben cambiar las ganancias del controlador. En RQT, estableciendo una frecuencia de publicación de unos 50 Hz se ajustaron los valores PID.
+Aún así, también se aumentó la frecuencia a la que funcionaba el script del control en bucle cerrado.
+    (5 h) --> 4 / 12 / 22
+
+
+    Después de hacer la estructura anterior y ver que era muy complicado hacerla funcionar (demasiadas oscilaciones al detener el mandar los datos),
+se dejó como estaba anteriormente, por lo menos en posición. No sería necesario mantener la posición dada pues eso ya lo hace un controlador de
+posición por definición, por lo que simplemente se cargan los controladores articulares. En cuanto al controlador de velocidad, se añadió la pinza
+al modelo para observar su comportamiento ante una carga en el extremo y se observó que sucedía lo mismo que con los primeros controladores de 
+velocidad; el controlador intentaba corregir los errores en velocidad, en este caso producidos por el peso de la pinza, a una frecuencia muy alta,
+por lo que el robot temblaba y las articulaciones oscilaban demasiado. Así, en vez de calibrar otra vez las ganancias PID de cada articulación,
+se disminuyó la frecuencia de trabajo de los controladores. La misma prueba se hizo con el controlador de posición, aunque este si que conseguía 
+mantener los valores de las articualciones con solvencia.
+    Por otro lado, se ha resuelto el problema de la pinza. Para ello, se ha buscado un repositorio Github que incluyera el modelo de la pinza en una
+simulación de Gazebo. Durante la búsqueda se encontró que todos ellos incorporaban MoveIt en sus proyectos, un enfoque alejado del control directo
+que se pretende buscar en este trabajo (MoveIt es un paquete para el control y generación de trayectorias). Aun así, se encontró lo que se buscaba,
+una configuración de la pinza que funcionaba en Gazebo; recordar que el porblema era que había una joint que no estaba presente en los archivos de
+configuración URDF del fabricante. Esto se solucionó haciendo uso del paquete roboticsgroup_gazebo_plugins. Con esto se puede definir que las 
+diferentes joints de la pinza imiten el movimiento de una en específico, la una que se va a mover, siguiendo la geometría y mecansimos implementados.
+Además de elegir la dirección del movimiento resultante. Por ejemplo, si la articulación de referencia se mueve en sentido contrario a las agujas del
+reloj, la secundaria se podría mover en esa misma dirección en la contraria según se quiera. Una vez se tuvo la pinza dentro de la simulación, se 
+definió un controlador mediante ROS-Control. Para poder añadirlo, había que cambiar el tipo de transmisión con el que se importaba la pinza; de
+PositionJointInterface a EffortJointInterface. Así, se ajustó el controlador para que cerrara sin provocar oscilaciones que se propagaran al resto
+del brazo robótico.
+    Además, se ha incrementado la frecuencia a la que funcionan los joint_state_publisher para que la pinza pueda seguir comandos de posición de 
+manera más solvente. Al probar con la función seno en RQT se observó que los pasos eran muy bruscos y que daba saltos en vez de seguir una trayectoria
+suave. Esto no influyó en los otros controladores, ya que el de posición sigue funcionando correctamente y el de velocidad está saturado por un
+script que se asegura de publicar correcciones de velocidad a una frecuencia determinada, de manera que los PID funcionen correctamente.
+    Cabe destacar que a veces, al iniciar la simulación, los dedos de la pinza se sueltan y se quedan colgando del robot. De momento no se encontró
+explicación a este problema, aunque si se recompila y se actualiza el source (se ejecuta en el terminal "source devel/setup.bash"), al volver a
+ejecutar el script de simulación aparece la pinza en el robot de manera correcta.
+    (3 h) --> 5 / 12 / 22
+
+
+    Para compilar todos los paquetes de RobotIq (hasta ahora no se podía compilar entero porque daba errores) se ha detectado que el paquete de
+"robotiq_3f_gripper_articulated_gazebo_plugins" es el que produce dichos errores. A la hora de manejar el real no debería haber problemas pues se
+trata de algunos plugins para Gazebo, aunque se va a comprobar como se lanza la pinza de tres dedos en la simulación por si habría alguna dependencia
+que hiciera falta.
+    Luego, se ha modificado el robot con el que se estaba trabajando; se estaba usando el UR5 y el que hay en el laboratorio es el UR5e. Así, se 
+cambió el import de la geometría desde la carpeta de robot_description a robot_e_description. Además, se añadieron al fichero ur5e_robot.urdf.xacro
+los ficheros y macros de la pinza para hacerlo igual a lo que se estaba trabajando anteriormente. Este cambio también se realizó en el fichero que
+carga los dos robots en el mundo de Gazbeo.
+    Por otro lado, se ha intentado incluir la pinza de tres dedos dentro de la simulación aunque por alguna razón los dedos empiezan a temblar y a 
+descontrolarse, incluso si se incluye un controlador.
+    (4 h) --> 6 / 12 / 22  
+    
+
+    A partir del repositorio para poder ejecutar el Phantom Omni en Linux / ROS. En un principio no se pudo ejecutar; se podía calibrar el dispositivo
+pero al lanzar el nodo del driver del Phantom saltaba un error, el puerto al que debía de estar conectado no existía según el sistema operativo. Esto
+se debía a que se estaba usando el conector con salida Ethernet y este no creaba el puerto en el directorio /dev. Probando con el otro tipo de conector,
+el USB, saltaba el mismo fallo. Finalmente se pudo lanzar el programa de los drivers dándole el nombre de "Default Device" y así detectaba el puerto,
+por lo que el nodo se podía lanzar.
+    Ahora se tenía el Phantom funcionando en Linux, y se podían obtener datos a través de sus topics:
+        - /arm/measured_cp: posición cartesiana del efector final
+        - /arm/button1 // /arm/button2: botones
+        - /arm/servo_cf: topic por el que publicar los wrenches para el feedback de fuerza
+    Se realizó un script con el que se recogen datos del measured y se publican en el topic "pose" del controlador de alto nivel del UR5 y se consiguió
+mover en simulación.
+    A parte del Phantom se ha cambiado el controlador que se estaba utilizando; antes se usaba un PID que aunque seguía bien las trayectorias, había
+un poco de oscilación y lentitud en el seguimiento. Por eso se cambió de una interfaz de esfuerzo a una en posición sin especificar PID. Con esto
+el robot va a la posición directamente, sin oscilaciones. Aquí se cambia la transmisión (en el archivo de ur.transmission.xacro) de effort a PositionJointInterface
+y en el ur5_controller_params.yaml se cambia el tipo de effort a position también.
+    (4 h) --> 16 / 12 / 22
+
+
+    Para el bucle de control del UR5, se ha cambiado el funcionamiento; hasta ahora se publicaba en las articualciones cada vez que llegaba una nueva
+posición por el topic /pose, lo que hacía que en el momento en el que llegarán muchas posiciones seguidas, la ejecución se ralentizara (se tienen que
+calcular muchas inversas). Para solucionar este problema lo que se hace es en los callbacks se almacena la información y se envía a las articulaciones
+en el bucle principal, que se ejecuta acorde a una frecuencia concreta.
+    También se ha creado un controlador a parte del que usa una interfaz hardware de posición, un que usa una de esfuerzo con un PID incorporado,
+como el que se tenía en un inicio.
+    Al final, para obligar al bucle de control a funcionar a cierta frecuencia lo que se hace es tener ejecutar el callback cada vez que pasa un 
+intervalo de tiempo específico. Siempre que se envía un dato de posición cartesiana se llama al callback correspondiente, pero su contenido solo se
+ejecutará si ha pasado cierto tiempo desde la última ejecución. Así se evita que se ralentice.
+    La razón por la cual la librería de ROS del Phantom solo funciona si a la hora de la calibración se llama el dispositivo como "Default Device" es
+porque el proyecto de Github define una serie de ficheros de configuración. En el que se lanza por defecto con el nodo de ROS se llama al fichero
+sawSensablePhantomDefaultDevice.json, donde se define el espacio de nombres que se va a usar (a la hora de lanzar los topics, el /arm, por si se
+tiene más de un Phantom) y el nombre de la configuración, que en este caso es "Default Device". Para lanzarlo con otro nombre habría que crear otro
+fichero con una configuración propia y llamarlo como argumento al lanzar el driver del Phantom del proyecto.
+    (3 h) --> 21 / 12 / 22
+
+
+    Para spawnear los dos robots se ha erreglado el ur5_2.launch, más concretamente el ur5e.launch. En él se ha añadido el nodo del controlador
+cartesiano, para que se lance uno en cada robot. En ese nodo, se ha añadido la gestión de argumentos de ejecución, ya que solamente llamarlo no es 
+suficiente; se tiene que suscribir a los topics con el nombre cambiado, por lo que necesita el espacio de nombres de cada robot. Además, lo topics
+en los que publica (como el /pose para mandar consignas cartesianas) también deben ser distintos para cada robot, sino se moverían a la vez ante una
+publicación (estarían suscritos al mismo topic). Por eso también se le aplica el cambio de nombre por argumentos con el nombre del robot.
+    (1 h) --> 24 / 12 / 22
+
+    Cambié el disco duro externo por una SSD (para ganar en velocidad de ejecución, sobretodo en los primeros momentos después de iniciar sesión) y para liberar uno de los puertos USB. Al reinstalar el repositorio junto con todos sus paquetes, surgió el error de que el robot en simulación se caía al suelo, como si sus controladores no funcionasen. Para solucionar este problema (o al menos parcialmente) se añadió un botón de Home, en la tecla ESC mediante la librería pynput.
+    (1 h) --> 27 / 12 / 22
+    
+    
+INSTALL sudo apt-get install ros-noetic-soem
+INSTALL sudo apt-get install ros-noetic-moveit
+INSTALL sudo apt-get install ros-noetic-socketcat-interface
+INSTALL sudo apt-get install ros-noetic-ros-control
+INSTALL sudo apt-get install ros-noetic-ros-controllers
+    BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
+

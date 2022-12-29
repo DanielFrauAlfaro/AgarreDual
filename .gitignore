@@ -3,7 +3,7 @@
 
 ### ROS ###
 ur5/devel/
-ur5/logs/
+logs/
 ur5/build/
 bin/
 lib/

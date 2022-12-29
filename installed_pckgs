@@ -1,0 +1,91 @@
+---------------------- Packages-UR Drivers -----------------
+git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src/Universal_Robots_ROS_Driver
+ sudo apt install industrial-robot-status-interface
+ sudo apt install ros-noetic-industrial-robot-status-interface
+ sudo apt install ros-noetic-scaled-joint-trajectory-controller
+ sudo apt install ros-noetic-speed-scaling-interface
+ sudo apt install ros-noetic-speed-scaling-state-controller
+ sudo apt install ros-noetic-ur-msgs
+ sudo apt install ros-noetic-pass-through-controllers
+ sudo apt install ros-noetic-ur-client-library
+ 
+
+ //Instalar MoveIt
+ sudo apt install ros-noetic-moveit-core
+ sudo apt install ros-noetic-moveit-ros-move-group
+ sudo apt install ros-noetic-moveit 
+ 
+ // Instalar ROS Control
+ sudo apt-get install ros-noetic-ros-control ros-noetic-ros-controllers
+ 
+ // Instalar Robotic Toolbox
+  pip3 install roboticstoolbox-python
+
+// Instalar RobotIQ paquetes:
+  sudo apt-get install ros-noetic-socketcan-interface
+  sudo apt-get install ros-noetic-soem
+
+  - Simulacion en RVIZ
+ sudo apt-get install ros-noetic-moveit-visual-tools
+ sudo apt-get install ros-noetic-moveit-ros-visualization
+
+// Instalar controladores de ROS
+  - sudo apt-get install ros-noetic-ros-controllers --> no creo que sea necesario
+
+// Phantom:
+  - sudo apt-get install libxml2-dev libraw1394-dev libncurses5-dev qtcreator swig sox espeak cmake-curses-gui cmake-qt-gui git subversion gfortran libcppunit-dev libqt5xmlpatterns5-dev
+  - sudo apt install libxml2-dev libraw1394-dev libncurses5-dev qtcreator swig sox espeak cmake-curses-gui cmake-qt-gui git subversion gfortran libcppunit-dev libqt5xmlpatterns5-dev
+
+
+  - Cambios
+   - + ../ur_gazebo/controller/ur5_controller_params.yaml: archivo YAML con los parámetros de las ganancias de los controladores PID de cada articulación
+   - M ../ur_descriptions/urdf/ur.transmission.xacro: en este archivo están las transmisiones de las articulaciones (PositionJointInterface) se cambia el ${hw_transmission} por EffortJointInterface
+   - M ../ur_gazebo/launch/ur5.launch: 
+   	· se comentan las líneas del controlador por defecto y se añade el controlador PID de cada articulación con su spawner
+  	· se añade al spawn del modelo la posición del shulder_lift_joint y elbow_joint
+  	· se cambia el argumento paused a true --> la simluación empieza parada, al luego activarla el robot se coloca en la posición indicada en 	   los argumentos del spawner
+   - + ../ur_description/urdf/ur5_robotiq85_gripper.urdf.xacro: archivo URDF para lanzar el robot UR5 joint_limited con el gripper de ROBOTIQ 85 (demo) (UNUSED)
+   - + robotiq: proyecto con archivos URDF del gripper de ROBOTIQ (solo el 85)
+   - M ../robotiq/robotiq_arg2f.xacro: se añade un parámetro "parent". Se añade una joint en la macro de "robotiq_arg2f_base_link" con el parent
+   del parámetro y el base_link del propio link definido en la macro
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model_macro.xacro: se define el parámetro de "parent" en la macro "robotiq_arg2f_140". Se definen los comandos para activar la auto - colisión de los modelados.
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model.xacro: se añade el parámetro "parent" a la macro "robotiq_arg2f_140"
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_transmission.xacro: Se añadieron las "hardwareInterface" de cada una de las articulaciones
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_transmission.xacro: se añadió el plugin de robotiq_group (suprime el de
+   arribe)
+   - M ../robotiq/robotiq_2f_140_gripper_visualization/urdf/robotiq_arg2f_140_model_macro.xacro: se anulan las autocolisiones
+   - M ../universal_robots/ur_description/urdf/ur5_robot.launch: se incluye el archivo .xacro "robotiq_arg2f_140_model_macro.xacro"
+   - M ../universal_robots/ur_gazebo/launch/ur5_robot.launch: se incluye el controlador de la pinza
+   - + ../universal_robots/ur_gazebo/controllers/arg2f_140_controller.yaml: Se ha creado un controlador para las articulaciones de la pinza de
+   RobotIQ
+   - M ../universal_robots/ur_gazebo/ur5.launch: se modifica para que admita la llamada desde otro archivo launch con varios argumentos y parámetros
+   para seleccionar los nombres. También se eliminan los spawns de gazebo y el mundo
+   - + ../unversal_robots/ur_gazebo/launch/ur5_2.launch: launch para dos robots. Se ejecutan los spawns del mundo y gazebo.
+   - + ../unversal_robots/ur_gazebo/launch/ur5_.launch: launch para lanzar un solo robot UR5. También se puede lanzar con el controlador en bucle
+   cerrado de velocidad
+   - + ../universal_robots/ur_gazebo/controller/ur5_vel_controller.yaml: ganancias PID para el control de velocidad, con otro tipo de controlador 
+   (effort_controoler/JointVelocityController)
+   - + ../vel: paquete para el control de velocidad en bucle cerrado
+
+
+  - Páginas Web:
+    - Tutorial ROS Control: https://roboticscasual.com/ros-tutorial-control-the-ur5-robot-with-ros_control-tuning-a-pid-controller/
+    - Python Robotic Toolbox (instalar): https://pypi.org/project/roboticstoolbox-python/
+    - Python Robotic Toolbox (DOC): https://petercorke.github.io/robotics-toolbox-python/intro.html
+    - UR5 with gripper Tutorial: https://roboticscasual.com/ros-tutorial-how-to-create-a-moveit-config-for-the-ur5-and-a-gripper/ (UNSUSED)
+    - UR5 with gripper (summer_repository): https://www.youtube.com/watch?v=4zsZUm7T3LA
+    - ROS UR Drivers: https://github.com/UniversalRobots/Universal_Robots_ROS_Driver
+    - Universal Robots Repo: https://github.com/ros-industrial/universal_robot
+    - RobotIQ gripper Mimic (Forun): https://github.com/ros-industrial/robotiq/issues/150
+    - roboticsgroup_gazebo_plugins: https://github.com/roboticsgroup/roboticsgroup_gazebo_plugins
+    - install libncurses5-dev: https://zoomadmin.com/HowToInstall/UbuntuPackage/libncurses5-dev
+    - OpenHaptics for Linux: https://support.3dsystems.com/s/article/OpenHaptics-for-Linux-Developer-Edition-v34?language=en_US
+    - Tutorial instalación drivers Phantom Omni: https://s3.amazonaws.com/dl.3dsystems.com/binaries/Sensable/Linux/Installation+Instructions_2022.
+    pdf
+    - Repositorio jhu (Phantom Omni en ROS):  https://github.com/jhu-saw/sawSensablePhantom
+    - Repositorio de un launch de la pinza (intuituve_computing): https://github.com/intuitivecomputing/ur5_with_robotiq_gripper
+    - UR5e DH: https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
+
+  - Conexión con Matlab:
+    - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
+
