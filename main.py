@@ -16,6 +16,7 @@ import roboticstoolbox as rtb
 from cv_bridge import CvBridge
 import cv2 as cv
 import numpy as np
+import time
 
 # Origen en XYZ
 or_x = 0.5095
@@ -32,7 +33,7 @@ prev_x, prev_y, prev_z = or_x, or_y, or_z
 prev_roll, prev_pitch, prev_yaw = or_roll , or_pitch, or_yaw
 
 # Umbral para enviar datos
-umbral = 0.01
+umbral = 0.0
 first_frame_cam1 = False
 first_frame_cam2 = False
 
@@ -45,6 +46,12 @@ frame_ = CompressedImage()
 frame2_ = CompressedImage()
 bridge = CvBridge()
 
+
+interval = 0.13
+prev = time.time()
+
+interval2 = 0.13
+prev2 = time.time()
 
 ####### Callbacks #######
 # Camaras: se pasan a formato numpy
@@ -89,52 +96,59 @@ def callbackSlider(sender, app_data, user_data):
     global prev_x, prev_roll
     global prev_y, prev_pitch
     global prev_z, prev_yaw
-    global pub
+    global pub, interval, prev
     
-    data = dpg.get_value(sender)
-    x = data[0]
-    y = data[1]
-    z = data[2]
-    
-    if abs(x-prev_x) > umbral or abs(y-prev_y) > umbral or abs(z-prev_z) > umbral:
-        
-        pose = Pose()
-        
-        pose.position.x = x
-        pose.position.y = y
-        pose.position.z = z
+    if time.time() - prev > interval:         # Solo se ejecuta cuando pasa el intervalo
+            
+        prev = time.time() 
 
-        pose.orientation.x = prev_roll
-        pose.orientation.y = prev_pitch
-        pose.orientation.z = prev_yaw
-        pose.orientation.w = 1
+        data = dpg.get_value(sender)
+        x = data[0]
+        y = data[1]
+        z = data[2]
         
-        pub.publish(pose)
+        if abs(x-prev_x) > umbral or abs(y-prev_y) > umbral or abs(z-prev_z) > umbral:
+            
+            pose = Pose()
+            
+            pose.position.x = x
+            pose.position.y = y
+            pose.position.z = z
+
+            pose.orientation.x = prev_roll
+            pose.orientation.y = prev_pitch
+            pose.orientation.z = prev_yaw
+            pose.orientation.w = 1
+            
+            pub.publish(pose)
 
 # RPY posicion: se mantiene los XYZ y se cambian los RPY al pasar un umbral
 def callbackSlider2(sender, app_data, user_data):
     global prev_x, prev_roll
     global prev_y, prev_pitch
     global prev_z, prev_yaw
-    global pub
+    global pub, prev2, interval2
     
-    data = dpg.get_value(sender)
-    x = data[0]
-    y = data[1]
-    z = data[2]
-    if abs(x-prev_x) > umbral or abs(y-prev_y) > umbral or abs(z-prev_z) > umbral:
-        pose = Pose()
+    if time.time() - prev2 > interval2:         # Solo se ejecuta cuando pasa el intervalo
             
-        pose.position.x = prev_x
-        pose.position.y = prev_y
-        pose.position.z = prev_z
+        prev2 = time.time() 
+        data = dpg.get_value(sender)
+        x = data[0]
+        y = data[1]
+        z = data[2]
+        if abs(x-prev_x) > umbral or abs(y-prev_y) > umbral or abs(z-prev_z) > umbral:
+            pose = Pose()
+                
+            pose.position.x = prev_x
+            pose.position.y = prev_y
+            pose.position.z = prev_z
 
-        pose.orientation.x = x
-        pose.orientation.y = y
-        pose.orientation.z = z
-        pose.orientation.w = 1
-            
-        pub.publish(pose)
+            pose.orientation.x = x
+            pose.orientation.y = y
+            pose.orientation.z = z
+            pose.orientation.w = 1
+                
+            pub.publish(pose)
 
 # XYZ velocidad: se hacen por incrementos de XYZ, por lo que los RPY estan a 0.0
 def callbackSlider_(sender, app_data, user_data):
