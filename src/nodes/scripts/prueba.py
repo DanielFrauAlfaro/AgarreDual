@@ -73,10 +73,10 @@ class Controller():
         self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # Intervalos para ajustar la frecuencia de funcionamiento
-        self.__interval = 0.1
+        self.__interval = 0.0
         self.__prev = time.time()
 
-        self.__interval2 = 0.05
+        self.__interval2 = 0.2
         self.__prev2 = time.time()
         
         
