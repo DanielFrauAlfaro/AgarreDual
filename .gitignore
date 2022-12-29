@@ -2,9 +2,10 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=ros
 
 ### ROS ###
-ur5/devel/
+.catkin_tools/
+devel/
 logs/
-ur5/build/
+build/
 bin/
 lib/
 msg_gen/
