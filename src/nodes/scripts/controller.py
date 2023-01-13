@@ -42,11 +42,10 @@ class Controller():
         self.__q0 = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # ROS parameters: node, publishers and subscribers
-        rospy.init_node(name+"_main_controller", anonymous=False)
+        rospy.init_node("main_controller", anonymous=False)
         
         # Subscriber para recibir posiciones y el modo de movimiento
         rospy.Subscriber('/' + name + '/pose', Pose, self.__callback)
-        rospy.Subscriber('/' + name + '/move_type', Int32, self.__cb_mode)
         
         # Lista de publisher de las articulaciones
         self.__joints_com = []
@@ -56,31 +55,22 @@ class Controller():
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
-        
-        # Subscribers de los joint_states
-        rospy.Subscriber('/' + name + '/shoulder_pan_joint_position_controller/state', JointControllerState, self.__shoulder_pan_listener)
-        rospy.Subscriber('/' + name + '/shoulder_lift_joint_position_controller/state', JointControllerState, self.__shoulder_lift_listener)
-        rospy.Subscriber('/' + name + '/elbow_joint_position_controller/state', JointControllerState, self.__elbow_listener)
-        rospy.Subscriber('/' + name + '/wrist_1_joint_position_controller/state', JointControllerState, self.__wrist_1_listener)
-        rospy.Subscriber('/' + name + '/wrist_2_joint_position_controller/state', JointControllerState, self.__wrist_2_listener)
-        rospy.Subscriber('/' + name + '/wrist_3_joint_position_controller/state', JointControllerState, self.__wrist_3_listener)
+
+        rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
 
         # Se publica la posición cartesiana
         self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
-        
-        # Modo de funcionamiento
-        self.__mode = "pos"
-        
-        # Incrementos
-        self.__incr_vec = [0,0,0,0,0,0]
         
         # Origen
         self.T_or = self.__ur5.fkine(self.__q)
         self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # Intervalos para ajustar la frecuencia de funcionamiento
-        self.__interval = 0.1
+        self.__interval = 0.0
         self.__prev = time.time()
+
+        self.__interval2 = 0.2
+        self.__prev2 = time.time()
         
         
 # --------------------- Move the desired homogeneus transform -----------------
@@ -88,10 +78,6 @@ class Controller():
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)       # Inversa: obtiene las posiciones articulares a través de la posición
         self.T_or = T                                   # Actualiza la T actual
         self.__qp = q.q
-        
-        for i in range(6):                              # Se envían los valores
-            self.__joints_com[i].publish(self.__qp[i])
-        
         
         pose = Pose()                                   # Se codifica el mensaje de la posición cartesiana actual
         
@@ -109,12 +95,6 @@ class Controller():
         self.__cart_pos.publish(pose)
 
 
-# --------------- Callback para cambiar el modo de funcionamiento ------------
-    def __cb_mode(self, data):
-        if data.data == 0:
-            self.__mode = "pos"
-        else:
-            self.__mode = "vel"
     
 # -------------------- Callback for the haptic topic --------------------------
     def __callback(self, data):
@@ -129,20 +109,14 @@ class Controller():
             roll = data.orientation.x
             pitch = data.orientation.y
             yaw = data.orientation.z
+                          
+            T = SE3(x, y, z)
+            T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
             
-            # Si está en posición obtiene transformada y llama a la función de movimiento
-            if self.__mode == "pos":                
-                T = SE3(x, y, z)
-                T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
-                
-                T = T * T_
-                
-                self.__move(T)
+            T = T * T_
             
-            # Si está en velocidad, asigna los incrementos
-            else:
-                self.__incr_vec = [x/5.0, y/5.0, z/5.0, roll/5.0, pitch/5.0, yaw/5.0]
-            
+            self.__move(T)
+
             
         
 # ------------------------ Bucle de control ------------------------
@@ -153,70 +127,58 @@ class Controller():
         
         # El bucle solo ejecuta funciones si está en velocidad; necesita incrementar los valores
         while not rospy.is_shutdown(): 
-            
-            if self.__mode != "pos":
-                
-                # Se montan las matrices de transformación
-                T = SE3(self.__incr_vec[0], self.__incr_vec[1], self.__incr_vec[2])
-                T_rot = SE3.RPY(self.__incr_vec[3], self.__incr_vec[4], self.__incr_vec[5], order='xyz')
-                
-                T = T * T_rot           # Cuando los valores lleguen en euler
-               
-                if self.__incr_vec[3] == 0.0 and self.__incr_vec[4] == 0.0 and self.__incr_vec[5] == 0.0:
-                    T = T * self.T_or
-                
-                elif self.__incr_vec[0] == 0.0 and self.__incr_vec[1] == 0.0 and self.__incr_vec[2] == 0.0:
-                    T = self.T_or * T
-                
-                self.T_or = T
-                
-                self.__move(T)
-            else:
-                self.__incr_vec = [0,0,0,0,0,0]
-                
-                    
+            for i in range(6):                              # Se envían los valores
+                self.__joints_com[i].publish(self.__qp[i])
+            print("A")
             rate.sleep()
         
         
 # ---------------- Home position ----------------
     def home(self, key):
         if key == keyboard.Key.esc:
-            self.__q = self.__q0
-            self.__qp = self.__q0
+            self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
+            self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             for i in range(5):
                 self.__joints_com[i].publish(self.__q0[i])
+
+            self.T_or = self.__ur5.fkine([0, -1.5, 1 , 0.0, 1.57, 0.0])
                 
-            self.T_or = self.__ur5.fkine(self.__q0)
+        
+    def __joint_state_cb(self, data):
+        if time.time() - self.__prev2 > self.__interval2:         # Solo se ejecuta cuando pasa el intervalo
+            
+            self.__prev2 = time.time()   
 
-
-# ----------------- Callbacks for the joint controller state Subscribers ------------------
-    def __shoulder_pan_listener(self,data):   
-        self.__q[0] = data.process_value
-        
-    def __shoulder_lift_listener(self,data):
-        self.__q[1] = data.process_value
-        
-    def __elbow_listener(self,data):
-        self.__q[2] = data.process_value
-        
-    def __wrist_1_listener(self,data):
-        self.__q[3] = data.process_value
-        
-    def __wrist_2_listener(self,data):
-        self.__q[4] = data.process_value
-        
-    def __wrist_3_listener(self,data):
-        self.__q[5] = data.process_value
-        
-
-
+            for i in range(len(data.name)):
+                if data.name[i] == "shoulder_lift_joint":
+                    
+                    self.__q[0] = data.position[i]
+                elif data.name[i] == "shoulder_pan_joint":
+                    
+                    self.__q[1] = data.position[i]
+                elif data.name[i] == "elbow_joint":
+                    
+                    self.__q[2] = data.position[i]
+                elif data.name[i] == "wrist_1_joint":
+                    
+                    self.__q[3] = data.position[i]
+                elif data.name[i] == "wrist_2_joint":
+                   
+                    self.__q[4] = data.position[i]
+                elif data.name[i] == "wrist_3_joint":
+                    
+                    self.__q[5] = data.position[i]
+           
 # ------------------ Main --------------------
 if __name__ == '__main__':
-    name = sys.argv[1]
-    print(name)
-    ur5 = Controller(name)
+    print(len(sys.argv))
+    if len(sys.argv) == 4:
 
-    listener = keyboard.Listener(on_press=ur5.home)
-    listener.start()
+        name = sys.argv[1]
 
-    ur5.control_loop()    
+        ur5 = Controller(name)
+
+        listener = keyboard.Listener(on_press=ur5.home)
+        listener.start()
+
+        ur5.control_loop()    
