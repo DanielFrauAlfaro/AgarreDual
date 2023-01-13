@@ -17,10 +17,8 @@
   <node name="$(arg robot_name)_controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" args="gripper shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
 
 
-  <node name="$(arg robot_name)_robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
-  respawn="false" output="screen"/>
+  <node name="$(arg robot_name)_robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/>
 
-  <node name="$(arg robot_name)_controller" pkg="nodes" type="prueba.py" output="screen" args="$(arg robot_name)">
-  </node>  
+  <node name="$(arg robot_name)_controller" pkg="nodes" type="controller.py" args="$(arg robot_name)" output="screen" />
 
 </launch>
