@@ -129,7 +129,7 @@ class Controller():
         while not rospy.is_shutdown(): 
             for i in range(6):                              # Se envían los valores
                 self.__joints_com[i].publish(self.__qp[i])
-            print("A")
+
             rate.sleep()
         
         
@@ -151,27 +151,26 @@ class Controller():
 
             for i in range(len(data.name)):
                 if data.name[i] == "shoulder_lift_joint":
-                    
                     self.__q[0] = data.position[i]
+
                 elif data.name[i] == "shoulder_pan_joint":
-                    
                     self.__q[1] = data.position[i]
+
                 elif data.name[i] == "elbow_joint":
-                    
                     self.__q[2] = data.position[i]
+
                 elif data.name[i] == "wrist_1_joint":
-                    
                     self.__q[3] = data.position[i]
+
                 elif data.name[i] == "wrist_2_joint":
-                   
                     self.__q[4] = data.position[i]
+
                 elif data.name[i] == "wrist_3_joint":
-                    
                     self.__q[5] = data.position[i]
+           
            
 # ------------------ Main --------------------
 if __name__ == '__main__':
-    print(len(sys.argv))
     if len(sys.argv) == 4:
 
         name = sys.argv[1]
