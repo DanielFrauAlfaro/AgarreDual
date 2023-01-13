@@ -187,6 +187,7 @@ class Controller():
     def __joint_state_cb(self, data):
         if time.time() - self.__prev2 > self.__interval2:         # Solo se ejecuta cuando pasa el intervalo
             
+            
             self.__prev2 = time.time()   
 
             for i in range(len(data.name)):
@@ -209,7 +210,6 @@ class Controller():
                     
                     self.__q[5] = data.position[i]
            
-
 # ------------------ Main --------------------
 if __name__ == '__main__':
 
