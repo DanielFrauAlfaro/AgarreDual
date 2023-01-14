@@ -286,6 +286,7 @@ fichero con una configuración propia y llamarlo como argumento al lanzar el dri
     (3 h) --> 21 / 12 / 22
 
 
+
     Para spawnear los dos robots se ha erreglado el ur5_2.launch, más concretamente el ur5e.launch. En él se ha añadido el nodo del controlador
 cartesiano, para que se lance uno en cada robot. En ese nodo, se ha añadido la gestión de argumentos de ejecución, ya que solamente llamarlo no es 
 suficiente; se tiene que suscribir a los topics con el nombre cambiado, por lo que necesita el espacio de nombres de cada robot. Además, lo topics
@@ -293,8 +294,35 @@ en los que publica (como el /pose para mandar consignas cartesianas) también de
 publicación (estarían suscritos al mismo topic). Por eso también se le aplica el cambio de nombre por argumentos con el nombre del robot.
     (1 h) --> 24 / 12 / 22
 
-    Cambié el disco duro externo por una SSD (para ganar en velocidad de ejecución, sobretodo en los primeros momentos después de iniciar sesión) y para liberar uno de los puertos USB. Al reinstalar el repositorio junto con todos sus paquetes, surgió el error de que el robot en simulación se caía al suelo, como si sus controladores no funcionasen. Para solucionar este problema (o al menos parcialmente) se añadió un botón de Home, en la tecla ESC mediante la librería pynput.
+
+    Cambié el disco duro externo por una SSD (para ganar en velocidad de ejecución, sobretodo en los primeros momentos después de iniciar sesión) y 
+para liberar uno de los puertos USB. Al reinstalar el repositorio junto con todos sus paquetes, surgió el error de que el robot en simulación se caía 
+al suelo, como si sus controladores no funcionasen. Para solucionar este problema (o al menos parcialmente) se añadió un botón de Home, en la tecla ESC
+mediante la librería pynput.
     (1 h) --> 27 / 12 / 22
+
+
+    Se reorganizó el proyecto eliminando las partes correspondientes a la práctica 3 y 5 de Teleoperación, de manera que:
+        - Se eliminaron las cámaras y sus funciones de callbacks, suscriptores y funcionalidades asociadas
+        - Se eliminaron las partes correspondientes al control de velocidad del controlador del robot y del Phantom
+        - Se eliminó el feedback visual del Phantom
+        - Se eliminaron algunos scripts de pruebas
+    Luego, se trabajó para hacer funcional el lanzamiento del controlador con los dos robots se modificaron los ficheros de los controladores para que acepten
+parámetros por línea de comandos. De esta manera, el ficheo launch final llama dos veces a un launch dentro de un espacio de nombres ("UR5_1" y "UR5_2"). 
+Este último es el encargado de lanzar un robot en Gazebo junto con el robot_state_publisher, joint_states y controladres de cada uno. Además, se lanza los
+controladores del robot y su dispositivo Phantom correspondiente, pasando como parámetro el nombre del robot asociado. Internamente estos ficheros procesan 
+ese argumento para suscribirse y publicar en los topics. Esto es para que a la hora de la ejecución se generen topics diferentes para cada robot, de ahí el 
+espacio de nombres ("/ur5_1/pose" y "/ur5_2/pose" por ejemplo). Así se tiene todo el sistema funcionando.
+    Alternativamente, en el launch principal se lanza el nodo para los drivers internos del motor del repositorio cisst-saw. Este nodo debería lanzar los dos
+Phantoms a la vez. Para ello, se ha creado un fichero de configuración "sawSensablePhantomUR5.json" donde se especifica con que nombre se deben calibrar cada
+uno y el renombre que tienen, llamándose "ur5_1" y "ur5_2" cada uno. Para evitar que el comando lance el fichero de configuración por defecto se debe
+especificar la opción '-j' y la ruta del paquete en el que se encuentra el .json (-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json). El
+-D es para lanzar la interfaz en modo noche.
+    Llegados hasta este punto se debería probar el algoritmo en los reales, pues no se sabe como se comportan los drivers de cisst-saw con dos Phantom
+conectados al mismo equipo ni como actuarán los ejecutables de calibración en esta situación.
+    (3 h) --> 14 / 01 / 23
+
+    
     
     
 INSTALL sudo apt-get install ros-noetic-soem
