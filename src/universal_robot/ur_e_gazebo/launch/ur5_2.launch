@@ -2,7 +2,7 @@
 <launch>
 
     <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
-    <arg name="paused" default="true" doc="Starts gazebo in paused mode" />
+    <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
     <arg name="gui" default="true" doc="Starts gazebo gui" />
 
     <group ns='ur5_1'>
@@ -24,4 +24,6 @@
         <arg name="paused" value="$(arg paused)"/>
         <arg name="gui" value="$(arg gui)"/>
     </include>
+
+    <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="screen"/>
 </launch>
