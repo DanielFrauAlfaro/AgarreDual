@@ -325,7 +325,7 @@ conectados al mismo equipo ni como actuarán los ejecutables de calibración en 
     
     Se han añadido sensores de par en cada una de las articulaciones del robot, modificando el "ur5e.urdf.xacro" con el plugin de Gazebo libgazebo_ros_ft_sensor.so
 que es capaz de simular fuerzas y pares. Aun así, todavía queda comprobar que el sensor está bien colocado y en que dirección expresa esas fuerza y pares, de
-manera que interesen según la articulación o si todas están expresadas en la dirección z de su joint, por ejemplo.
+manera que interesen según la articulación o si todas están expresadas en la dirección z de su joint, por ejemplo. importante establecer bien el frame de origen
     (1 h) --> 15 / 01 / 23
     
     
@@ -335,6 +335,9 @@ INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
 INSTALL sudo apt-get install ros-noetic-ros-control
 INSTALL sudo apt-get install ros-noetic-ros-controllers
+
+
+
     BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
 
