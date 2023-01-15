@@ -53,6 +53,12 @@ prev = time.time()
 interval2 = 0.13
 prev2 = time.time()
 
+interval3 = 0.13
+prev3 = time.time()
+
+interval4 = 0.13
+prev4 = time.time()
+
 ####### Callbacks #######
 # Camaras: se pasan a formato numpy
 def camera_cb(data):
@@ -129,6 +135,7 @@ def callbackSlider2(sender, app_data, user_data):
     global prev_z, prev_yaw
     global pub, prev2, interval2
     
+    
     if time.time() - prev2 > interval2:         # Solo se ejecuta cuando pasa el intervalo
             
         prev2 = time.time() 
@@ -155,50 +162,56 @@ def callbackSlider_(sender, app_data, user_data):
     global prev_x, prev_roll
     global prev_y, prev_pitch
     global prev_z, prev_yaw
-    global pub
+    global pub, prev3, interval3
     
-    data = dpg.get_value(sender)
-    x = data[0]
-    y = data[1]
-    z = data[2]
-    
-    pose = Pose()
-       
-    pose.position.x = x
-    pose.position.y = y
-    pose.position.z = z
+    if time.time() - prev3 > interval3:         # Solo se ejecuta cuando pasa el intervalo
+            
+        prev3 = time.time() 
+        data = dpg.get_value(sender)
+        x = data[0]
+        y = data[1]
+        z = data[2]
+        
+        pose = Pose()
+        
+        pose.position.x = x
+        pose.position.y = y
+        pose.position.z = z
 
-    pose.orientation.x = 0.0
-    pose.orientation.y = 0.0
-    pose.orientation.z = 0.0
-    pose.orientation.w = 0.0
-       
-    pub.publish(pose)
+        pose.orientation.x = 0.0
+        pose.orientation.y = 0.0
+        pose.orientation.z = 0.0
+        pose.orientation.w = 0.0
+        
+        pub.publish(pose)
 
 # RPY velocidad: se hacen incrementos de RPY, por lo que los XYZ estan a 0.0
 def callbackSlider2_(sender, app_data, user_data):
     global prev_x, prev_roll
     global prev_y, prev_pitch
     global prev_z, prev_yaw
-    global pub
-    
-    data = dpg.get_value(sender)
-    x = data[0]
-    y = data[1]
-    z = data[2]
-    
-    pose = Pose()
-            
-    pose.position.x = 0.0
-    pose.position.y = 0.0
-    pose.position.z = 0.0
+    global pub, prev4, interval4
 
-    pose.orientation.x = x
-    pose.orientation.y = y
-    pose.orientation.z = z
-    pose.orientation.w = 1
+    if time.time() - prev4 > interval4:         # Solo se ejecuta cuando pasa el intervalo
             
-    pub.publish(pose)
+        prev4 = time.time() 
+        data = dpg.get_value(sender)
+        x = data[0]
+        y = data[1]
+        z = data[2]
+        
+        pose = Pose()
+                
+        pose.position.x = 0.0
+        pose.position.y = 0.0
+        pose.position.z = 0.0
+
+        pose.orientation.x = x
+        pose.orientation.y = y
+        pose.orientation.z = z
+        pose.orientation.w = 1
+                
+        pub.publish(pose)
 
 
 # Variables de ROS:
