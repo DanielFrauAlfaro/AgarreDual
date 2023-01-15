@@ -323,6 +323,11 @@ conectados al mismo equipo ni como actuarán los ejecutables de calibración en 
     (3 h) --> 14 / 01 / 23
 
     
+    Se han añadido sensores de par en cada una de las articulaciones del robot, modificando el "ur5e.urdf.xacro" con el plugin de Gazebo libgazebo_ros_ft_sensor.so
+que es capaz de simular fuerzas y pares. Aun así, todavía queda comprobar que el sensor está bien colocado y en que dirección expresa esas fuerza y pares, de
+manera que interesen según la articulación o si todas están expresadas en la dirección z de su joint, por ejemplo.
+    (1 h) --> 15 / 01 / 23
+    
     
     
 INSTALL sudo apt-get install ros-noetic-soem
@@ -404,6 +409,7 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
    - + ../universal_robots/ur_gazebo/controller/ur5_vel_controller.yaml: ganancias PID para el control de velocidad, con otro tipo de controlador 
    (effort_controoler/JointVelocityController)
    - + ../vel: paquete para el control de velocidad en bucle cerrado
+   - + ../ur_e_description/urdf/ur5e.urdf.xacro: se añade al final los sensores de par
 
 
   - Páginas Web:
@@ -423,6 +429,8 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
     - Repositorio jhu (Phantom Omni en ROS):  https://github.com/jhu-saw/sawSensablePhantom
     - Repositorio de un launch de la pinza (intuituve_computing): https://github.com/intuitivecomputing/ur5_with_robotiq_gripper
     - UR5e DH: https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
+    - Sensor de fuerzas: https://answers.ros.org/question/243173/interpretation-of-forcetorque-sensor-using-gazebo_ros_ft_sensor-plugin/
+    - Sensor de fuerzas (oficial): http://wiki.ros.org/force_torque_sensor_controller
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
