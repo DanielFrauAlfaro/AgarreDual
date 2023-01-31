@@ -352,7 +352,13 @@ del wrist_3.
         robot con la pinza de dos dedos y otro para la de tres dedos
         
     Se ha corregido manualmente las transimisiones de la pinza de tres dedos orginal, ya que  al final la original no tenia ningun problema.
-Lo único es que se ha añadido la transimsiones en las articulaciones de los dedos (en el urdf de los dedos) y la palma (en el urdf principal)
+Lo único es que se ha añadido la transimsiones en las articulaciones de los dedos (en el urdf de los dedos) y la palma (en el urdf principal).
+Se comprobará si se necesita añadir la fricción para el modelado (es lo que lo diferencie del de summer, que en este último los links tienen
+coeficientes de fricción asignados).
+    
+    IMPORTANTE:
+        - En la pinza de los tres dedos se tiene que incluir en el ur5e_robot.urdf.xacro con un prefijo, ya que hay dos links con el mismo 
+        nombre, el tool0. El controlador está configurado para aceptar las joints solo con el prefijo 'gripper_'.
     (4 h) --> 31 / 01 / 23
 
     
