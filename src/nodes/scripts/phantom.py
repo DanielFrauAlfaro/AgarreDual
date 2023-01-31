@@ -248,76 +248,74 @@ if __name__ == "__main__":
     if len(sys.argv) == 4:
         
         name = sys.argv[1]
-        if name == "ur5_1":
-            print("phantom " + name)
 
-            # Nodo
-            rospy.init_node(name + "_phantom_ctr")
+        # Nodo
+        rospy.init_node(name + "_phantom_ctr")
 
-            # Publishers: pose al robot, fuerza al Phantom y modo de movimiento para el robot
-            pub = rospy.Publisher("/" + name + "/pose", Pose, queue_size=10)
-            pub_f = rospy.Publisher("/" + name + "/servo_cf", WrenchStamped, queue_size=10)
+        # Publishers: pose al robot, fuerza al Phantom y modo de movimiento para el robot
+        pub = rospy.Publisher("/" + name + "/pose", Pose, queue_size=10)
+        pub_f = rospy.Publisher("/" + name + "/servo_cf", WrenchStamped, queue_size=10)
 
-            # Subscribers: posición del phantom, posición del robot, botones y cámaras del robot
-            rospy.Subscriber("/" + name + "/measured_cp", PoseStamped,cb)
-            rospy.Subscriber("/" + name + "/cart_pos", Pose, cart_cb)
-            rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
-            rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
+        # Subscribers: posición del phantom, posición del robot, botones y cámaras del robot
+        rospy.Subscriber("/" + name + "/measured_cp", PoseStamped,cb)
+        rospy.Subscriber("/" + name + "/cart_pos", Pose, cart_cb)
+        rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
+        rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
 
-            # Rate
-            r = rospy.Rate(20)
+        # Rate
+        r = rospy.Rate(20)
 
-            # Bucle infinito
-            '''
-                - 1. El Phantom mantiene la posición sin moverse, compensando la gravedad (wrench obtenido experimentalmente)
+        # Bucle infinito
+        '''
+            - 1. El Phantom mantiene la posición sin moverse, compensando la gravedad (wrench obtenido experimentalmente)
+            
+            - 2. Si se pordujo un cambio (se presionó cualquiera de los botones para cambiar uno de los modos) ...
+                - 2.1 ... al cambio intentará volver a la anterior posición del Phantom registrada para la POSICIÓN del robot hasta cierto umbral
+                - 2.2 ... 
+
+            - 3. Si no hubo cambio, se está funcionando normal, entonces envía las posiciones al robot
                 
-                - 2. Si se pordujo un cambio (se presionó cualquiera de los botones para cambiar uno de los modos) ...
-                    - 2.1 ... al cambio intentará volver a la anterior posición del Phantom registrada para la POSICIÓN del robot hasta cierto umbral
-                    - 2.2 ... 
+            - 4. Se publican los Wrenches calculados según el caso
+        '''
 
-                - 3. Si no hubo cambio, se está funcionando normal, entonces envía las posiciones al robot
-                    
-                - 4. Se publican los Wrenches calculados según el caso
-            '''
-
-            while not rospy.is_shutdown():
-                # 1 --
-                if not change:
-                    wrench.wrench.force.x = 0.0
-                    wrench.wrench.force.y = 0.9
-                    wrench.wrench.force.z = 0.0
+        while not rospy.is_shutdown():
+            # 1 --
+            if not change:
+                wrench.wrench.force.x = 0.0
+                wrench.wrench.force.y = 0.9
+                wrench.wrench.force.z = 0.0
+            
                 
+            # 2 --
+            if change:
+                # print("change")
+                # 2.1 --
+                if xyz:
+                    wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)*K
+                    wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)*K
+                    wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)*K
                     
-                # 2 --
-                if change:
-                    # print("change")
-                    # 2.1 --
-                    if xyz:
-                        wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)*K
-                        wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)*K
-                        wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)*K
-                        
-                        if (prev_pose_phantom.position.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.position.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.position.z - act_pose_phantom.position.z) < limit:
-                            change = False
-                            print("########################################")
-                        
+                    if (prev_pose_phantom.position.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.position.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.position.z - act_pose_phantom.position.z) < limit:
+                        change = False
+                        print("########################################")
                     
-                    # 2.2
-                    else:
-                        wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)*K
-                        wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)*K
-                        wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)*K
-                        
-                        if (prev_pose_phantom.orientation.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.orientation.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.orientation.z - act_pose_phantom.position.z) < limit:
-                            change = False
-
-                            
-                # 3 --   
+                
+                # 2.2
                 else:
-                    print("pub")
-                    pub.publish(pose)
-                
-                # 4 --
-                pub_f.publish(wrench)    
-                
-                r.sleep()
+                    wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)*K
+                    wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)*K
+                    wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)*K
+                    
+                    if (prev_pose_phantom.orientation.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.orientation.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.orientation.z - act_pose_phantom.position.z) < limit:
+                        change = False
+
+                        
+            # 3 --   
+            else:
+                print("pub")
+                pub.publish(pose)
+            
+            # 4 --
+            pub_f.publish(wrench)    
+            
+            r.sleep()
