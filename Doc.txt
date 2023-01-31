@@ -329,7 +329,33 @@ manera que interesen según la articulación o si todas están expresadas en la 
     (1 h) --> 15 / 01 / 23
     
     
+    Se ha trasladado la realimentación de la posición de las articulaciones y la cinemática directa al nodo del Phantom así no se interrumpe la ejecución del
+nodo del UR5, de manera que este nodo solamente carga las posiciones al robot. El nodo del Phantom sigue teniendo toda la información de las articulaciones
+gracias al topic /joint_states y un modelo del ur5e.
+    También se está ideando el modo de control bilateral entre los paradigmas posición-posición y fuerza-posición.
+    La carpeta que se elimina del proyecto de robotiq es robotiq_3f_gripper_articulated_gazebo_plugins
+    (3 h) --> 30 / 01 / 23
+
+
+    A la hora de insertar la pinza de tres dedos ocurría que al colocarla en el extremo del robot, empezaba a vibrar y oscilar todo el
+conjunto. Esto se debía a que el robot está colisionando con la pieza. Para solucionarlo se tomó como referencia algunos foros de Github y 
+ROS para desactivar la autoslición del conjunto en el fichero ur_e_description/urdf/ur.gazebo.xacro.
+    También se tiene que hacer un controlador específico para la pinza y aumentar las ganancias de la última articulación del robot, la 
+del wrist_3.
     
+    IMPORTANTE: 
+        - Para poder spawnear dos robots cada uno con una pinza desde el sistema de launchs que se tiene (con un launch que se llama desde 
+        otro ur5_2 --> ur5e) se usa el argumento '3f' que será true o false en función de si se quiere o no la pinza de tres dedos en el 
+        robot. Este argumento condiciona el spawneo del controlador para las dos pinzas y la inclusión de dos ficheros urdf.xacro en el 
+        ur5e_upload.launch.
+        - Como se menciona anteriormente, se condiciona el fichero ur5e_upload.launch. Se tienen dos ficheros urdf.xacro, uno que modela el
+        robot con la pinza de dos dedos y otro para la de tres dedos
+        
+    (2 h) --> 31 / 01 / 23
+
+    
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
@@ -413,6 +439,11 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
    (effort_controoler/JointVelocityController)
    - + ../vel: paquete para el control de velocidad en bucle cerrado
    - + ../ur_e_description/urdf/ur5e.urdf.xacro: se añade al final los sensores de par
+   - - ../robotiq: la carpeta que se elimina del robotiq_3f es la robotiq_3f_gripper_articulated_gazebo_plugins
+   - M ../ur_e_gazebo/urdf/ur.gazebo.xacro: configurar el wrist_3_link y el ee_link para que no auto colisionen
+   - M ../ur_e_description/ur5e_upload: se cambia el argumento de 'limited' al de '3f' para seleccionar que pinza adherir al robot
+   - M ../robotiq/robotiq_3f_gripper_visualization/robotiq-3f-gripper_articulated_macro.xacro && robotiq-3f-gripper_finger_articulated_macro.xacro:
+    se pone el del repositorio de summer (aunque después de las pruebas y ver que el problema era la colsión alomejor funciona el original, pero habría que añadir las transmisiones)
 
 
   - Páginas Web:
@@ -434,6 +465,8 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
     - UR5e DH: https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
     - Sensor de fuerzas: https://answers.ros.org/question/243173/interpretation-of-forcetorque-sensor-using-gazebo_ros_ft_sensor-plugin/
     - Sensor de fuerzas (oficial): http://wiki.ros.org/force_torque_sensor_controller
+    - Repositorio para la Robotiq 3f gripper (referencia y guia): https://github.com/KTigerFIre/UR5_robotiq
+
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
