@@ -351,7 +351,9 @@ del wrist_3.
         - Como se menciona anteriormente, se condiciona el fichero ur5e_upload.launch. Se tienen dos ficheros urdf.xacro, uno que modela el
         robot con la pinza de dos dedos y otro para la de tres dedos
         
-    (2 h) --> 31 / 01 / 23
+    Se ha corregido manualmente las transimisiones de la pinza de tres dedos orginal, ya que  al final la original no tenia ningun problema.
+Lo único es que se ha añadido la transimsiones en las articulaciones de los dedos (en el urdf de los dedos) y la palma (en el urdf principal)
+    (4 h) --> 31 / 01 / 23
 
     
 
@@ -443,7 +445,7 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
    - M ../ur_e_gazebo/urdf/ur.gazebo.xacro: configurar el wrist_3_link y el ee_link para que no auto colisionen
    - M ../ur_e_description/ur5e_upload: se cambia el argumento de 'limited' al de '3f' para seleccionar que pinza adherir al robot
    - M ../robotiq/robotiq_3f_gripper_visualization/robotiq-3f-gripper_articulated_macro.xacro && robotiq-3f-gripper_finger_articulated_macro.xacro:
-    se pone el del repositorio de summer (aunque después de las pruebas y ver que el problema era la colsión alomejor funciona el original, pero habría que añadir las transmisiones)
+   se han añadido las transmisiones a las articulaciones de los dedos y la palma
 
 
   - Páginas Web:
