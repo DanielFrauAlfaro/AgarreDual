@@ -1,10 +1,8 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://ros.org/wiki/xacro"
-       name="ur5e" >
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="ur5e" >
 
   <!-- common stuff -->
   <xacro:include filename="$(find ur_e_description)/urdf/common.gazebo.xacro" />
-  <xacro:include filename="$(find robotiq_3f_gripper_visualization)/cfg/robotiq-3f-gripper_articulated_macro.xacro" />
 
   <!-- ur5e -->
   <xacro:include filename="$(find ur_e_description)/urdf/ur5e.urdf.xacro" />
@@ -12,6 +10,7 @@
   <!-- arm -->
   <xacro:ur5e_robot prefix="" joint_limited="false"/>
 
+  <!-- world link and world joint-->
   <link name="world" />
 
   <joint name="world_joint" type="fixed">
@@ -20,15 +19,13 @@
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </joint>
 
-
-    
-  <xacro:robotiq-3f-gripper_articulated prefix="" parent="ee_link" reflect="1">
-    <origin rpy="0 0 ${-pi/2.0}" xyz="0.051 0 0"/>
-  </xacro:robotiq-3f-gripper_articulated>
+  <!-- 3f gripper macro and robot / gripper fixed joint -->
+  <xacro:include filename="$(find robotiq_3f_gripper_visualization)/cfg/robotiq-3f-gripper_articulated_macro.xacro" />
+  <xacro:robotiq-3f-gripper_articulated prefix="gripper_"/>
   
   <joint name="robotiq_hand_joint" type="fixed">
     <parent link="tool0"/>
-    <child link="palm"/>
+    <child link="gripper_palm"/>
     <origin xyz="0 0 0.02" rpy="1.57 0 0"/>
   </joint>
 

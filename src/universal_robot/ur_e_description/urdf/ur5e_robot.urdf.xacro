@@ -1,10 +1,8 @@
 <?xml version="1.0"?>
-<robot xmlns:xacro="http://ros.org/wiki/xacro"
-       name="ur5e" >
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="ur5e" >
 
   <!-- common stuff -->
   <xacro:include filename="$(find ur_e_description)/urdf/common.gazebo.xacro" />
-  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" /> 
 
   <!-- ur5e -->
   <xacro:include filename="$(find ur_e_description)/urdf/ur5e.urdf.xacro" />
@@ -12,6 +10,7 @@
   <!-- arm -->
   <xacro:ur5e_robot prefix="" joint_limited="false"/>
 
+  <!-- world link and world joint-->
   <link name="world" />
 
   <joint name="world_joint" type="fixed">
@@ -19,13 +18,15 @@
     <child link = "base_link" />
     <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
   </joint>
-
- <xacro:robotiq_arg2f_140 prefix="" />
-    <joint name="ur5_ee_link_gripper_base" type="fixed">
-      <parent link= "tool0" />
-      <child link = "robotiq_arg2f_base_link" />
-      <origin xyz=" 0.0 0.0 0.0" rpy="0.0 0.0 ${pi/2}" />
-    </joint>
+  
+  <!-- 2f gripper macro and robot / gripper fixed joint -->
+  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" /> 
+  <xacro:robotiq_arg2f_140 prefix="" />
+  <joint name="ur5_ee_link_gripper_base" type="fixed">
+    <parent link= "tool0" />
+    <child link = "robotiq_arg2f_base_link" />
+    <origin xyz=" 0.0 0.0 0.0" rpy="0.0 0.0 ${pi/2}" />
+  </joint>
 
 
 </robot>
