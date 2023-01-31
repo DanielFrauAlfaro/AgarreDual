@@ -59,7 +59,7 @@ class Controller():
         rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
 
         # Se publica la posición cartesiana
-        self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
+        # self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
         
         # Origen
         self.T_or = self.__ur5.fkine(self.__q)
@@ -79,7 +79,7 @@ class Controller():
         self.T_or = T                                   # Actualiza la T actual
         self.__qp = q.q
         
-        pose = Pose()                                   # Se codifica el mensaje de la posición cartesiana actual
+        '''pose = Pose()                                   # Se codifica el mensaje de la posición cartesiana actual
         
         trans = T.t
         eul = T.rpy(order='xyz')
@@ -92,7 +92,7 @@ class Controller():
         pose.orientation.y = eul[1]
         pose.orientation.z = eul[2]
         
-        self.__cart_pos.publish(pose)
+        self.__cart_pos.publish(pose)'''
 
 
     

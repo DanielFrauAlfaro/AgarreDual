@@ -2,10 +2,13 @@
 
 from control_msgs.msg import JointControllerState
 from geometry_msgs.msg import PoseStamped, Pose, WrenchStamped
-from sensor_msgs.msg import Joy
+from sensor_msgs.msg import Joy, JointState
 import rospy
 import sys
-
+import time
+from spatialmath import *
+import roboticstoolbox as rtb
+from math import pi
 
 # Button: sensor_msgs/Joy /arm/button1    /arm/button2
 
@@ -26,6 +29,19 @@ por defecto.
     Al presionar el otro botón se cambia el modo de control de posición a velocidad o viceversa, con el mismo modus operandi respecto al modo de
 movimiento.
 '''
+
+ur5 = rtb.DHRobot([
+            rtb.RevoluteDH(d=0.1625, alpha=pi/2.0),
+            rtb.RevoluteDH(a=-0.425),
+            rtb.RevoluteDH(a = -0.3922),
+            rtb.RevoluteDH(d = 0.1333, alpha=pi/2.0),
+            rtb.RevoluteDH(d = 0.0997, alpha=-pi/2.0),
+            rtb.RevoluteDH(d = 0.0996)
+        ], name="UR5e")
+
+ur5.base = SE3.RPY(0,0,pi)      # Rotate robot base so it matches Gazebo model
+        
+
 
 # Mensajes de la posición del robot y del wrench
 pose = Pose()
@@ -84,29 +100,9 @@ K = 80
 limit = 0.001
 
 
-def shoulder_pan_listener(data):
-    global q   
-    q[0] = data.process_value
-        
-def shoulder_lift_listener(data):
-    global q
-    q[1] = data.process_value
-    
-def elbow_listener(data):
-    global q
-    q[2] = data.process_value
-    
-def wrist_1_listener(data):
-    global q
-    q[3] = data.process_value
-    
-def wrist_2_listener(data):
-    global q
-    q[4] = data.process_value
-    
-def wrist_3_listener(data):
-    global q
-    q[5] = data.process_value
+# Tiempo para coger los mensajes del /joint_states
+interval = 0.0
+prev = time.time()
 
 
 # Callback de la posicion cartesiana del robot
@@ -121,7 +117,6 @@ def cart_cb(data):
     prev_roll = data.orientation.x
     prev_pitch = data.orientation.y
     prev_yaw = data.orientation.z
-
 
 # Callback de las posiciones del Phantom
 '''
@@ -204,90 +199,125 @@ def cb_bt1(data):
         else:  
             xyz = True
 
+def joint_state_cb(data):
+    global q, prev, interval
+    global prev_x, prev_y, prev_z
+    global prev_roll, prev_pitch, prev_yaw
+
+    if time.time() - prev > interval:         # Solo se ejecuta cuando pasa el intervalo
+            
+        prev = time.time()   
+
+        for i in range(len(data.name)):
+            if data.name[i] == "shoulder_pan_joint":
+                q[0] = data.position[i]
+
+            elif data.name[i] == "shoulder_lift_joint":
+                q[1] = data.position[i]
+
+            elif data.name[i] == "elbow_joint":
+                q[2] = data.position[i]
+
+            elif data.name[i] == "wrist_1_joint":
+                q[3] = data.position[i]
+
+            elif data.name[i] == "wrist_2_joint":
+                q[4] = data.position[i]
+
+            elif data.name[i] == "wrist_3_joint":
+                q[5] = data.position[i]
+
+        
+        T = ur5.fkine(q, order='xyz')
+
+        trans = T.t
+        eul = T.rpy(order='xyz')
+
+        prev_x = trans[0]
+        prev_y = trans[1]
+        prev_z = trans[2]
+
+        prev_roll = eul[0]
+        prev_pitch = eul[1]
+        prev_yaw = eul[2]
+
 
 
 if __name__ == "__main__":
+    
     if len(sys.argv) == 4:
         
         name = sys.argv[1]
+        if name == "ur5_1":
+            print("phantom " + name)
 
-        print("phantom " + name)
+            # Nodo
+            rospy.init_node(name + "_phantom_ctr")
 
-        # Nodo
-        rospy.init_node(name + "_phantom_ctr")
+            # Publishers: pose al robot, fuerza al Phantom y modo de movimiento para el robot
+            pub = rospy.Publisher("/" + name + "/pose", Pose, queue_size=10)
+            pub_f = rospy.Publisher("/" + name + "/servo_cf", WrenchStamped, queue_size=10)
 
-        # Publishers: pose al robot, fuerza al Phantom y modo de movimiento para el robot
-        pub = rospy.Publisher("/" + name + "/pose", Pose, queue_size=10)
-        pub_f = rospy.Publisher("/" + name + "/servo_cf", WrenchStamped, queue_size=10)
+            # Subscribers: posición del phantom, posición del robot, botones y cámaras del robot
+            rospy.Subscriber("/" + name + "/measured_cp", PoseStamped,cb)
+            rospy.Subscriber("/" + name + "/cart_pos", Pose, cart_cb)
+            rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
+            rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
 
-        # Subscribers: posición del phantom, posición del robot, botones y cámaras del robot
-        rospy.Subscriber("/" + name + "/measured_cp", PoseStamped,cb)
-        rospy.Subscriber("/" + name + "/cart_pos", Pose, cart_cb)
-        rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
+            # Rate
+            r = rospy.Rate(20)
 
-        rospy.Subscriber('/' + name + '/shoulder_pan_joint_position_controller/state', JointControllerState, shoulder_pan_listener)
-        rospy.Subscriber('/' + name + '/shoulder_lift_joint_position_controller/state', JointControllerState, shoulder_lift_listener)
-        rospy.Subscriber('/' + name + '/elbow_joint_position_controller/state', JointControllerState, elbow_listener)
-        rospy.Subscriber('/' + name + '/wrist_1_joint_position_controller/state', JointControllerState, wrist_1_listener)
-        rospy.Subscriber('/' + name + '/wrist_2_joint_position_controller/state', JointControllerState, wrist_2_listener)
-        rospy.Subscriber('/' + name + '/wrist_3_joint_position_controller/state', JointControllerState, wrist_3_listener)
-
-
-
-        # Rate
-        r = rospy.Rate(20)
-
-        # Bucle infinito
-        '''
-            - 1. Si se está en velocidad, el phantom intenta ir al centro para que si se suelta no mande incrementos.
-            Si se está en posición, mantiene el Phantom sin moverse, compensando la gravedad (wrench obtenido experimentalmente)
-            
-            - 2. Si se pordujo un cambio (se presionó cualquiera de los botones para cambiar uno de los modos) ...
-                - 2.1 ... al cambio intentará volver a la anterior posición del Phantom registrada para la POSICIÓN del robot hasta cierto umbral
-            
-            - 3. Si no hubo cambio, se está funcionando normal, entonces envía las posiciones al robot
+            # Bucle infinito
+            '''
+                - 1. El Phantom mantiene la posición sin moverse, compensando la gravedad (wrench obtenido experimentalmente)
                 
-            - 4. Se publican los Wrenches calculados según el caso
-        '''
+                - 2. Si se pordujo un cambio (se presionó cualquiera de los botones para cambiar uno de los modos) ...
+                    - 2.1 ... al cambio intentará volver a la anterior posición del Phantom registrada para la POSICIÓN del robot hasta cierto umbral
+                    - 2.2 ... 
 
-        while not rospy.is_shutdown():
-            # 1 --
-            if not change:
-                wrench.wrench.force.x = 0.0
-                wrench.wrench.force.y = 0.9
-                wrench.wrench.force.z = 0.0
-            
-                
-            # 2 --
-            if change:
-                # print("change")
-                # 2.1 --
-                if xyz:
-                    wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)*K
-                    wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)*K
-                    wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)*K
+                - 3. Si no hubo cambio, se está funcionando normal, entonces envía las posiciones al robot
                     
-                    if (prev_pose_phantom.position.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.position.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.position.z - act_pose_phantom.position.z) < limit:
-                        change = False
-                        print("########################################")
-                    
-                
-                # 2.1.2 --
-                else:
-                    wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)*K
-                    wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)*K
-                    wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)*K
-                    
-                    if (prev_pose_phantom.orientation.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.orientation.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.orientation.z - act_pose_phantom.position.z) < limit:
-                        change = False
+                - 4. Se publican los Wrenches calculados según el caso
+            '''
 
+            while not rospy.is_shutdown():
+                # 1 --
+                if not change:
+                    wrench.wrench.force.x = 0.0
+                    wrench.wrench.force.y = 0.9
+                    wrench.wrench.force.z = 0.0
+                
+                    
+                # 2 --
+                if change:
+                    # print("change")
+                    # 2.1 --
+                    if xyz:
+                        wrench.wrench.force.x = (prev_pose_phantom.position.x - act_pose_phantom.position.x)*K
+                        wrench.wrench.force.y = (prev_pose_phantom.position.y - act_pose_phantom.position.y)*K
+                        wrench.wrench.force.z = (prev_pose_phantom.position.z - act_pose_phantom.position.z)*K
                         
-            # 3 --   
-            else:
-                print("pub")
-                pub.publish(pose)
-            
-            # 4 --
-            pub_f.publish(wrench)    
-            
-            r.sleep()
+                        if (prev_pose_phantom.position.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.position.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.position.z - act_pose_phantom.position.z) < limit:
+                            change = False
+                            print("########################################")
+                        
+                    
+                    # 2.2
+                    else:
+                        wrench.wrench.force.x = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)*K
+                        wrench.wrench.force.y = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)*K
+                        wrench.wrench.force.z = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)*K
+                        
+                        if (prev_pose_phantom.orientation.x - act_pose_phantom.position.x) < limit and (prev_pose_phantom.orientation.y - act_pose_phantom.position.y) < limit and (prev_pose_phantom.orientation.z - act_pose_phantom.position.z) < limit:
+                            change = False
+
+                            
+                # 3 --   
+                else:
+                    print("pub")
+                    pub.publish(pose)
+                
+                # 4 --
+                pub_f.publish(wrench)    
+                
+                r.sleep()
