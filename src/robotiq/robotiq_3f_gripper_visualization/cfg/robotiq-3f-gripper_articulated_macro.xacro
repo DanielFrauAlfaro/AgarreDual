@@ -7,8 +7,10 @@ there are multiple hands then a prefix followed by an "_" is needed.
 
 -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
+        <xacro:property name="s1" value="0.85" />
+        <xacro:property name="e1" value="40" />
         <xacro:include filename="$(find robotiq_3f_gripper_visualization)/cfg/robotiq-3f-gripper_finger_articulated_macro.xacro" />
-        <xacro:macro name="robotiq-3f-gripper_articulated" params="prefix">
+        <xacro:macro name="robotiq-3f-gripper_articulated" params="prefix *origin reflect parent">
         <xacro:robotiq-3f-gripper_finger_articulated prefix="${prefix}finger_1_"/>
         <xacro:robotiq-3f-gripper_finger_articulated prefix="${prefix}finger_2_"/>
         <xacro:robotiq-3f-gripper_finger_articulated prefix="${prefix}finger_middle_"/>
@@ -16,7 +18,7 @@ there are multiple hands then a prefix followed by an "_" is needed.
 		<link name="${prefix}palm">
 			<visual>
 				<geometry>
-                                        <mesh filename="package://robotiq_3f_gripper_visualization/meshes/robotiq-3f-gripper_articulated/visual/palm.dae" />
+                                        <mesh filename="package://robotiq_3f_gripper_visualization/meshes/robotiq-3f-gripper_articulated/visual/palm.STL" />
 				</geometry>
 				<material name="gray">
 					<color rgba="0.2 0.2 0.2 1"/>
@@ -31,8 +33,12 @@ there are multiple hands then a prefix followed by an "_" is needed.
 				</material>
 			</collision>
 		</link>
-		<link name="${prefix}tool0"/>
-        
+
+	    <gazebo reference="${prefix}palm">
+      		<mu1>1.1</mu1>
+      		<mu2>1.1</mu2>
+    	</gazebo>
+	      
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <mass value="1.3"/>
@@ -46,14 +52,14 @@ there are multiple hands then a prefix followed by an "_" is needed.
 			<child link="${prefix}finger_1_link_0"/>
 			<axis xyz="0 1 0"/>
 			<origin xyz="-0.0455 0.0214 0.036" rpy="0 3.1416 -1.57"/>
-			<limit lower="-0.1784" upper="0.192" effort="100" velocity="100"/>
+                        <limit lower="-0.1784" upper="0.192" effort="100" velocity="${s1}"/>
 		</joint>
 		<joint name="${prefix}palm_finger_2_joint" type="revolute">
 			<parent link="${prefix}palm"/>
 			<child link="${prefix}finger_2_link_0"/>
 			<axis xyz="0 1 0"/>
 			<origin xyz="-0.0455 0.0214 -0.036" rpy="0 3.1416 -1.57"/>
-			<limit lower="-0.192" upper="0.1784" effort="100" velocity="100"/>
+                        <limit lower="-0.192" upper="0.1784" effort="100" velocity="${s1}"/>
 		</joint>
 		<joint name="${prefix}palm_finger_middle_joint" type="fixed">
 			<parent link="${prefix}palm"/>
@@ -61,11 +67,29 @@ there are multiple hands then a prefix followed by an "_" is needed.
 			<axis xyz="0 0 1"/>
 			<origin xyz="0.0455 0.0214 0" rpy="0 0 1.57"/>
 		</joint>
-		<joint name="${prefix}palm_tool0" type="fixed">
-			<parent link="${prefix}palm"/>
-			<child link="${prefix}tool0"/>
-			<origin xyz="0.0 0.0875 0.0" rpy="0 0 1.5707"/>
-		</joint>
+    	
+
+    <transmission name="${prefix}palm_finger_1_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}palm_finger_1_joint">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}palm_finger_1_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+    <transmission name="${prefix}palm_finger_2_trans">
+      <type>transmission_interface/SimpleTransmission</type>
+      <joint name="${prefix}palm_finger_2_joint">
+        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      </joint>
+      <actuator name="${prefix}palm_finger_2_motor">
+        <mechanicalReduction>1</mechanicalReduction>
+      </actuator>
+    </transmission>
+
+
 		<!-- end of joint list -->
 	</xacro:macro>
 </robot>
