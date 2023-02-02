@@ -379,7 +379,7 @@ llevar el efector final del maestro más abajo del 0 por razones de diseño; la 
     Alternativamente, se ha planteado la idea de amortiguar la fuerza aplicada al maestro derivando el error en vez de calcular el error en velocidad
 tal cual. También se ha reorganizado el código para que no quede muy farragoso de leer.
     Se ha dejado el cálculo de las velocidades del Phantom y el robot por si fuera necesario en algún momento.
-    (2.5 h) --> 2 / 01 / 23
+    (3 h) --> 2 / 01 / 23
 
 
 
