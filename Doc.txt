@@ -363,6 +363,25 @@ coeficientes de fricción asignados).
 
     
 
+    Se ha realizado la base del control posición - posición esclavo maestro, de manera que la fuerza es proporcional a la suma del error en posición
+y velocidad entre el esclavo y el maestro. La velocidad cartesiana del robot se calcula a partir del desplazamiento cartesiano del mismo, derviándolo
+entre el tiempo en el que se toman medidas.
+    Se ha creado una especie de máquina de estados que funciona de la siguiente manera:
+        - Estado 0: control cartesiano lineal
+        - Estado 1: control cartesiano angular (ángulos de Euler)
+        - Estado 2: control de la pinza
+    Para las transiciones de estado se presiona el botón 1 del lápiz del Phantom.
+    También se ha realizado el control de la pinza de dos dedos, de manera que se controle solo en el Estado 2. En este estado, el Phantom restringe 
+los movimientos en los ejes X e Y mediante un control proporcional / derivativo, de manera que la pinza se controla subiendo y bajando el Phantom en
+el eje Z (esta pinza tiene solo una articulación por lo que solamente requiere un único grado de libertad). Cabe destacar que el operador no puede
+llevar el efector final del maestro más abajo del 0 por razones de diseño; la pinza toma valores de 0 a 0.775.
+    Para la pinza de tres dedos hay que ver si se controla cada dedo por separado o se controla la pinza entera tal cual.
+    Alternativamente, se ha planteado la idea de amortiguar la fuerza aplicada al maestro derivando el error en vez de calcular el error en velocidad
+tal cual. También se ha reorganizado el código para que no quede muy farragoso de leer.
+    Se ha dejado el cálculo de las velocidades del Phantom y el robot por si fuera necesario en algún momento.
+    (2.5 h) --> 2 / 01 / 23
+
+
 
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
