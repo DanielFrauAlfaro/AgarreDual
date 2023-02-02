@@ -5,7 +5,7 @@
 # INSTALAR ROBOTIC TOOLBOX EN PYTHON: pip3 install roboticstoolbox-python
 
 import  sys
-from spatialmath import *
+from spatialmath import SE3
 import roboticstoolbox as rtb
 from math import pi
 import numpy as np
