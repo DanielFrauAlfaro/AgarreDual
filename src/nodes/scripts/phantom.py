@@ -7,7 +7,7 @@ from sensor_msgs.msg import Joy, JointState
 import rospy
 import sys
 import time
-from spatialmath import *
+from spatialmath import SE3
 import roboticstoolbox as rtb
 from math import pi
 
@@ -57,7 +57,7 @@ scale_y = 2
 scale_z1 = 3.5 # Diferente según está por encima o por debajo de 0
 scale_z2 = 7
 
-scale_grip_140 = 0.245
+scale_grip_140 = 4.08
 
 # Origen del robot
 or_x = 0.5095
@@ -107,8 +107,11 @@ act_pose_phantom.orientation.z = -1.0
 
 # Ganancia del feedback de fuerza
 K = 80
+KD = 10
+
 Ke = 10
-Kd = 0.1
+Kde = 0.1
+
 limit = 0.001
 
 
@@ -220,7 +223,7 @@ def cb_v(data):
 
 # Callbacks de los botones
 def cb_bt1(data):
-    global change
+    global change, state
     
     if data.buttons[0] == 1:
         state = state + 1       # Incrementa el estado
@@ -320,8 +323,10 @@ if __name__ == "__main__":
         rospy.Subscriber("/" + name + "/button2", Joy, cb_bt2)
         rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
         
+        pub_140 = []
+
         if name == "ur5_1":
-            pub_140 = rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 )
+            pub_140.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
 
         else:
             pass
@@ -357,32 +362,32 @@ if __name__ == "__main__":
                     ey = (prev_y - pose.position.y)
                     ez = (prev_z - pose.position.z)
 
-                    wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kd
-                    wrench.wrench.force.y = ey * Ke - ey / (time.time() - t) * Kd
-                    wrench.wrench.force.z = ez * Ke - ez / (time.time() - t) * Kd
+                    wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kde
+                    wrench.wrench.force.y = ey * Ke - ey / (time.time() - t) * Kde
+                    wrench.wrench.force.z = ez * Ke - ez / (time.time() - t) * Kde
 
                 elif state == 1:
                     ex = (prev_roll - pose.orientation.x)
                     ey = (prev_pitch - pose.orientation.y)
                     ez = (prev_yaw - pose.orientation.z)
 
-                    wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kd
-                    wrench.wrench.force.y = ey * Ke - ey / (time.time() - t) * Kd
-                    wrench.wrench.force.z = ez * Ke - ez / (time.time() - t) * Kd
+                    wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kde
+                    wrench.wrench.force.y = ey * Ke - ey / (time.time() - t) * Kde
+                    wrench.wrench.force.z = ez * Ke - ez / (time.time() - t) * Kde
 
                 elif state == 2:
                     if name == "ur5_1":
                         ex = (0 - act_pose_phantom.position.x)
                         ey = (0 - act_pose_phantom.position.y)
-                        ez = (prev_grip_140 - grip_140)      
+                        ez = (prev_grip_140 - grip_140.data)      
                         ez0 = (0 - act_pose_phantom.position.z)
 
-                        wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kd
-                        wrench.wrench.force.y = ey * Ke - ey / (time.time() - t) * Kd
-                        wrench.wrench.force.z = ez * Ke - ez / (time.time() - t) * Kd
+                        wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kde
+                        wrench.wrench.force.y = ey * Ke - ey / (time.time() - t) * Kde
+                        wrench.wrench.force.z = ez * Ke - ez / (time.time() - t) * Kde
 
                         if act_pose_phantom.position.z < 0:
-                            wrench.wrench.force.z = ez0 * Ke - ez0 / (time.time() - t) * Kd
+                            wrench.wrench.force.z = ez0 * Ke - ez0 / (time.time() - t) * Kde
             
                 
             # 2 --
@@ -393,9 +398,9 @@ if __name__ == "__main__":
                     ey = (prev_pose_phantom.position.y - act_pose_phantom.position.y)
                     ez = (prev_pose_phantom.position.z - act_pose_phantom.position.z)
 
-                    wrench.wrench.force.x = ex * K - ex / (time.time() - t) * Kd
-                    wrench.wrench.force.y = ey * K - ey / (time.time() - t) * Kd
-                    wrench.wrench.force.z = ez * K - ez / (time.time() - t) * Kd
+                    wrench.wrench.force.x = ex * K - ex / (time.time() - t) * KD
+                    wrench.wrench.force.y = ey * K - ey / (time.time() - t) * KD
+                    wrench.wrench.force.z = ez * K - ez / (time.time() - t) * KD
                     
                     if ex < limit and ey < limit and ez < limit:
                         change = False
@@ -407,9 +412,9 @@ if __name__ == "__main__":
                     ey = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)
                     ez = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)
 
-                    wrench.wrench.force.x = ex * K - ex / (time.time() - t) * Kd
-                    wrench.wrench.force.y = ey * K - ey / (time.time() - t) * Kd
-                    wrench.wrench.force.z = ez * K - ez / (time.time() - t) * Kd
+                    wrench.wrench.force.x = ex * K - ex / (time.time() - t) * KD
+                    wrench.wrench.force.y = ey * K - ey / (time.time() - t) * KD
+                    wrench.wrench.force.z = ez * K - ez / (time.time() - t) * KD
                     
                     if ex < limit and ey < limit and ez < limit:
                         change = False
@@ -421,9 +426,9 @@ if __name__ == "__main__":
                     ey = (0.0 - act_pose_phantom.position.y)
                     ez = (prev_grip_140 / scale_grip_140 - act_pose_phantom.position.z)
 
-                    wrench.wrench.force.x = ex * K - ex / (time.time() - t) * Kd
-                    wrench.wrench.force.y = ey * K - ey / (time.time() - t) * Kd
-                    wrench.wrench.force.z = ez * K - ez / (time.time() - t) * Kd
+                    wrench.wrench.force.x = ex * K - ex / (time.time() - t) * KD
+                    wrench.wrench.force.y = ey * K - ey / (time.time() - t) * KD
+                    wrench.wrench.force.z = ez * K - ez / (time.time() - t) * KD
                     
                     if ex < limit and ey < limit and ez < limit:
                         change = False
@@ -436,10 +441,10 @@ if __name__ == "__main__":
                     pub.publish(pose)
 
                 else:
-                    pub_140.publish(grip_140)
+                    pub_140[0].publish(grip_140)
             
             # 4 --
-            pub_f.publish(wrench)    
+            pub_f.publish(wrench)  
             
             t = time.time()
             r.sleep()
