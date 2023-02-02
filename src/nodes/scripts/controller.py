@@ -42,7 +42,7 @@ class Controller():
         self.__q0 = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # ROS parameters: node, publishers and subscribers
-        rospy.init_node("main_controller", anonymous=False)
+        rospy.init_node(name + "_controller", anonymous=False)
         
         # Subscriber para recibir posiciones y el modo de movimiento
         rospy.Subscriber('/' + name + '/pose', Pose, self.__callback)
@@ -56,7 +56,7 @@ class Controller():
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
 
-        rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
+        # rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
 
         # Se publica la posición cartesiana
         # self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
