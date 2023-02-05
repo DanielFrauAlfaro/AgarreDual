@@ -120,6 +120,7 @@ finger(i.e. finger_1, etc...).
 			<axis xyz="0 0 1"/>
 			<origin xyz="0.020 0 0" rpy="0 0 0"/>
 			<limit lower="0.0495" upper="1.2218" effort="100" velocity="100"/>
+			
 		</joint>
 		<joint name="${prefix}joint_2" type="revolute">
 			<parent link="${prefix}link_1"/>
@@ -127,6 +128,7 @@ finger(i.e. finger_1, etc...).
 			<axis xyz="0 0 1"/>
 			<origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
 			<limit lower="0.0" upper="1.5708" effort="100" velocity="100"/>
+			<mimic joint="${prefix}joint_1" multiplier="1" offset="0" />
 		</joint>
 		<joint name="${prefix}joint_3" type="revolute">
 			<parent link="${prefix}link_2"/>
@@ -134,6 +136,7 @@ finger(i.e. finger_1, etc...).
 			<axis xyz="0 0 1"/>
 			<origin xyz="0.039 0 0" rpy="0 0 0"/>
 			<limit lower="-1.2217" upper="-0.0523" effort="100" velocity="100"/>
+			<mimic joint="${prefix}joint_1" multiplier="1" offset="0" />
 		</joint>
 		<!-- end of joint list -->
 	</xacro:macro>

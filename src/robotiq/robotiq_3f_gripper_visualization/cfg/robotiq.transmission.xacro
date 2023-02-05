@@ -13,25 +13,21 @@
       </actuator>
     </transmission>
 
-    <transmission name="${prefix}joint_2_trans">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${prefix}joint_2">
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="${prefix}joint_2_motor">
-        <mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
-
-    <transmission name="${prefix}joint_3_trans">
-      <type>transmission_interface/SimpleTransmission</type>
-      <joint name="${prefix}joint_3">
-        <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
-      </joint>
-      <actuator name="${prefix}joint_3_motor">
-        <mechanicalReduction>1</mechanicalReduction>
-      </actuator>
-    </transmission>
+    <gazebo>
+             <!-- loading plugin: mimic joints works in gazebo now-->
+             <plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="${prefix}mimic_robotiq_140_4">
+                <joint>${prefix}joint_1</joint>
+                <mimicJoint>${prefix}joint_2</mimicJoint>
+                <multiplier>1.0</multiplier>
+            </plugin>
+            <plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="${prefix}mimic_robotiq_140_2">
+                <joint>${prefix}joint_1</joint>
+                <mimicJoint>${prefix}joint_3</mimicJoint>
+                <multiplier>1.0</multiplier> 
+                <!--<offset>0.0</offset>-->
+            </plugin>
+            
+        </gazebo>
 
   </xacro:macro>
 
