@@ -10,7 +10,7 @@ from std_msgs.msg import Int32
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import CompressedImage
 
-from spatialmath import *
+from spatialmath import SE3
 import roboticstoolbox as rtb
 
 from cv_bridge import CvBridge
@@ -47,16 +47,16 @@ frame2_ = CompressedImage()
 bridge = CvBridge()
 
 
-interval = 0.13
+interval = 0.1
 prev = time.time()
 
-interval2 = 0.13
+interval2 = 0.1
 prev2 = time.time()
 
-interval3 = 0.13
+interval3 = 0.1
 prev3 = time.time()
 
-interval4 = 0.13
+interval4 = 0.1
 prev4 = time.time()
 
 ####### Callbacks #######
@@ -117,6 +117,10 @@ def callbackSlider(sender, app_data, user_data):
             
             pose = Pose()
             
+            prev_x = x
+            prev_y = y
+            prev_z = z
+
             pose.position.x = x
             pose.position.y = y
             pose.position.z = z
@@ -145,6 +149,10 @@ def callbackSlider2(sender, app_data, user_data):
         z = data[2]
         if abs(x-prev_x) > umbral or abs(y-prev_y) > umbral or abs(z-prev_z) > umbral:
             pose = Pose()
+
+            prev_roll = x
+            prev_pitch = y
+            prev_yaw = z
                 
             pose.position.x = prev_x
             pose.position.y = prev_y
@@ -219,11 +227,10 @@ def callbackSlider2_(sender, app_data, user_data):
 rospy.init_node("nodo")
 
 # Publosher de la pose y el modo de movimiento
-pub = rospy.Publisher("/pose", Pose, queue_size=10)
+pub = rospy.Publisher("/ur5_2/pose", Pose, queue_size=10)
 pubMoveType = rospy.Publisher("/move_type", Int32, queue_size=10) 
 
 # Subscribers de la pose del robot y las dos cámaras
-rospy.Subscriber("/cart_pos", Pose, cart_cb)
 rospy.Subscriber("/robot_camera/image_raw/compressed", CompressedImage, camera_cb)
 rospy.Subscriber("/robot_camera2/image_raw/compressed", CompressedImage, camera_cb2)
 
