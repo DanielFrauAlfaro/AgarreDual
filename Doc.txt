@@ -490,7 +490,9 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
    - M ../ur_e_description/ur5e_upload: se cambia el argumento de 'limited' al de '3f' para seleccionar que pinza adherir al robot
    - M ../robotiq/robotiq_3f_gripper_visualization/robotiq-3f-gripper_articulated_macro.xacro && robotiq-3f-gripper_finger_articulated_macro.xacro:
    se han añadido las transmisiones a las articulaciones de los dedos y la palma
-        También se han añadido los plugin del roboticsgroup_gazebo_plugins para copiar el movimiento de las articulaciones
+        También se han añadido los plugin del roboticsgroup_gazebo_plugins para copiar el movimiento de las articulaciones, el tag mimic
+   - M ../robotiq/robotiq_3f_gripper_visualization/robotiq.transmission.xacro: lo de arriba; sustituir las transmisiones de las articulaciones 2 y 3
+   por el plugin para el mimic 
 
 
   - Páginas Web:
