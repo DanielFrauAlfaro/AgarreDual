@@ -383,6 +383,25 @@ tal cual. También se ha reorganizado el código para que no quede muy farragoso
 
 
 
+    La pinza de tres dedos presenta el siguiente comportamiento:
+        - Los dedos 1 y 2 se panean a la vez, teniendo una serie de posiciones por defecto
+        - Cada dedo se mueve de manera independiente pero sin poder el giro de cada articulación del dedo indivudualmente
+    
+    Para cumplir con este modelo, se va a hacer uso del plugin de Gazebo roboticsgroup_gazebo_plugins. Se ha añadido las mimic para las 
+articulaciones de los dedos y para la de la palma en la parte de los dos dedos. Aun así, surge un problema, y es que el dedo de la articuación se cae
+al hacer movimientos y no sigue los comandos de posición correctamente, puede que sea por las ganancias.
+    Para hacer el mimic se debe sustituir la transimsion de la articulacion esclava por un plugin de Gazebo y eliminar el controlador.
+    
+    En cuanto al controlador del robot se ha hecho que se envíen las posiciones articulares en la función donde se calcula la inversa, de manera que 
+se hacen en el callback y no todo el rato, para intentar bajar el ancho de banda.
+
+    Se ha incluido el control de la pinza de tres dedos y el feedback de fuerza para la pinza de tres dedos, considerándola como una máquina de estados
+secundaria dentro del estado de la pinza. En esta máquina se utiliza el botón 2 para moverse por los subestados. 
+    Ese botón solo se usa dentro de ese estado, aunque se podría utilizar para mover hacia atrás en los demás estados de la máquina principal.
+    (5 h) --> 5 / 02 / 23
+
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
@@ -471,6 +490,7 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
    - M ../ur_e_description/ur5e_upload: se cambia el argumento de 'limited' al de '3f' para seleccionar que pinza adherir al robot
    - M ../robotiq/robotiq_3f_gripper_visualization/robotiq-3f-gripper_articulated_macro.xacro && robotiq-3f-gripper_finger_articulated_macro.xacro:
    se han añadido las transmisiones a las articulaciones de los dedos y la palma
+        También se han añadido los plugin del roboticsgroup_gazebo_plugins para copiar el movimiento de las articulaciones
 
 
   - Páginas Web:
