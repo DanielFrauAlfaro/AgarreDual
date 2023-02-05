@@ -79,6 +79,10 @@ class Controller():
         self.T_or = T                                   # Actualiza la T actual
         self.__qp = q.q
         
+        for i in range(6):                              # Se envían los valores
+            self.__joints_com[i].publish(self.__qp[i])
+
+
         '''pose = Pose()                                   # Se codifica el mensaje de la posición cartesiana actual
         
         trans = T.t
@@ -123,13 +127,11 @@ class Controller():
     def control_loop(self):
         
         self.T_or = self.__ur5.fkine(self.__q)
-        rate = rospy.Rate(18)
+        rate = rospy.Rate(10)
         
         # El bucle solo ejecuta funciones si está en velocidad; necesita incrementar los valores
         while not rospy.is_shutdown(): 
-            for i in range(6):                              # Se envían los valores
-                self.__joints_com[i].publish(self.__qp[i])
-
+            
             rate.sleep()
         
         
@@ -171,10 +173,12 @@ class Controller():
            
 # ------------------ Main --------------------
 if __name__ == '__main__':
+    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+    print(sys.argv)
     if len(sys.argv) == 4:
 
         name = sys.argv[1]
-
+        print("name")
         ur5 = Controller(name)
 
         listener = keyboard.Listener(on_press=ur5.home)
