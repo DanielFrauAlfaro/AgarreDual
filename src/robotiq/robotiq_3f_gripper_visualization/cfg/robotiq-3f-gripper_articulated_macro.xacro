@@ -52,7 +52,7 @@ there are multiple hands then a prefix followed by an "_" is needed.
 			<axis xyz="0 1 0"/>
 			<origin xyz="-0.0455 0.0214 -0.036" rpy="0 3.1416 -1.57"/>
 			<limit lower="-0.192" upper="0.1784" effort="100" velocity="100"/>
-			<mimic joint="${prefix}palm_finger_1_joint" type="revolute" multiplier="1" offset="0" />
+			<mimic joint="${prefix}palm_finger_1_joint" type="revolute" multiplier="-1" offset="0" />
 		</joint>
 		<joint name="${prefix}palm_finger_middle_joint" type="fixed">
 			<parent link="${prefix}palm"/>
@@ -78,11 +78,11 @@ there are multiple hands then a prefix followed by an "_" is needed.
 				<mechanicalReduction>1</mechanicalReduction>
 			</actuator>
 		</transmission>
+		
 		<plugin filename="libroboticsgroup_gazebo_mimic_joint_plugin.so" name="${prefix}mimic_palm">
                 <joint>${prefix}palm_finger_1_joint</joint>
                 <mimicJoint>${prefix}palm_finger_2_joint</mimicJoint>
-                <multiplier>1.0</multiplier>
-            </plugin>
-
-		
+                <multiplier>-1.0</multiplier>
+        </plugin>	
+		</xacro:macro>
 </robot>
