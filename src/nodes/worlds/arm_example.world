@@ -1,0 +1,23 @@
+<?xml version="1.0" ?>
+<sdf version="1.5">
+  <world name="robomaster_rale">
+    <light type="directional" name="my_light">
+      <pose>0 0 10 0 0 0</pose>
+    </light>
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+    
+
+    <include>
+      <name>table</name>
+      <uri>model://table</uri>
+      <static>0</static>
+      <pose> 0.0 0.55 0 0 0 1.57</pose> <!--0 1.57 -1.57 -->
+    </include>
+
+  </world>
+</sdf>
