@@ -528,6 +528,7 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
     - Sensor de fuerzas: https://answers.ros.org/question/243173/interpretation-of-forcetorque-sensor-using-gazebo_ros_ft_sensor-plugin/
     - Sensor de fuerzas (oficial): http://wiki.ros.org/force_torque_sensor_controller
     - Repositorio para la Robotiq 3f gripper (referencia y guia): https://github.com/KTigerFIre/UR5_robotiq
+    - Repositorio de los modelos de la mesa: https://github.com/osrf/gazebo_models
 
 
   - Conexión con Matlab:
