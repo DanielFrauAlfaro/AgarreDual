@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-  <arg name='origin' default='-x 0 -y 0 -z 0.005'/>
+  <arg name='origin' default='-x -0.25 -y 0.1 -z 1.02'/>
   <arg name='robot_name' default='ur5'/>
   <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
   <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
@@ -10,7 +10,7 @@
   
   <!-- startup simulated world -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" default="worlds/empty.world"/>
+        <arg name="world_name" default="$(find nodes)/worlds/arm_example.world"/>
         <arg name="paused" value="$(arg paused)"/>
         <arg name="gui" value="$(arg gui)"/>
   </include>

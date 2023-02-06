@@ -26,7 +26,7 @@
 
   <group if='$(arg 3f)'>
     <rosparam file="$(find ur_e_gazebo)/controller/gripper_3f_controller.yaml" command="load"/>
-    <node name="robotiq_controller_spawner_3f" pkg="controller_manager" type="spawner" args="palm_finger_1_joint_controller finger_1_joint_1_controller finger_1_joint_2_controller finger_1_joint_3_controller finger_2_joint_1_controller finger_2_joint_2_controller finger_2_joint_3_controller finger_middle_joint_1_controller finger_middle_joint_2_controller finger_middle_joint_3_controller" respawn="true" output="screen"/>
+    <node name="robotiq_controller_spawner_3f" pkg="controller_manager" type="spawner" args="palm_finger_1_joint_controller finger_1_joint_1_controller finger_2_joint_1_controller finger_middle_joint_1_controller" respawn="true" output="screen"/>
   </group>
 
   <!-- robot state publisher -->
@@ -36,5 +36,5 @@
   <node name="controller" pkg="nodes" type="controller.py" args="$(arg robot_name)" output="screen" />
 
   <!-- phantom / master controller -->
-  <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg robot_name)" output="screen" />
+  <!--node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg robot_name)" output="screen" /-->
 </launch>
