@@ -402,6 +402,13 @@ secundaria dentro del estado de la pinza. En esta máquina se utiliza el botón 
 
 
 
+    Se han ajustado las ganancias del controlador del UR5 para que admita la pinza dentro de su configuración. 
+    Se ha probado la pinza de tres dedos con las articulaciones clonadas para ver su funcionamiento; las de los dedos funcionan bien aunque la de la
+articulación de la palma del dedo 2 está un poco suelta.
+    (3.5) --> 6 / 02 /23
+
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
