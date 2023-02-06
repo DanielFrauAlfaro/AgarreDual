@@ -173,12 +173,9 @@ class Controller():
            
 # ------------------ Main --------------------
 if __name__ == '__main__':
-    print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-    print(sys.argv)
     if len(sys.argv) == 4:
 
         name = sys.argv[1]
-        print("name")
         ur5 = Controller(name)
 
         listener = keyboard.Listener(on_press=ur5.home)
