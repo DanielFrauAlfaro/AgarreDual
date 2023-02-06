@@ -224,10 +224,12 @@ def callbackSlider2_(sender, app_data, user_data):
 
 # Variables de ROS:
 # Nodo
-rospy.init_node("nodo")
+
+name = "ur5_1"
+rospy.init_node("nodo_"+name)
 
 # Publosher de la pose y el modo de movimiento
-pub = rospy.Publisher("/ur5_2/pose", Pose, queue_size=10)
+pub = rospy.Publisher("/"+name+"/pose", Pose, queue_size=10)
 pubMoveType = rospy.Publisher("/move_type", Int32, queue_size=10) 
 
 # Subscribers de la pose del robot y las dos cámaras
