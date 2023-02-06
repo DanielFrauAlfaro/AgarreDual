@@ -408,6 +408,9 @@ articulación de la palma del dedo 2 está un poco suelta.
     Se ha añadido una mesa para la manipulación de objetos, creando un nuevo fichero para poder spawnear el mundo y la mesa. 
     Por otro lado,se ha descargado los ficheros de Ignacio para la configuración de objetos para los agarres, pero no funcionan bien para incluirlos
 en el mundo de Gazebo o no los se añadir bien. Para incluirlos se ha creado un nuevo paquete dentro del proyecto.
+    Además, se ha bajado las ganancias de la articulación 3 del robot ya que eran demasiado altas para la de la pinza de 2 dedos, provocaba
+oscilaciones. Se deberían obtener nuevos valores para el controlador de esta articulación que fueran válidos para ambos robots. Si no se puediera se
+debería hacer un fichero de controlador para cada robot, ya que las pinzas son distintas.
     (7) --> 6 / 02 /23
 
 
