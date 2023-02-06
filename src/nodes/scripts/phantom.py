@@ -400,20 +400,15 @@ if __name__ == "__main__":
                 - 4. Se publican los Wrenches calculados según el caso
             '''
             
+            ex = 0
+            ey = 0
+            ez = 0
+            ez0 = 0
+            
             while not rospy.is_shutdown():
-
-                ex = 0
-                ey = 0
-                ez = 0
-                ez0 = 0
 
                 # 2 --
                 if change:
-
-                    ex = 0
-                    ey = 0
-                    ez = 0
-                    ez0 = 0
 
                     # 2.1 --
                     if state == 0:
