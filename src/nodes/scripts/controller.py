@@ -1,22 +1,14 @@
 #! /usr/bin/python3
 
 
-######## IMPORTANTE ############
-# INSTALAR ROBOTIC TOOLBOX EN PYTHON: pip3 install roboticstoolbox-python
-
 import  sys
 from spatialmath import SE3
 import roboticstoolbox as rtb
 from math import pi
-import numpy as np
 import rospy
 from std_msgs.msg import Float64
-from control_msgs.msg import JointControllerState
 from geometry_msgs.msg import Pose
-from std_msgs.msg import Int32
 from sensor_msgs.msg import JointState
-from pynput import keyboard as kb
-import math
 import time
 from pynput import keyboard
 
@@ -49,54 +41,34 @@ class Controller():
         
         # Lista de publisher de las articulaciones
         self.__joints_com = []
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=50))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=50))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=50))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=50))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=50))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=50))
 
-        # rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
+        # Estado de las articulaciones
+        rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
 
-        # Se publica la posición cartesiana
-        # self.__cart_pos = rospy.Publisher('/' + name + '/cart_pos', Pose, queue_size=10)
-        
-        # Origen
-        self.T_or = self.__ur5.fkine(self.__q)
+        # Psociones a enviar por los topics
         self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
         # Intervalos para ajustar la frecuencia de funcionamiento
         self.__interval = 0.0
         self.__prev = time.time()
 
-        self.__interval2 = 0.2
+        self.__interval2 = 0.0
         self.__prev2 = time.time()
         
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)       # Inversa: obtiene las posiciones articulares a través de la posición
-        self.T_or = T                                   # Actualiza la T actual
         self.__qp = q.q
         
         for i in range(6):                              # Se envían los valores
             self.__joints_com[i].publish(self.__qp[i])
-
-
-        '''pose = Pose()                                   # Se codifica el mensaje de la posición cartesiana actual
-        
-        trans = T.t
-        eul = T.rpy(order='xyz')
-        
-        pose.position.x = trans[0]
-        pose.position.y = trans[1]
-        pose.position.z = trans[2]
-        
-        pose.orientation.x = eul[0]
-        pose.orientation.y = eul[1]
-        pose.orientation.z = eul[2]
-        
-        self.__cart_pos.publish(pose)'''
 
 
     
@@ -120,19 +92,6 @@ class Controller():
             T = T * T_
             
             self.__move(T)
-
-            
-        
-# ------------------------ Bucle de control ------------------------
-    def control_loop(self):
-        
-        self.T_or = self.__ur5.fkine(self.__q)
-        rate = rospy.Rate(10)
-        
-        # El bucle solo ejecuta funciones si está en velocidad; necesita incrementar los valores
-        while not rospy.is_shutdown(): 
-            
-            rate.sleep()
         
         
 # ---------------- Home position ----------------
@@ -141,11 +100,9 @@ class Controller():
             self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             for i in range(5):
-                self.__joints_com[i].publish(self.__q0[i])
-
-            self.T_or = self.__ur5.fkine([0, -1.5, 1 , 0.0, 1.57, 0.0])
-                
+                self.__joints_com[i].publish(self.__q0[i])                
         
+
     def __joint_state_cb(self, data):
         if time.time() - self.__prev2 > self.__interval2:         # Solo se ejecuta cuando pasa el intervalo
             
@@ -181,4 +138,4 @@ if __name__ == '__main__':
         listener = keyboard.Listener(on_press=ur5.home)
         listener.start()
 
-        ur5.control_loop()    
+        rospy.spin()    
