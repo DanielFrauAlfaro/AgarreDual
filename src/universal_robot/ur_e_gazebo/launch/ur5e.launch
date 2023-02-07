@@ -34,7 +34,9 @@
   
   <!-- robot controller -->
   <node name="controller" pkg="nodes" type="controller.py" args="$(arg robot_name)" output="screen" />
+  <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg robot_name)" output="screen" />  
+
 
   <!-- phantom / master controller -->
-  <!--node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg robot_name)" output="screen" /-->
+  <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg robot_name)" output="screen" />
 </launch>
