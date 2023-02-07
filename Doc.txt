@@ -415,6 +415,42 @@ debería hacer un fichero de controlador para cada robot, ya que las pinzas son 
 
 
 
+    Se ha cambiado las coordenadas del feedback de fuerzas; cuando se trabaja con el error del robot se debe hacer el cambio de sistema de referencia.
+    Se ha creado otro bucle a parte para hacer la cinemática inversa del robot, de manera que no interrumpa ningún proceso principal con un procedimiento
+demasiado pesado. Este nodo se debe lanzar junto con el controlador del UR5 y el spawn de Gazebo
+    Se ha probado el bucle de control en el Phantom real y se han obtenido las siguientes conclusiones:
+        - Se nota mucho retardo entre la simulación y el control de fuerzas; puede que hacer la separación del control del Phantom en dos nodos no 
+    sea una mala idea, ya que así se concentra la ejecución de dos funcionalidades en un solo bucle, sin tantas interrupciones al control de fuerza
+    del Phantom por el callback de posiciones.
+        - La frecuencia del bucle principal de control del Phantom es crítica; se ha comprobado que según la ganancia proporcional que se indique
+    se puede situar alrededor de los 40 o 35 Hz, aunque aun se siguen detectando retrasos
+        - A mayor frecuencia mayor estabilidad y aparente retraso se notaba en el funcionamiento del bucle de control y realimentación de fuerzas
+        - En el bucle de control de fuerza se ha detectado que la pinza pesa demasiado por lo que provoca que el robot se caiga (creo que es por la)
+    pinza, porque el control bilateral en posición refleja las fuerzas externas al operador). Para solucionar este problema se ha añadido una fuerza
+    hacia arriba (coordenada 'Y' en el sistema de coordenadas del Phantom) de 0.95 N para compensar la caída (valor determinado experimentalmente).
+        - En el funcionamiento normal del bucle de realimentación se anula, en un primer momento, la ganancia derivativa de manera que solo se hace uso
+    de la proporcional
+        - Parece ser que es importante el buffer de entrada de los subscribers de los topics de los controladores articulares del UR5, pues ayudan a
+    mitigar el efecto del retraso
+        - Las constantes del feedback de fuerza son muy bajas, ya que se está trabajando con el error en la posicion del robot real y no con el del
+    Phantom, por lo que se debe mitigar su efecto al operador para no sentir fuerzas excesivas.
+
+    Se debe trabajar en encontrar una constantes (ganancias, tamaño de buffer, frecuencias, ...) adecuadas al funcionamiento de la aplicación.
+    Para lanzar el Phantom con la librería del repositorio de cisst se debe especificar el fichero JSON con el que se quire lanzar, ya que el comando
+por defecto y el que lanza el RVIZ utilizan el nombre de "arm", lo que resulta incorrecto para el proyecto.
+
+
+    IMPORTANTE --> Comprobar si en el controller.py mejora el comportamiento al añadir el feedback de las posiciones, para calcular la cinemática
+inversa. Tal y como está ahora se calcula la cinemática inversa a partir de las posiciones del origen del robot.
+               --> Mirar también si aumentar la constante de fuerza o aumentar la frecuencia de funcionamiento hace que el brazo no se caiga
+               --> Probar también a no tener un intervalo de tiempo en el callback de la posición del Phantom, para ir recogiendo más posiciones
+               Puede que sea por esto que no funcione bien el feedback y vaya un poco a tirones cuando se ponían frecuencias altas.
+
+    (4 h) --> 7 / 02 / 23 --> SESIÓN REAL
+
+
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
