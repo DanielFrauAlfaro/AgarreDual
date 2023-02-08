@@ -38,5 +38,7 @@
 
 
   <!-- phantom / master controller -->
-  <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg robot_name)" output="screen" />
+  <node name="position_phantom_controller" pkg="nodes" type="position_phantom.py" args="$(arg robot_name)" output="screen" />
+  <node name="force_phantom_controller" pkg="nodes" type="force_phantom.py" args="$(arg robot_name)" output="screen" />
+
 </launch>
