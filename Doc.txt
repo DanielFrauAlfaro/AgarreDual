@@ -450,6 +450,18 @@ inversa. Tal y como está ahora se calcula la cinemática inversa a partir de la
 
 
 
+    Lo que ponía antes de la constante proporcional de fuerza y de la frecuencia no importa, me equivoqué al poner las constantes en el bucle de
+control de la fuerza.
+    Se ha diversificado el bucle de control del Phantom en otra rama del Gihub; ahora se tiene un nodo que solamente manda comandos de posición a la
+controladora del UR5e y computa la posición del Phantom y del robot a partir de esta. Estas posiciones se mandan a el segundo nodo, el nodo del control
+de fuerzas, que se encarga de aplicar una serie de fuerzas al operador a partir de las posiciones calculadas por el nodo de posición y la posición
+cartesiana del extremo del robot.
+
+    IMPORTANTE: comprobar si funciona primero.
+                Luego comprobar que no hay retardo excesivo al hacer el cálculo de la posición en el nodo de posición y luego mandárselo al nodo de 
+            fuerza. La otra opción sería tener los dos callbacks asignados a la posición del Phantom, con el mismo código, uno en cada nodo
+    (2 h) --> 8 / 02 / 23
+
 
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
