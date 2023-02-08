@@ -208,13 +208,6 @@ def cb(data):
                         grip_3f_palm = data.pose.position.z * scale_grip_3f_palm
 
 
-
-# Callback de la velocidad del Phantom
-def cb_v(data):
-    global vel, prev_vel
-    prev_vel = vel
-    vel = data.twist
-
 # Callbacks de los botones
 def cb_bt1(data):
     global change, state
@@ -264,8 +257,6 @@ if __name__ == "__main__":
         # name = sys.argv[1]
         name = "ur5_2"
         name_p = "arm"
-        print(name)
-        print("------------------------------------------------")
         
         # Nodo
         rospy.init_node(name + "_phantom_ctr")
@@ -276,7 +267,6 @@ if __name__ == "__main__":
 
         # Subscribers: posición del phantom, posición del robot, botones y cámaras del robot
         rospy.Subscriber("/" + name_p + "/measured_cp", PoseStamped,cb)
-        rospy.Subscriber('/' + name + '/measured_cv', TwistStamped, cb_v)
         rospy.Subscriber("/" + name_p + "/button1", Joy, cb_bt1)
         rospy.Subscriber("/" + name_p + "/button2", Joy, cb_bt2)
         rospy.Subscriber('/' + name + '/cart_pos', Pose, cart_pos)
