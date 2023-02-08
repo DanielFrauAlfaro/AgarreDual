@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 
-from std_msgs.msg import Float64
-from geometry_msgs.msg import PoseStamped, WrenchStamped, TwistStamped, Pose, Twist
+from std_msgs.msg import Float64, Int32
+from geometry_msgs.msg import PoseStamped, WrenchStamped, Pose, Twist
 from sensor_msgs.msg import Joy
 import rospy
 import sys
@@ -30,8 +30,7 @@ movimiento.
 # Mensajes de la posición del robot y del wrench
 pose = Pose()
 wrench = WrenchStamped()
-vel = Twist()
-prev_vel = Twist()
+st = Int32()
 
 grip_140 = Float64()
 
@@ -64,9 +63,6 @@ or_yaw = -0.001661
 prev_x, prev_y, prev_z = 0.5095, 0.1334, 0.7347
 prev_roll, prev_pitch, prev_yaw = 1.57225, 1.07, -0.00166
 
-prev_x_v, prev_y_v, prev_z_v = 0, 0, 0
-prev_roll_v, prev_pitch_v, prev_yaw_v = 0, 0, 0
-
 prev_grip_140 = 0
 prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm = 0, 0, 0, 0
 
@@ -74,9 +70,6 @@ prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm = 0, 0, 0, 0
 change = True           # Flag para indicar cambio (a True para mandarlo al (0,0,0) al empezar)
 state = 0
 state_3f = 0
-
-# Posición articular
-q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
 
 # Posición actual y previa del Phantom
 prev_pose_phantom = Pose()
@@ -96,8 +89,6 @@ act_pose_phantom.orientation.x = -1.0
 act_pose_phantom.orientation.y = -1.0
 act_pose_phantom.orientation.z = -1.0
 
-
-
 # Ganancia del feedback de fuerza
 K = 0.00001
 KD = 0.0
@@ -107,14 +98,16 @@ Kde = 0.1
 
 limit = 0.01
 
-
 # Tiempo para coger los mensajes del /joint_states
 interval = 0.0
 prev = time.time()
 
-
 # Nombre del robot
 name = ""
+
+# Publisher del estado de la máquina
+pub_state = rospy.Publisher("/" + name + "/state", Int32, queue_size=10)
+
 
 # Callback de las posiciones del Phantom
 '''
@@ -210,14 +203,18 @@ def cb(data):
 
 # Callbacks de los botones
 def cb_bt1(data):
-    global change, state
-    
+    global change, state, pub_state, st
+
     if data.buttons[0] == 1:
         state = state + 1       # Incrementa el estado
         change = True 
 
         if state > 2:           # Si se pasa del número de estados, ...
             state = 0           # ... vuelve al estado 0 ...
+    
+    st = state
+    
+    pub_state.publish(st)
         
 def cb_bt2(data):
     global change
@@ -260,6 +257,8 @@ if __name__ == "__main__":
         
         # Nodo
         rospy.init_node(name + "_phantom_ctr")
+
+        pub_state = rospy.Publisher("/" + name + "/state", Int32, queue_size=10)
 
         # Publishers: pose al robot, fuerza al Phantom y modo de movimiento para el robot
         pub = rospy.Publisher("/" + name + "/pose", Pose, queue_size=10)
