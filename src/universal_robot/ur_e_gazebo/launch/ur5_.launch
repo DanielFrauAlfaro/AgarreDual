@@ -44,5 +44,6 @@
 
   <node name="controller" pkg="nodes" type="controller.py" args="ur5_2" output="screen"/>  
 
+  <node name="interface" pkg="nodes" type="interface.py" output="screen" />
   
 </launch>
