@@ -128,7 +128,7 @@ if __name__ == '__main__':
         name = sys.argv[1]
         
         # Nodo
-        rospy.init_node(name + "_phantom_ctr")
+        rospy.init_node(name + "_cart_pos")
 
         rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
         cart_pos = rospy.Publisher("/" + name + "/cart_pos", Pose, queue_size=10)
