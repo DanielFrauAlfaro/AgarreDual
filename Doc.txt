@@ -462,6 +462,21 @@ cartesiana del extremo del robot.
             fuerza. La otra opción sería tener los dos callbacks asignados a la posición del Phantom, con el mismo código, uno en cada nodo
     (2 h) --> 8 / 02 / 23
 
+
+
+    Para spawnear el modelo de los objetos en RVIZ se debe cambiar algunas cosas del model.urdf.xacro de cada uno de los objetos:
+        - Primero, para incluir los ficheros .obj se debe colocar la ruta desde el fichero src (desde donde se lanzan el comando de inicio) hasta el
+        directorio donde se encuentran los ficheros .obj. La ruta quedaría como package://objects_models/models/002_master_chef_can/textured_simple_reoriented.obj
+        - Luego, se debe añadir un link auxiliar ya que RVIZ no admite que los links de referencia (los que se pueden tomar como sistema de referencia 
+        para obtener transformadas de los demás) tengan variables de inercia. Por eso es que se añade este link "dummy" junto con una joint fijada al 
+        objeto
+    Se ha creado un launch para lanzar un objeto en el mundo ya creado. El objeto se puede elegir mediante un argumento de entrada
+
+    PROYECCION: se ha pensado en hacer una especie de interfaz de usuario desde la que lanzar la simulación y más adelante el control del robot real.
+Esta interfaz sería la responsable de lanzar la simulación y los objetos que se quieran. En esta aplicación se podría incluir también el calibrado
+de los Phantom, llamando a la ejecución de los ejecutables del fabricante. Más adelante se podría incluir la selección de robots o pinzas que se
+quieran añadir a cada uno.
+    (4 h) --> 9 / 02 / 23
     
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
