@@ -1,21 +1,9 @@
-<?xml version="1.0"?>
 <launch>
 
-    <arg name="object" default="002"/>
-    <arg name="origin" default="-x 0.0 -y 0.0 -z 0.0"/>
-  
-  <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
-  <arg name="gui" default="true" doc="Starts gazebo gui" />
+  <arg name="origin" default="-x 1 -y 1 -z 1"/>
+  <arg name="object_name" default="002_master_chef_can"/>
 
-   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" default="$(find nodes)/worlds/arm_example.world"/>
-        <arg name="paused" value="$(arg paused)"/>
-        <arg name="gui" value="$(arg gui)"/>
-  </include>
+  <param name="$(arg object_name)" command="$(find xacro)/xacro --inorder '$(find objects_models)/urdf/$(arg object_name)/model.urdf' "/>
 
-
-  <param name="can" command="$(find xacro)/xacro --inorder '$(find objects_models)/models/002_master_chef_can/model.urdf'" />
-
-  <node name="spawn_gazebo_model_can" pkg="gazebo_ros" type="spawn_model" args="-urdf -param can -model can $(arg origin)" respawn="false" output="screen" />
-
+  <node name="spawn_gazebo_model_object" pkg="gazebo_ros" type="spawn_model" args="-urdf -param $(arg object_name) -model $(arg object_name) $(arg origin)" respawn="false" output="screen" />
 </launch>
