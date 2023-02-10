@@ -1,288 +1,359 @@
-#! /usr/bin/python3
 
-from __future__ import print_function
-import dearpygui.dearpygui as dpg
-import numpy as np
-import roboticstoolbox as rtb
-import spatialmath as sm
+import roslaunch
 import rospy
-from std_msgs.msg import Int32
-from geometry_msgs.msg import Pose
-from sensor_msgs.msg import CompressedImage
+import subprocess
+import dearpygui.dearpygui as dpg
 
-from spatialmath import SE3
-import roboticstoolbox as rtb
+subprocess.Popen('roscore')
+rospy.sleep(1)
 
-from cv_bridge import CvBridge
-import cv2 as cv
-import numpy as np
-import time
-
-# Origen en XYZ
-or_x = 0.5095
-or_y = 0.1334
-or_z = 0.7347
-
-# Origen RPY
-or_roll = 1.57225399
-or_pitch = 1.07079575
-or_yaw = -0.001661
-
-# Posiciones de XYZ y RPY
-prev_x, prev_y, prev_z = or_x, or_y, or_z
-prev_roll, prev_pitch, prev_yaw = or_roll , or_pitch, or_yaw
-
-# Umbral para enviar datos
-umbral = 0.0
-first_frame_cam1 = False
-first_frame_cam2 = False
-
-# Flags para el modo de movimiento y para detectar si se presiona el checker
-vel_controller = False
-cb = False
-
-# Mensajes de la camara
-frame_ = CompressedImage()
-frame2_ = CompressedImage()
-bridge = CvBridge()
-
-
-interval = 0.1
-prev = time.time()
-
-interval2 = 0.1
-prev2 = time.time()
-
-interval3 = 0.1
-prev3 = time.time()
-
-interval4 = 0.1
-prev4 = time.time()
-
-####### Callbacks #######
-# Camaras: se pasan a formato numpy
-def camera_cb(data):
-    global frame_, first_frame_cam1 , bridge
-    frame_ = bridge.compressed_imgmsg_to_cv2(data)
-    
-    first_frame_cam1 = True
-    
-def camera_cb2(data):
-    global bridge, frame2_, first_frame_cam2
-    frame2_ = bridge.compressed_imgmsg_to_cv2(data)
-    
-    first_frame_cam2 = True
-
-# Callback para el topic de la posicion cartesiana del robot
-def cart_cb(data):
-    global prev_x, prev_y, prev_z
-    global prev_roll, prev_pitch, prev_yaw
-    
-    prev_x = data.position.x
-    prev_y = data.position.y
-    prev_z = data.position.z
-    
-    prev_roll = data.orientation.x
-    prev_pitch = data.orientation.y
-    prev_yaw = data.orientation.z
-
-# Callback del checker: publica modo seleccionado
-def callbackCheck(sender, app_data, user_data):
-    global vel_controller, cb
-    cb = True
-    vel_controller = dpg.get_value(sender)
-    if vel_controller == True:
-        pubMoveType.publish(1)
-    else:
-        pubMoveType.publish(0)         
-
-### Slider ###
-# XYZ posicion: se mantiene los RPY y se cambian los XYZ al pasar un umbral
-def callbackSlider(sender, app_data, user_data):
-    global prev_x, prev_roll
-    global prev_y, prev_pitch
-    global prev_z, prev_yaw
-    global pub, interval, prev
-    
-    if time.time() - prev > interval:         # Solo se ejecuta cuando pasa el intervalo
-            
-        prev = time.time() 
-
-        data = dpg.get_value(sender)
-        x = data[0]
-        y = data[1]
-        z = data[2]
-        
-        if abs(x-prev_x) > umbral or abs(y-prev_y) > umbral or abs(z-prev_z) > umbral:
-            
-            pose = Pose()
-            
-            prev_x = x
-            prev_y = y
-            prev_z = z
-
-            pose.position.x = x
-            pose.position.y = y
-            pose.position.z = z
-
-            pose.orientation.x = prev_roll
-            pose.orientation.y = prev_pitch
-            pose.orientation.z = prev_yaw
-            pose.orientation.w = 1
-            
-            pub.publish(pose)
-
-# RPY posicion: se mantiene los XYZ y se cambian los RPY al pasar un umbral
-def callbackSlider2(sender, app_data, user_data):
-    global prev_x, prev_roll
-    global prev_y, prev_pitch
-    global prev_z, prev_yaw
-    global pub, prev2, interval2
-    
-    
-    if time.time() - prev2 > interval2:         # Solo se ejecuta cuando pasa el intervalo
-            
-        prev2 = time.time() 
-        data = dpg.get_value(sender)
-        x = data[0]
-        y = data[1]
-        z = data[2]
-        if abs(x-prev_x) > umbral or abs(y-prev_y) > umbral or abs(z-prev_z) > umbral:
-            pose = Pose()
-
-            prev_roll = x
-            prev_pitch = y
-            prev_yaw = z
-                
-            pose.position.x = prev_x
-            pose.position.y = prev_y
-            pose.position.z = prev_z
-
-            pose.orientation.x = x
-            pose.orientation.y = y
-            pose.orientation.z = z
-            pose.orientation.w = 1
-                
-            pub.publish(pose)
-
-# XYZ velocidad: se hacen por incrementos de XYZ, por lo que los RPY estan a 0.0
-def callbackSlider_(sender, app_data, user_data):
-    global prev_x, prev_roll
-    global prev_y, prev_pitch
-    global prev_z, prev_yaw
-    global pub, prev3, interval3
-    
-    if time.time() - prev3 > interval3:         # Solo se ejecuta cuando pasa el intervalo
-            
-        prev3 = time.time() 
-        data = dpg.get_value(sender)
-        x = data[0]
-        y = data[1]
-        z = data[2]
-        
-        pose = Pose()
-        
-        pose.position.x = x
-        pose.position.y = y
-        pose.position.z = z
-
-        pose.orientation.x = 0.0
-        pose.orientation.y = 0.0
-        pose.orientation.z = 0.0
-        pose.orientation.w = 0.0
-        
-        pub.publish(pose)
-
-# RPY velocidad: se hacen incrementos de RPY, por lo que los XYZ estan a 0.0
-def callbackSlider2_(sender, app_data, user_data):
-    global prev_x, prev_roll
-    global prev_y, prev_pitch
-    global prev_z, prev_yaw
-    global pub, prev4, interval4
-
-    if time.time() - prev4 > interval4:         # Solo se ejecuta cuando pasa el intervalo
-            
-        prev4 = time.time() 
-        data = dpg.get_value(sender)
-        x = data[0]
-        y = data[1]
-        z = data[2]
-        
-        pose = Pose()
-                
-        pose.position.x = 0.0
-        pose.position.y = 0.0
-        pose.position.z = 0.0
-
-        pose.orientation.x = x
-        pose.orientation.y = y
-        pose.orientation.z = z
-        pose.orientation.w = 1
-                
-        pub.publish(pose)
-
-
-# Variables de ROS:
-# Nodo
-
-name = "ur5_1"
-rospy.init_node("nodo_"+name)
-
-# Publosher de la pose y el modo de movimiento
-pub = rospy.Publisher("/"+name+"/pose", Pose, queue_size=10)
-pubMoveType = rospy.Publisher("/move_type", Int32, queue_size=10) 
-
-# Subscribers de la pose del robot y las dos cámaras
-rospy.Subscriber("/robot_camera/image_raw/compressed", CompressedImage, camera_cb)
-rospy.Subscriber("/robot_camera2/image_raw/compressed", CompressedImage, camera_cb2)
-
-
-# GUI
 dpg.create_context()
-dpg.create_viewport(title='Teleoperación', width=1460, height=1200)
-dpg.setup_dearpygui()
+dpg.create_viewport(title='GUI', width=400, height=400)
 
-# Se crean los sliders en las posiciones iniciales
-with dpg.window(tag="Controlador", width=800, height=640):
-    dpg.add_3d_slider(label="Position XYZ", tag="position_slider", default_value=[0.5095, 0.1334, 0.7347], min_x=-0.7, max_x=0.7, min_y=-0.55, max_y=0.55, min_z=0.0, max_z=0.85, height=200, width=200,callback=callbackSlider, user_data="slider", )
-    dpg.add_3d_slider(label="Position RPY", tag="rotation_slider", default_value=[1.57225399 , 1.07079575, -0.001661], min_x=-3.14, max_x=3.14, min_y=-3.14, max_y=3.14, min_z=-3.14, max_z=3.14, height=200, width=200,callback=callbackSlider2, user_data="slider")
+names = ["ur5_1", "ur5_2"]
+positions = [["-0.2","0.8","1.02"], ["-0.2", "0.1", "1.02"]]
+positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]
+n = "2"
+gripp = ["2f_140", "3f"]
 
-    dpg.add_3d_slider(label="Velocity XYZ", show=False, tag="position_slider_v", default_value=[0.0, 0.0, 0.0], min_x=-0.1, max_x=0.1, min_y=-0.1, max_y=0.1, min_z=-0.1, max_z=0.1, height=200, width=200,callback=callbackSlider_, user_data="slider")
-    dpg.add_3d_slider(label="Velocity RPY", show = False, tag="rotation_slider_v", default_value=[0.0, 0.0, 0.0], min_x=-0.1, max_x=0.1, min_y=-0.1, max_y=0.1, min_z=-0.1, max_z=0.1, height=200, width=200,callback=callbackSlider2_, user_data="slider")
+spawnables_show = ("Masterchef can", "Cracker box", "Sugar box", "Tomatosoup can", "Mustard bottle", "Tuna fish can", "Pudding box", "Gelatin box", "Potted meat can", "Banana", "Strawberry", "Apple", "Lemon", "Peach", "Pear", "Orange", "Plum", "Bleach cleanser")
+    
+spawnables = ("002_master_chef_can", "003_cracker_box", "004_sugar_box", "005_tomato_soup_can", "006_mustard_bottle", "007_tuna_fish_can", "008_pudding_box", "009_gelatin_box", "010_potted_meat_can", "011_banana", "012_strawberry", "013_apple", "014_lemon", "015_peach", "016_pear", "017_orange", "018_plum", "021_bleach_cleanser")
+
+spawn_name = "002_master_chef_can"
+
+is_launch = False
+is_stop_sim = False
+is_spawn = False
+
+def change2simulation(sender, app_data, user_data):
+    # TODO: hacer el cambio de visibilidad
+    dpg.configure_item("Simulation", show=True)
+    dpg.configure_item("Real", show=False)
+
+def change2real(sender, app_data, user_data):
+    dpg.configure_item("Real", show=True)
+    dpg.configure_item("Simulation", show=False)
+
+def activate_tut(sender, app_data, user_data):
+    dpg.configure_item("tut_sim", show=True)
+    dpg.configure_item("tut_real", show=True)
+    dpg.configure_item("tut_act", show=True)
+    dpg.configure_item("tut_deact", show=True)
+    dpg.configure_item("tut_act2", show=True)
+    dpg.configure_item("tut_deact2", show=True)
+    dpg.configure_item("tut_n", show=True)
+    dpg.configure_item("tut_grip1", show=True)
+    dpg.configure_item("tut_spa1", show=True)
+    dpg.configure_item("tut_grip2", show=True)
+    dpg.configure_item("tut_spa2", show=True)
+    dpg.configure_item("tut_ph_conf", show=True)
+    dpg.configure_item("tut_ph_calib", show=True)
+    dpg.configure_item("tut_spawn_name", show=True)
+    dpg.configure_item("tut_spa_pos_obj", show=True)
+    dpg.configure_item("tut_spa_or_obj", show=True)
+    dpg.configure_item("tut_add_obj", show=True)
+    dpg.configure_item("tut_stop_sim", show=True)
 
 
-# Se crea el checker para el cambio de modo
-with dpg.window(tag="Ckeck", pos=[0,640]):
-    dpg.add_checkbox(label="Activar control en velocidad", tag="vel_control",
-                            callback=callbackCheck, user_data="vel_control")
+def deactivate_tut(sender, app_data, user_data):
+    dpg.configure_item("tut_sim", show=False)
+    dpg.configure_item("tut_real", show=False)
+    dpg.configure_item("tut_act", show=False)
+    dpg.configure_item("tut_deact", show=False)
+    dpg.configure_item("tut_act2", show=False)
+    dpg.configure_item("tut_deact2", show=False)
+    dpg.configure_item("tut_n", show=False)
+    dpg.configure_item("tut_grip1", show=False)
+    dpg.configure_item("tut_spa1", show=False)
+    dpg.configure_item("tut_grip2", show=False)
+    dpg.configure_item("tut_spa2", show=False)
+    dpg.configure_item("tut_ph_conf", show=False)
+    dpg.configure_item("tut_ph_calib", show=False)
+    dpg.configure_item("tut_spawn_name", show=False)
+    dpg.configure_item("tut_spa_pos_obj", show=False)
+    dpg.configure_item("tut_spa_or_obj", show=False)
+    dpg.configure_item("tut_add_obj", show=False)
+    dpg.configure_item("tut_stop_sim", show=False)
 
 
+def n_robots(sender, app_data, user_data):
+    global n
 
-# Rate
-r = rospy.Rate(40)
+    n = dpg.get_value(sender)
 
-# Muestra las ventanas
-dpg.show_viewport()
-dpg.start_dearpygui()
-# Bucle infinito
-while dpg.is_dearpygui_running():
+    if n == "0":
+        dpg.configure_item("ur51", show=False)
+        dpg.configure_item("ur52", show=False)
+    elif n == "1":
+        dpg.configure_item("ur51", show=True)
+        dpg.configure_item("ur52", show=False)
+    else:
+        dpg.configure_item("ur51", show=True)
+        dpg.configure_item("ur52", show=True)
+
+def grip1_cb(sender, app_data, user_data):
+    global gripp
+
+    gripp[0] = dpg.get_value(sender)
+
+def name1_cb(sender, app_data, user_data):
+    global names
+
+    names[0] = dpg.get_value(sender)
+
+def name2_cb(sender, app_data, user_data):
+    global names
+
+    names[1] = dpg.get_value(sender)
+
+def spawn_ur51(sender, app_data, user_data):
+    global positions
+    
+    pos = dpg.get_value(sender)
+    positions[0] = [str(pos[0]), str(pos[1]), str(pos[2])]
+
+def grip2_cb(sender, app_data, user_data):
+    global gripp
+
+    gripp[1] = dpg.get_value(sender)
+
+def spawn_ur52(sender, app_data, user_data):
+    global positions
+    
+    pos = dpg.get_value(sender)
+    positions[1] = [str(pos[0]), str(pos[1]), str(pos[2])]
+
+def conf_ph(sender, app_data, user_data):
+    subprocess.Popen('./Touch_Setup')
+
+def calib_ph(sender, app_data, user_data):
+    subprocess.Popen('./Touch_Diagnostic')
+
+def launch_sim(sender, app_data, user_data):
+    global is_launch
+
+    is_launch = True
+    dpg.configure_item("conf_w", show=False)
+    dpg.configure_item("exec_w", show=True)
+
+def spawn_names_cb(sender, app_data, user_data):
+    global spawnables, spawn_name, spawnables_show
+
+    obj = dpg.get_value(sender)
+
+    i = spawnables_show.index(obj)
+
+    spawn_name = spawnables[i]
+
+def spawn_pos_obj(sender, app_data, user_data):
+    global positions_obj
+    
+    pos = dpg.get_value(sender)
+    positions_obj[0] = [str(pos[0]), str(pos[1]), str(pos[2])]
+
+def spawn_or_obj(sender, app_data, user_data):
+    global positions_obj
+    
+    pos = dpg.get_value(sender)
+    positions_obj[1] = [str(pos[0]), str(pos[1]), str(pos[2])]
+
+def add_obj_cb(sender, app_data, user_data):
+    global is_spawn
+
+    is_spawn = True
+
+def stop_sim_cb(sender, app_data, user_data):
+    global is_stop_sim
+
+    is_stop_sim = True
+
+    dpg.configure_item("conf_w", show=True)
+    dpg.configure_item("exec_w", show=False)
 
     
-    # Si hubo un cambio de modo, muestra otros sliders y cambia sus valores
-    if cb:
-        if vel_controller == True:
-            dpg.configure_item("position_slider", show=False)
-            dpg.configure_item("rotation_slider", show=False)
-            dpg.configure_item("position_slider_v", show=True, label="Velocity XYZ", default_value=[0, 0, 0])
-            dpg.configure_item("rotation_slider_v", show=True, label="Velocity RPY", default_value=[0, 0, 0])
-        else:
-            dpg.configure_item("position_slider_v", show=False)
-            dpg.configure_item("rotation_slider_v", show=False)
-            dpg.configure_item("position_slider", show=True, label="Position XYZ", default_value=[prev_x, prev_y, prev_z])
-            dpg.configure_item("rotation_slider", show=True, label="Position RPY", default_value=[prev_roll, prev_pitch, prev_yaw])
+    
+
+with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
+    with dpg.menu_bar():
+        with dpg.menu(label="Mode"):
+            dpg.add_menu_item(label="Simulation", tag="Simulation_mode", callback=change2simulation)
+            with dpg.tooltip(dpg.last_item(), tag="tut_sim"):
+                dpg.add_text("Click to access simulation configuration")
+
+            dpg.add_menu_item(label="Real", tag="Real_mode", callback=change2real)
+            with dpg.tooltip(dpg.last_item(), tag="tut_real"):
+                dpg.add_text("Click to access real robot configuration")
+
+        with dpg.menu(label="Tutorial"):
+            dpg.add_menu_item(label="Activate", callback=activate_tut)
+            with dpg.tooltip(dpg.last_item(), tag="tut_act"):
+                dpg.add_text("Clcik to activate tutorials")
+
+            dpg.add_menu_item(label="Deactivate", callback=deactivate_tut)
+            with dpg.tooltip(dpg.last_item(), tag="tut_deact"):
+                dpg.add_text("Click to deactivate tutorials")
+
+
+    with dpg.collapsing_header(label="Simulation", tag="Simulation", show=True, default_open=True):
+        items = ("0", "1", "2")
+        dpg.add_combo(label="Number of Robots",indent=8,  default_value="2", items=items, width=50, callback=n_robots)
+        with dpg.tooltip(dpg.last_item(), tag="tut_n"):
+            dpg.add_text("Select the number of robots to spawn")
+
+        with dpg.tree_node(label="UR5 1", indent= 15,tag="ur51", default_open=True):
+            items = ("none","2f 140", "3f")
+            dpg.add_combo(label="Gripper", default_value="2f 140", items=items, width=90, callback=grip1_cb)
+            with dpg.tooltip(dpg.last_item(), tag="tut_grip1"):
+                dpg.add_text("Select which gripper attach to the UR5 1")
+
+            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[-0.2,0.8,1.02], callback=spawn_ur51, format='%.2f')
+            with dpg.tooltip(dpg.last_item(), tag="tut_spa1"):
+                dpg.add_text("Select XYZ position for the UR5 1")
+
+            dpg.add_input_text(label="Robot Name", tag="name1", default_value="ur5_1", callback=name1_cb)
+            with dpg.tooltip(dpg.last_item(), tag="tut_name1"):
+                dpg.add_text("Select name for the UR5 1")
+
+            dpg.add_separator()
+
+
+        with dpg.tree_node(label="UR5 2", indent=15, tag="ur52", default_open=True):
+            items = ("none","2f 140", "3f")
+            dpg.add_combo(label="Gripper", default_value="3f", items=items, width=90, callback=grip2_cb)
+            with dpg.tooltip(dpg.last_item(), tag="tut_grip2"):
+                dpg.add_text("Select which gripper attach to the UR5 2")
+
+            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[-0.2, 0.1, 1.02], callback=spawn_ur52, format='%.2f')
+            with dpg.tooltip(dpg.last_item(), tag="tut_spa2"):
+                dpg.add_text("Select XYZ position for the UR5 2")
+
+            dpg.add_input_text(label="Robot Name", tag="name2", default_value="ur5_2", callback=name2_cb)
+            with dpg.tooltip(dpg.last_item(), tag="tut_name2"):
+                dpg.add_text("Select name for the UR5 2")
+
+            dpg.add_separator()
         
-        cb = False
+        dpg.add_button(label="Launch Simulation", tag="launch_sim", callback=launch_sim)
+        with dpg.tooltip(dpg.last_item(), tag="tut_launch"):
+            dpg.add_text("Clcik to launch the simulation")
 
-    r.sleep()
+    # TODO: GUI PARA EL CASO DE MANEJO CON EL REAL
+    with dpg.collapsing_header(label="Real", tag="Real",default_open=True, show=False):
+        pass
+
+
+    dpg.add_button(label="Configure Phantom", tag="conf_ph1", callback=conf_ph)
+    with dpg.tooltip(dpg.last_item(), tag="tut_ph_conf"):
+        dpg.add_text("Clcik to configure the Phantom devices")
+
+    dpg.add_button(label="Calibrate Phantom", tag="calib_ph1", callback=calib_ph)
+    with dpg.tooltip(dpg.last_item(), tag="tut_ph_calib"):
+        dpg.add_text("Clcik to calibrate the Phantom devices")
+
+
+with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, height=400):
+    with dpg.menu_bar():
+        with dpg.menu(label="Tutorial"):
+            dpg.add_menu_item(label="Activate", callback=activate_tut)
+            with dpg.tooltip(dpg.last_item(), tag="tut_act2"):
+                dpg.add_text("Clcik to activate tutorials")
+
+            dpg.add_menu_item(label="Deactivate", callback=deactivate_tut)
+            with dpg.tooltip(dpg.last_item(), tag="tut_deact2"):
+                dpg.add_text("Click to deactivate tutorials")
     
-# On ctrl+c client.stop()# pybullet
+    dpg.add_combo(label="Spawnables Objects",indent=8,  default_value="Masterchef can", items=spawnables_show, width=160, callback=spawn_names_cb)
+    with dpg.tooltip(dpg.last_item(), tag="tut_spawn_name"):
+        dpg.add_text("Select an object to spawn")
+
+    dpg.add_input_doublex(label="Object Spawn Position", width=160, size=3, default_value=[1,1,1], callback=spawn_pos_obj, format='%.2f')
+    with dpg.tooltip(dpg.last_item(), tag="tut_spa_pos_obj"):
+        dpg.add_text("Select XYZ position for the object")
+    
+    dpg.add_input_doublex(label="Object Spawn Rotation", width=160, size=3, default_value=[0.0,0.0,0.0], callback=spawn_or_obj, format='%.2f')
+    with dpg.tooltip(dpg.last_item(), tag="tut_spa_or_obj"):
+        dpg.add_text("Select RPY orientation for the object")
+
+    dpg.add_button(label="Add Object", tag="add_obj", callback=add_obj_cb)
+    with dpg.tooltip(dpg.last_item(), tag="tut_add_obj"):
+        dpg.add_text("Clcik to add the object to the simulation")
+
+    dpg.add_button(label="Stop Simulation", tag="stop_sim", callback=stop_sim_cb)
+    with dpg.tooltip(dpg.last_item(), tag="tut_stop_sim"):
+        dpg.add_text("Clcik to stop the simulation")
+
+    ###########################################################################################
+    ##### TODO: BOTONES PARA APAGAR LA SIMULACIÓN Y SPAWNEAR OBJETOS ##########################
+    ###########################################################################################
+
+dpg.setup_dearpygui()
+dpg.show_viewport()
+
+if __name__ == "__main__":
+
+    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid)
+
+    origin1 = 'origin1:=-x ' + positions[0][0] + ' -y ' + positions[0][1] + ' -z ' + positions[0][2]
+    origin2 = 'origin2:=-x ' + positions[1][0] + ' -y ' + positions[1][1] + ' -z ' + positions[1][2]
+
+    name1 = 'name1:=' + names[0]
+    name2 = 'name2:=' + names[1]
+    cli_args = ['src/universal_robot/ur_e_gazebo/launch/ur5_2.launch', 'number:=' + n,'grip1:=' + gripp[0],'grip2:=' + gripp[1], origin1, origin2, name1, name2]
+
+    roslaunch_args = cli_args[1:]
+    roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
+
+    launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+
+
+    while dpg.is_dearpygui_running():
+        if is_launch:
+            uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+            roslaunch.configure_logging(uuid)
+
+            origin1 = 'origin1:=-x ' + positions[0][0] + ' -y ' + positions[0][1] + ' -z ' + positions[0][2]
+            origin2 = 'origin2:=-x ' + positions[1][0] + ' -y ' + positions[1][1] + ' -z ' + positions[1][2]
+
+            name1 = 'name1:=' + names[0]
+            name2 = 'name2:=' + names[1]
+            cli_args = ['src/universal_robot/ur_e_gazebo/launch/ur5_2.launch', 'number:=' + n,'grip1:=' + gripp[0],'grip2:=' + gripp[1], origin1, origin2, name1, name2]
+
+            roslaunch_args = cli_args[1:]
+            roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
+
+            launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+            launch.start()
+            is_launch = False
+
+        if is_stop_sim:
+            launch.shutdown()
+
+            is_stop_sim = False
+
+        if is_spawn:
+            uuid_obj = roslaunch.rlutil.get_or_generate_uuid(None, False)
+
+            origin_obj = 'origin:=-x' + positions_obj[0][0] + ' -y ' + positions_obj[0][1] + ' -z ' + positions_obj[0][2] + ' -R ' + positions_obj[1][0] + ' -P ' + positions_obj[1][1] + ' -Y ' + positions_obj[1][2]
+            object_name = 'object_name:=' + spawn_name
+
+            cli_args_obj = ['src/objects_models/launch/object_model.launch', origin_obj, object_name]
+            roslaunch_args_obj = cli_args_obj[1:]
+            roslaunch_file_obj = [(roslaunch.rlutil.resolve_launch_arguments(cli_args_obj)[0], roslaunch_args_obj)]
+
+            parent_obj = roslaunch.parent.ROSLaunchParent(uuid_obj, roslaunch_file_obj)
+
+            parent_obj.start()
+
+            is_spawn = False
+
+        dpg.render_dearpygui_frame()
+
+    subprocess.run(["gnome-terminal","--", "sh", "-c","killall -9 rosmaster"])
+    rospy.sleep(2)
+    
+    dpg.destroy_context()
+
+
+    
