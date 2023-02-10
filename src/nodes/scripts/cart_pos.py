@@ -41,7 +41,7 @@ interval = 0.1
 prev = time.time()
 
 # Nombre
-name = ""
+name = "ur5_2"
 
 # Posiciones previas de la pinza (de dos o de tres dedos)
 prev_grip_140 = 0
@@ -123,15 +123,17 @@ def joint_state_cb(data):
 
 if __name__ == '__main__':
 
-    if len(sys.argv) == 4:
-
-        name = sys.argv[1]
+    if len(sys.argv) > 0:
         
+        name = sys.argv[1]
+        grip = sys.argv[2]
+
         # Nodo
         rospy.init_node(name + "_cart_pos")
 
         rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
         cart_pos = rospy.Publisher("/" + name + "/cart_pos", Pose, queue_size=10)
-        grip_pos = rospy.Publisher("/" + name + '/grip_pos', Pose, queue_size=10)
+        if grip != "none":
+            grip_pos = rospy.Publisher("/" + name + '/grip_pos', Pose, queue_size=10)
 
         rospy.spin()

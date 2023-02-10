@@ -34,10 +34,10 @@ st = Int32()
 
 grip_140 = Float64()
 
-grip_3f_1 = Float64()
-grip_3f_2 = Float64()
-grip_3f_mid = Float64()
-grip_3f_palm = Float64()
+grip_1 = Float64()
+grip_2 = Float64()
+grip_mid = Float64()
+grip_palm = Float64()
 
 # Factor de escala de los movimientos 
 scale_x = 2
@@ -46,8 +46,8 @@ scale_z1 = 3.5 # Diferente según está por encima o por debajo de 0
 scale_z2 = 7
 
 scale_grip_140 = 4.08
-scale_grip_3f = 5
-scale_grip_3f_palm = 0.5
+scale_grip = 5
+scale_grip_palm = 0.5
 
 # Origen del robot
 or_x = 0.516
@@ -64,7 +64,7 @@ prev_x, prev_y, prev_z = 0.5095, 0.1334, 0.7347
 prev_roll, prev_pitch, prev_yaw = 1.57225, 1.07, -0.00166
 
 prev_grip_140 = 0
-prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm = 0, 0, 0, 0
+prev_grip_1, prev_grip_2, prev_grip_mid, prev_grip_palm = 0, 0, 0, 0
 
 # Modos y Flags
 change = True           # Flag para indicar cambio (a True para mandarlo al (0,0,0) al empezar)
@@ -103,7 +103,8 @@ interval = 0.0
 prev = time.time()
 
 # Nombre del robot
-name = ""
+name = "ur5_2"
+grip = "3f"
 
 # Publisher del estado de la máquina
 pub_state = rospy.Publisher("/" + name + "/state", Int32, queue_size=10)
@@ -142,9 +143,10 @@ def cb(data):
     global prev_x, prev_y, prev_z
     global prev_roll, prev_pitch, prev_yaw
     global prev_pose_phantom, act_pose_phantom
-    global grip_140, grip_3f_1, grip_3f_2, grip_3f_mid, grip_3f_palm
-    global scale_grip_140, scale_grip_3f
+    global grip_140, grip_1, grip_2, grip_mid, grip_palm
+    global scale_grip_140, scale_grip
     global state_3f
+    global grip
     
     
     # 1. --
@@ -184,21 +186,21 @@ def cb(data):
 
             # 2.3 --
             elif state == 2:
-                if name == "ur5_1":
+                if grip == "2f":
                     grip_140 = data.pose.position.z * scale_grip_140
                 
                 else:
                     if state_3f == 0:
-                        grip_3f_1 = data.pose.position.z * scale_grip_3f
+                        grip_1 = data.pose.position.z * scale_grip
 
                     elif state_3f == 1:
-                        grip_3f_2 = data.pose.position.z * scale_grip_3f
+                        grip_2 = data.pose.position.z * scale_grip
 
                     elif state_3f == 2:
-                        grip_3f_mid = data.pose.position.z * scale_grip_3f
+                        grip_mid = data.pose.position.z * scale_grip
 
                     elif state_3f == 3:
-                        grip_3f_palm = data.pose.position.z * scale_grip_3f_palm
+                        grip_palm = data.pose.position.z * scale_grip_palm
 
 
 # Callbacks de los botones
@@ -246,15 +248,21 @@ def cart_pos(data):
 
 
 if __name__ == "__main__":
-    print(sys.argv)
-
 
     if len(sys.argv) > 0:
         
-        # name = sys.argv[1]
-        name = "ur5_2"
-        name_p = "arm"
+        name = sys.argv[1]
+
+        if sys.argv[2] == '3f':
+            print("3f")
+            grip = "3f"
+        elif sys.argv[2] == '2f_140':
+            print("2f")
+            grip = "2f"
+        else:
+            grip = ""
         
+
         # Nodo
         rospy.init_node(name + "_phantom_ctr")
 
@@ -262,25 +270,24 @@ if __name__ == "__main__":
 
         # Publishers: pose al robot, fuerza al Phantom y modo de movimiento para el robot
         pub = rospy.Publisher("/" + name + "/pose", Pose, queue_size=10)
-        pub_f = rospy.Publisher("/" + name_p + "/servo_cf", WrenchStamped, queue_size=10)
+        pub_f = rospy.Publisher("/" + name + "/servo_cf", WrenchStamped, queue_size=10)
 
         # Subscribers: posición del phantom, posición del robot, botones y cámaras del robot
-        rospy.Subscriber("/" + name_p + "/measured_cp", PoseStamped,cb)
-        rospy.Subscriber("/" + name_p + "/button1", Joy, cb_bt1)
-        rospy.Subscriber("/" + name_p + "/button2", Joy, cb_bt2)
+        rospy.Subscriber("/" + name + "/measured_cp", PoseStamped,cb)
+        rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
+        rospy.Subscriber("/" + name + "/button2", Joy, cb_bt2)
         rospy.Subscriber('/' + name + '/cart_pos', Pose, cart_pos)
-
-        a = rospy.Publisher("/aa", Pose, queue_size=10)
 
         pub_grip = []
 
-        if name == "ur5_1":
-            pub_grip.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
+        if grip != "":
+            if grip == "2f":
+                pub_grip.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
 
-        else:
-            pub_grip.append(rospy.Publisher("/" + name + "/gripper_finger_1_joint_1/command", Float64, queue_size=10 ))
-            pub_grip.append(rospy.Publisher("/" + name + "/gripper_finger_2_joint_1/command", Float64, queue_size=10 ))
-            pub_grip.append(rospy.Publisher("/" + name + "/gripper_finger_middle_joint_1/command", Float64, queue_size=10 ))
+            else:
+                pub_grip.append(rospy.Publisher("/" + name + "/gripper_finger_1_joint_1/command", Float64, queue_size=10 ))
+                pub_grip.append(rospy.Publisher("/" + name + "/gripper_finger_2_joint_1/command", Float64, queue_size=10 ))
+                pub_grip.append(rospy.Publisher("/" + name + "/gripper_finger_middle_joint_1/command", Float64, queue_size=10 ))
             pub_grip.append(rospy.Publisher("/" + name + "/gripper_palm_finger_1_joint/command", Float64, queue_size=10 ))
         
         t = time.time()
@@ -325,7 +332,7 @@ if __name__ == "__main__":
 
                 # 2.3 --
                 elif state == 2:
-                    if name == "ur5_1":
+                    if grip == "2f":
                         ex = (0.0 - act_pose_phantom.position.x)
                         ey = (0.0 - act_pose_phantom.position.y)
                         ez = (prev_grip_140 / scale_grip_140 - act_pose_phantom.position.z)
@@ -334,22 +341,22 @@ if __name__ == "__main__":
                         if state_3f == 0:
                             ex = (0.0 - act_pose_phantom.position.x)
                             ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_3f_1 / scale_grip_3f - act_pose_phantom.position.z)
+                            ez = (prev_grip_1 / scale_grip - act_pose_phantom.position.z)
 
                         elif state_3f == 1:
                             ex = (0.0 - act_pose_phantom.position.x)
                             ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_3f_2 / scale_grip_3f - act_pose_phantom.position.z)
+                            ez = (prev_grip_2 / scale_grip - act_pose_phantom.position.z)
                             
                         elif state_3f == 2:
                             ex = (0.0 - act_pose_phantom.position.x)
                             ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_3f_mid / scale_grip_3f - act_pose_phantom.position.z)   
+                            ez = (prev_grip_mid / scale_grip - act_pose_phantom.position.z)   
 
                         elif state_3f == 3:
                             ex = (0.0 - act_pose_phantom.position.x)
                             ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_3f_palm / scale_grip_3f_palm - act_pose_phantom.position.z)
+                            ez = (prev_grip_palm / scale_grip_palm - act_pose_phantom.position.z)
 
 
                 if ex < limit and ey < limit and ez < limit:
@@ -374,21 +381,21 @@ if __name__ == "__main__":
                     ey = (0 - act_pose_phantom.position.y)
                     ez0 = (0 - act_pose_phantom.position.z)
 
-                    if name == "ur5_1":
+                    if grip == "2f":
                         ez = (prev_grip_140 - grip_140)      
 
                     else:
                         if state_3f == 0:
-                            ez = (prev_grip_3f_1 - grip_3f_1)
+                            ez = (prev_grip_1 - grip_1)
 
                         elif state_3f == 1:
-                            ez = (prev_grip_3f_2 - grip_3f_2)
+                            ez = (prev_grip_2 - grip_2)
 
                         elif state_3f == 2:
-                            ez = (prev_grip_3f_mid - grip_3f_mid) 
+                            ez = (prev_grip_mid - grip_mid) 
 
                         elif state_3f == 3:
-                            ez = (prev_grip_3f_palm - grip_3f_palm)
+                            ez = (prev_grip_palm - grip_palm)
 
 
 # --------------------------------------------------------------------------------------------------
@@ -403,16 +410,16 @@ if __name__ == "__main__":
 
                     else:
                         if state_3f == 0:
-                            pub_grip[0].publish(grip_3f_1)
+                            pub_grip[0].publish(grip_1)
 
                         elif state_3f == 0:
-                            pub_grip[1].publish(grip_3f_2)
+                            pub_grip[1].publish(grip_2)
 
                         elif state_3f == 0:
-                            pub_grip[2].publish(grip_3f_mid)
+                            pub_grip[2].publish(grip_mid)
 
                         elif state_3f == 0:
-                            pub_grip[3].publish(grip_3f_palm)
+                            pub_grip[3].publish(grip_palm)
             
 
             wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kde
@@ -423,7 +430,7 @@ if __name__ == "__main__":
                 wrench.wrench.force.y = wrench.wrench.force.y + 1.5
 
 
-            if name == "ur5_2" and state == 2 and act_pose_phantom.position.z < 0:
+            if state == 2 and act_pose_phantom.position.z < 0:
                 wrench.wrench.force.z = ez0 * Ke - ez0 / (time.time() - t) * Kde
 
             # 4 --

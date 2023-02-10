@@ -1,6 +1,6 @@
 <launch>
 
-  <arg name="origin" default="-x 1 -y 1 -z 1"/>
+  <arg name="origin" default="-x 1 -y 1 -z 1 -R 0 -P 0 -Y 0"/>
   <arg name="object_name" default="002_master_chef_can"/>
 
   <param name="$(arg object_name)" command="$(find xacro)/xacro --inorder '$(find objects_models)/urdf/$(arg object_name)/model.urdf' "/>

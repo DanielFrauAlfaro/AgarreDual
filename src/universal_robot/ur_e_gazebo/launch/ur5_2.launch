@@ -4,7 +4,13 @@
     <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
     <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
     <arg name="gui" default="true" doc="Starts gazebo gui" />
-
+    <arg name="number" default="2"/>
+    <arg name="name1" default="ur5_1" />
+    <arg name="name2" default="ur5_2" />
+    <arg name="origin1" default="-x -0.2 -y 0.8 -z 1.02"/>
+    <arg name="origin2" default="-x -0.2 -y 0.1 -z 1.02"/>
+    <arg name="grip1" default="2f_140"/>
+    <arg name="grip2" default="3f" />
 
    <!-- startup simulated world -->
     <include file="$(find gazebo_ros)/launch/empty_world.launch">
@@ -15,20 +21,31 @@
 
 
     <!-- Launch each robot separately -->
-    <group ns='ur5_1'>
-        <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
-            <arg name="origin" value="-x -0.2 -y 0.8 -z 1.02"/>
-            <arg name="robot_name" value="ur5_1"/>
-            <arg name='3f' value='false' />
-        </include>
+    <group if="$(eval arg('number')==1)">
+        <group ns='$(arg name1)'>
+            <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
+                <arg name="origin" value="$(arg origin1)"/>
+                <arg name="robot_name" value='$(arg name1)'/>
+                <arg name='grip' value='$(arg grip1)' />
+            </include>
+        </group>
     </group>
 
-    <group ns='ur5_2'>
-        <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
-            <arg name="origin" value="-x -0.2 -y 0.1 -z 1.02"/>
-            <arg name="robot_name" value="ur5_2"/>
-            <arg name='3f' value='true' />
-        </include>
+    <group if="$(eval arg('number')==2)">
+        <group ns='$(arg name1)'>
+            <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
+                <arg name="origin" value="$(arg origin1)"/>
+                <arg name="robot_name" value="$(arg name1)"/>
+                <arg name='grip' value='$(arg grip1)' />
+            </include>
+        </group>
+        <group ns='$(arg name2)'>
+            <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
+                <arg name="origin" value="$(arg origin2)"/>
+                <arg name="robot_name" value="$(arg name2)"/>
+                <arg name='grip' value='$(arg grip2)' />
+            </include>
+        </group>
     </group>
 
     <!-- phantom nodes -->

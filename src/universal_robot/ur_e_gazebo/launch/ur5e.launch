@@ -2,11 +2,12 @@
 <launch>
   <arg name='origin' default='-x 0 -y 0 -z 0.0'/>
   <arg name='robot_name' default='ur5'/>
-  <arg name='3f' default='false' />
+  <arg name="number" default="2"/>
+  <arg name="grip" default="2f_140"/>
 
   <!-- send robot urdf to param server -->
   <include file="$(find ur_e_description)/launch/ur5e_upload.launch">
-    <arg name="3f" value="$(arg 3f)"/>
+    <arg name="grip" value="$(arg grip)"/>
   </include>
 
   <!-- push robot_description to factory and spawn robot in gazebo -->
@@ -19,12 +20,12 @@
   <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
 
   <!-- evaluate '3f' argument for 3f or 2f gripper spawning -->
-  <group unless='$(arg 3f)'>
+  <group if="$(eval arg('grip')=='2f_140')">
     <rosparam file="$(find ur_e_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
     <node name="controller_spawner_2f" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="gripper" />
   </group>
 
-  <group if='$(arg 3f)'>
+  <group if="$(eval arg('grip')=='3f')">
     <rosparam file="$(find ur_e_gazebo)/controller/gripper_3f_controller.yaml" command="load"/>
     <node name="robotiq_controller_spawner_3f" pkg="controller_manager" type="spawner" args="palm_finger_1_joint_controller finger_1_joint_1_controller finger_2_joint_1_controller finger_middle_joint_1_controller" respawn="true" output="screen"/>
   </group>
@@ -34,9 +35,9 @@
   
   <!-- robot controller -->
   <node name="controller" pkg="nodes" type="controller.py" args="$(arg robot_name)" output="screen" />
-  <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg robot_name)" output="screen" />  
+  <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg robot_name) $(arg grip)" output="screen" />  
 
 
   <!-- phantom / master controller -->
-  <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg robot_name)" output="screen" />
+  <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg robot_name) $(arg grip)" output="screen" />
 </launch>
