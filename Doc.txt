@@ -476,7 +476,47 @@ cartesiana del extremo del robot.
 Esta interfaz sería la responsable de lanzar la simulación y los objetos que se quieran. En esta aplicación se podría incluir también el calibrado
 de los Phantom, llamando a la ejecución de los ejecutables del fabricante. Más adelante se podría incluir la selección de robots o pinzas que se
 quieran añadir a cada uno.
-    (4 h) --> 9 / 02 / 23
+    Se ha empezado a hacer la interfaz de usuario para que sea capaz de hasta seleccionar los robots y con que pinza se va a lanzar. La interfaz se
+está haciendo con DearPyGui.
+    Las funcionalidades de la interfaz son las siguientes:
+        - Menú de modo: un menú que selecciona el modo de funcionamiento, es decir, si se quiere usar los robots en simulacion o en el real.
+        - Menú de tutoria: activa o desactiva los tutoriales
+        - Simulacion: configuración de las opciones de simulación
+            - Número de robots
+            - Para cada robot:
+                - Pinza a enganchar
+                - Posición en el mundo
+                - nombre
+            - Lanzar la simulación: con un botón se lanza la simulación con los parámetros que se hayan especificado por parte del usuario. Para
+            hacerlo se hace uso de la API de ROSLAUNCH, que permite ejecutar ficheros .launch dentro de un script de Python. Se esocgió esta opción
+            y no la de la librería subprocess porque con este si que se puede anular la ejecución de los ficheros
+        - Configuración del Phantom: ejecución de los ficheros de configuración del Phantom. Se ejecutan los ejecutables de configuración y calibración
+        del Phantom desde el script de Python mediante la librería "subprocess" (subprocess.Popen) que permite ejecutar comandos en un bash (terminal)
+        desde un programa de Python.
+    
+    Todos los elementos de la GUI tienen una descripción de lo que hacen o su función al pasar por encima el ratón sobre ellos.
+    (8 h) --> 9 / 02 / 23
+
+
+
+    Se ha conseguido lanzar un fichero .launch con argumentos desde un script de Python utilizando la API de Roslaunch, que las veces anteriores no
+permitía enviar argumentos porque no admitía una lista dentro del constructor del objeto que lanza el fichero .launch porque no tienen método "read".
+El problema se soluionó usando el ejemplo de lanzar una fichero .launch con un argumento; simplemente se añaden más argumentos a la lista y ya se
+puede lanzar. 
+
+    NUEVA FUNCIÓN GUI:
+        - Configuración de simulación: al lanzar la simulación se cambia la interfaz de ususario, mostrando nuevas opciones que se pueden realizar
+            - Spawnear objetos: se pueden añadir objetos a la simulación, especificando ciertos campos:
+                - Nombre del objeto: decide cual objeto añadir dentro de una lista
+                - Posición y orientación del objeto
+            - Botones de spawn
+            - Cierre de la simulación: se apga la simulación y vuelve a la vista de configuración
+
+    Para cambiar la orientación de un elemento en Gazbeo al lanzar la simulación, en el nodo pkg="gazebo_ros" type="spawn_model" especificar las
+opciones "-R", "-P" y "-Y" para las rotaciones roll, pitch y yaw correspondientes
+    (3.5 h) --> 10 / 02 / 23
+
+    
     
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
@@ -592,7 +632,9 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
     - Sensor de fuerzas (oficial): http://wiki.ros.org/force_torque_sensor_controller
     - Repositorio para la Robotiq 3f gripper (referencia y guia): https://github.com/KTigerFIre/UR5_robotiq
     - Repositorio de los modelos de la mesa: https://github.com/osrf/gazebo_models
-
+    - Referencia de ROSLAUNCH para Python: http://wiki.ros.org/roslaunch/API%20Usage
+    - DearPyGui GUI: https://dearpygui.readthedocs.io/en/latest/documentation/item-value.html
+    - Subprocess documentation: https://docs.python.org/3/library/subprocess.html
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
