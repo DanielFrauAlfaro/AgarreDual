@@ -282,10 +282,7 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
     dpg.add_button(label="Stop Simulation", tag="stop_sim", callback=stop_sim_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_stop_sim"):
         dpg.add_text("Clcik to stop the simulation")
-
-    ###########################################################################################
-    ##### TODO: BOTONES PARA APAGAR LA SIMULACIÓN Y SPAWNEAR OBJETOS ##########################
-    ###########################################################################################
+        
 
 dpg.setup_dearpygui()
 dpg.show_viewport()
