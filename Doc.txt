@@ -516,6 +516,13 @@ puede lanzar.
 opciones "-R", "-P" y "-Y" para las rotaciones roll, pitch y yaw correspondientes
     (3.5 h) --> 10 / 02 / 23
 
+
+
+    Se ha añadido publisher de la posición de las pinzas según el tipo de pinza en el nodo de la posición cartesiana del robot. 
+    En el nodo de control del Phantom se ha añadido el feedback para la pinza y se ha cambiado el sistema de máquina de estados de la pinza; ahora 
+solo se tienen dos sub - estados, uno para mover los tres dedos según los ejes XYZ del Phantom y el siguiente estado para la articulación de la palma
+de los dedos.
+    (2 h) --> 11 / 02 / 23
     
     
 INSTALL sudo apt-get install ros-noetic-soem
