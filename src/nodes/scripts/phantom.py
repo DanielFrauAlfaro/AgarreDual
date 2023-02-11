@@ -1,7 +1,7 @@
 #! /usr/bin/python3
 
-from std_msgs.msg import Float64, Int32
-from geometry_msgs.msg import PoseStamped, WrenchStamped, Pose, Twist
+from std_msgs.msg import Float64, Int32, Float32MultiArray
+from geometry_msgs.msg import PoseStamped, WrenchStamped, Pose
 from sensor_msgs.msg import Joy
 import rospy
 import sys
@@ -191,15 +191,11 @@ def cb(data):
                 
                 else:
                     if state_3f == 0:
-                        grip_1 = data.pose.position.z * scale_grip
-
-                    elif state_3f == 1:
-                        grip_2 = data.pose.position.z * scale_grip
-
-                    elif state_3f == 2:
+                        grip_1 = data.pose.position.x * scale_grip
+                        grip_2 = data.pose.position.y * scale_grip
                         grip_mid = data.pose.position.z * scale_grip
 
-                    elif state_3f == 3:
+                    elif state_3f == 1:
                         grip_palm = data.pose.position.z * scale_grip_palm
 
 
@@ -227,7 +223,7 @@ def cb_bt2(data):
             state_3f = state_3f + 1
             change = True
 
-            if state_3f > 3:
+            if state_3f > 1:
                 state_3f = 0
 
 
@@ -245,6 +241,21 @@ def cart_pos(data):
         prev_roll = data.orientation.x
         prev_pitch = data.orientation.y
         prev_yaw = data.orientation.z
+
+def grip_pos(data):
+    global grip
+    global prev_grip_1, prev_grip_2, prev_grip_mid, prev_grip_palm
+    global prev_grip_140
+
+    if grip == "2f":
+        prev_grip_140 = data.data[0]
+
+    elif grip == "3f":
+        prev_grip_1 = data.data[0]
+        prev_grip_2 = data.data[1]
+        prev_grip_mid = data.data[2]
+        prev_grip_palm = data.data[3]
+
 
 
 if __name__ == "__main__":
@@ -277,6 +288,7 @@ if __name__ == "__main__":
         rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
         rospy.Subscriber("/" + name + "/button2", Joy, cb_bt2)
         rospy.Subscriber('/' + name + '/cart_pos', Pose, cart_pos)
+        rospy.Subscriber("/" + name + "/grip_pos", Float32MultiArray, grip_pos)
 
         pub_grip = []
 
@@ -339,21 +351,11 @@ if __name__ == "__main__":
 
                     else:
                         if state_3f == 0:
-                            ex = (0.0 - act_pose_phantom.position.x)
-                            ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_1 / scale_grip - act_pose_phantom.position.z)
+                            ex = (prev_grip_1 - act_pose_phantom.position.x)
+                            ey = (prev_grip_2 - act_pose_phantom.position.y)
+                            ez = (prev_grip_mid / scale_grip - act_pose_phantom.position.z)
 
                         elif state_3f == 1:
-                            ex = (0.0 - act_pose_phantom.position.x)
-                            ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_2 / scale_grip - act_pose_phantom.position.z)
-                            
-                        elif state_3f == 2:
-                            ex = (0.0 - act_pose_phantom.position.x)
-                            ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_mid / scale_grip - act_pose_phantom.position.z)   
-
-                        elif state_3f == 3:
                             ex = (0.0 - act_pose_phantom.position.x)
                             ey = (0.0 - act_pose_phantom.position.y)
                             ez = (prev_grip_palm / scale_grip_palm - act_pose_phantom.position.z)
@@ -386,12 +388,8 @@ if __name__ == "__main__":
 
                     else:
                         if state_3f == 0:
-                            ez = (prev_grip_1 - grip_1)
-
-                        elif state_3f == 1:
-                            ez = (prev_grip_2 - grip_2)
-
-                        elif state_3f == 2:
+                            ex = (prev_grip_1 - grip_1)
+                            ey = (prev_grip_2 - grip_2)
                             ez = (prev_grip_mid - grip_mid) 
 
                         elif state_3f == 3:
@@ -411,14 +409,10 @@ if __name__ == "__main__":
                     else:
                         if state_3f == 0:
                             pub_grip[0].publish(grip_1)
-
-                        elif state_3f == 0:
                             pub_grip[1].publish(grip_2)
-
-                        elif state_3f == 0:
                             pub_grip[2].publish(grip_mid)
 
-                        elif state_3f == 0:
+                        elif state_3f == 1:
                             pub_grip[3].publish(grip_palm)
             
 

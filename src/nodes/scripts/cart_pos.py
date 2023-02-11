@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-
+from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
 import rospy
@@ -34,7 +34,7 @@ prev_roll, prev_pitch, prev_yaw = 1.57225, 1.07, -0.00166
 
 # Mensajes a enviar
 p = Pose()
-g = Pose()
+g = Float32MultiArray()
 
 # Tiempo para coger los mensajes del /joint_states
 interval = 0.1
@@ -42,22 +42,24 @@ prev = time.time()
 
 # Nombre
 name = "ur5_2"
+grip = "2f_140"
 
 # Posiciones previas de la pinza (de dos o de tres dedos)
 prev_grip_140 = 0
 prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm = 0, 0, 0, 0
 
 # Publishers
-cart_pos = rospy.Publisher("/" + name + "/cart_pos", Pose, queue_size=10)
-grip_pos = rospy.Publisher(name + '/grip_pos', Pose, queue_size=10)
+pubs = []
+
 
 
 
 # Estado de las articulaciones
 def joint_state_cb(data):
     global q, prev, interval
-    global p, cart_pos
+    global p, g, pubs
     global prev_grip_140
+    global name, grip
 
     if time.time() - prev > interval:         # Solo se ejecuta cuando pasa el intervalo
         
@@ -81,10 +83,10 @@ def joint_state_cb(data):
             elif data.name[i] == "wrist_3_joint":
                 q[5] = data.position[i]
             
-            elif name == "ur5_1" and data.name[i] == "finger_joint":
+            elif grip == "2f_140" and data.name[i] == "finger_joint":
                 prev_grip_140 = data.position[i]
 
-            elif name == "ur5_2":
+            elif grip == "3f":
                 if data.name[i] == "gripper_finger_middle_joint_1":
                     prev_grip_3f_1 = data.position[i]
                 
@@ -114,10 +116,22 @@ def joint_state_cb(data):
         p.orientation.y = eul[1]
         p.orientation.z = eul[2]
 
-        cart_pos.publish(p)
+        if grip == "2f_140":
+            g_aux = [prev_grip_140]
+
+            g.data = g_aux
+            
+        elif grip == "3f":
+            g_aux = [prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm]
+
+            g.data = g_aux
+
+        pubs[0].publish(p)
+        pubs[1].publish(g)
 
         # Actualiza el tiempo
         prev = time.time()
+
 
 
 
@@ -132,8 +146,10 @@ if __name__ == '__main__':
         rospy.init_node(name + "_cart_pos")
 
         rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
-        cart_pos = rospy.Publisher("/" + name + "/cart_pos", Pose, queue_size=10)
+
+        pubs.append(rospy.Publisher("/" + name + "/cart_pos", Pose, queue_size=10))
+        
         if grip != "none":
-            grip_pos = rospy.Publisher("/" + name + '/grip_pos', Pose, queue_size=10)
+            pubs.append(rospy.Publisher("/" + name + '/grip_pos', Float32MultiArray, queue_size=10))
 
         rospy.spin()
