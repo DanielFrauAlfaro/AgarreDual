@@ -18,7 +18,7 @@
   <group ns="ur5_2">
     <!-- send robot urdf to param server -->
     <include file="$(find ur_e_description)/launch/ur5e_upload.launch">
-      <arg name="3f" value="true"/>
+      <arg name="grip" value="3f"/>
     </include>
     
     <!-- push robot_description to factory and spawn robot in gazebo -->
@@ -35,15 +35,12 @@
     <rosparam file="$(find ur_e_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
 
     <rosparam file="$(find ur_e_gazebo)/controller/gripper_3f_controller.yaml" command="load"/>
-    <node name="robotiq_controller_spawner" pkg="controller_manager" type="spawner" args="palm_finger_1_joint_controller finger_1_joint_1_controller  finger_2_joint_1_controller finger_middle_joint_1_controller" respawn="true" output="screen"/>
+    <node name="robotiq_controller_spawner" pkg="controller_manager" type="spawner" args="finger_1_joint_1_controller  finger_2_joint_1_controller finger_middle_joint_1_controller" respawn="true" output="screen"/>
 
 
   </group>
 
-  <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="ur5_2" output="screen" />  
+  <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="ur5_2 3f" output="screen" />  
 
-  <node name="controller" pkg="nodes" type="controller.py" args="ur5_2" output="screen"/>  
-
-  <node name="interface" pkg="nodes" type="interface.py" output="screen" />
-  
+  <node name="controller" pkg="nodes" type="controller.py" args="ur5_2" output="screen"/>    
 </launch>
