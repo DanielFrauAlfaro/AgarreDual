@@ -3,6 +3,7 @@ import roslaunch
 import rospy
 import subprocess
 import dearpygui.dearpygui as dpg
+from math import pi
 
 subprocess.Popen('roscore')
 rospy.sleep(1)
@@ -54,6 +55,12 @@ def activate_tut(sender, app_data, user_data):
     dpg.configure_item("tut_spa_or_obj", show=True)
     dpg.configure_item("tut_add_obj", show=True)
     dpg.configure_item("tut_stop_sim", show=True)
+    dpg.configure_item("tut_x_slider", show=True)
+    dpg.configure_item("tut_y_slider", show=True)
+    dpg.configure_item("tut_z_slider", show=True)
+    dpg.configure_item("tut_roll_slider", show=True)
+    dpg.configure_item("tut_pitch_slider", show=True)
+    dpg.configure_item("tut_yaw_slider", show=True)
 
 
 def deactivate_tut(sender, app_data, user_data):
@@ -75,6 +82,12 @@ def deactivate_tut(sender, app_data, user_data):
     dpg.configure_item("tut_spa_or_obj", show=False)
     dpg.configure_item("tut_add_obj", show=False)
     dpg.configure_item("tut_stop_sim", show=False)
+    dpg.configure_item("tut_x_slider", show=False)
+    dpg.configure_item("tut_y_slider", show=False)
+    dpg.configure_item("tut_z_slider", show=False)
+    dpg.configure_item("tut_roll_slider", show=False)
+    dpg.configure_item("tut_pitch_slider", show=False)
+    dpg.configure_item("tut_yaw_slider", show=False)
 
 
 def n_robots(sender, app_data, user_data):
@@ -146,17 +159,48 @@ def spawn_names_cb(sender, app_data, user_data):
 
     spawn_name = spawnables[i]
 
-def spawn_pos_obj(sender, app_data, user_data):
-    global positions_obj
-    
-    pos = dpg.get_value(sender)
-    positions_obj[0] = [str(pos[0]), str(pos[1]), str(pos[2])]
 
-def spawn_or_obj(sender, app_data, user_data):
+
+    dpg.configure_item("pos_obj_text", default_value=spawnables_show[i] + " Position")
+    dpg.configure_item("or_obj_text", default_value=obj + " Orientation")
+
+def spawn_obj_x(sender, app_data, user_data):
     global positions_obj
     
     pos = dpg.get_value(sender)
-    positions_obj[1] = [str(pos[0]), str(pos[1]), str(pos[2])]
+    positions_obj[0][0] = str(pos)
+
+def spawn_obj_y(sender, app_data, user_data):
+    global positions_obj
+    
+    pos = dpg.get_value(sender)
+    positions_obj[0][1] = str(pos)
+
+def spawn_obj_z(sender, app_data, user_data):
+    global positions_obj
+    
+    pos = dpg.get_value(sender)
+    positions_obj[0][2] = str(pos)
+
+def spawn_obj_roll(sender, app_data, user_data):
+    global positions_obj
+    
+    pos = dpg.get_value(sender)
+    positions_obj[1][0] = str(pos)
+
+def spawn_obj_pitch(sender, app_data, user_data):
+    global positions_obj
+    
+    pos = dpg.get_value(sender)
+    positions_obj[1][1] = str(pos)
+
+def spawn_obj_yaw(sender, app_data, user_data):
+    global positions_obj
+    
+    pos = dpg.get_value(sender)
+    positions_obj[1][2] = str(pos)
+
+
 
 def add_obj_cb(sender, app_data, user_data):
     global is_spawn
@@ -267,13 +311,40 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
     with dpg.tooltip(dpg.last_item(), tag="tut_spawn_name"):
         dpg.add_text("Select an object to spawn")
 
-    dpg.add_input_doublex(label="Object Spawn Position", width=160, size=3, default_value=[1,1,1], callback=spawn_pos_obj, format='%.2f')
-    with dpg.tooltip(dpg.last_item(), tag="tut_spa_pos_obj"):
-        dpg.add_text("Select XYZ position for the object")
-    
-    dpg.add_input_doublex(label="Object Spawn Rotation", width=160, size=3, default_value=[0.0,0.0,0.0], callback=spawn_or_obj, format='%.2f')
-    with dpg.tooltip(dpg.last_item(), tag="tut_spa_or_obj"):
-        dpg.add_text("Select RPY orientation for the object")
+    dpg.add_separator()
+
+
+    dpg.add_text(tag="pos_obj_text", default_value="Master Chef Can Position")
+
+    dpg.add_slider_double(label="X", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_x)
+    with dpg.tooltip(dpg.last_item(), tag="tut_x_slider"):
+        dpg.add_text("Choose desired X position")
+
+    dpg.add_slider_double(label="y", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_y)
+    with dpg.tooltip(dpg.last_item(), tag="tut_y_slider"):
+        dpg.add_text("Choose desired y position")
+
+    dpg.add_slider_double(label="Z", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_z)
+    with dpg.tooltip(dpg.last_item(), tag="tut_z_slider"):
+        dpg.add_text("Choose desired Z position")
+
+
+    dpg.add_text(tag="or_obj_text", default_value="Macter Chef Can Orientation")
+
+    dpg.add_slider_double(label="Roll", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_roll)
+    with dpg.tooltip(dpg.last_item(), tag="tut_roll_slider"):
+        dpg.add_text("Choose desired ROLL orientation")
+
+    dpg.add_slider_double(label="Pitch", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_pitch)
+    with dpg.tooltip(dpg.last_item(), tag="tut_pitch_slider"):
+        dpg.add_text("Choose desired pitch orientation")
+        
+    dpg.add_slider_double(label="Yaw", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_yaw)
+    with dpg.tooltip(dpg.last_item(), tag="tut_yaw_slider"):
+        dpg.add_text("Choose desired YAW orientation")
+
+
+    dpg.add_separator()
 
     dpg.add_button(label="Add Object", tag="add_obj", callback=add_obj_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_add_obj"):
@@ -321,7 +392,7 @@ if __name__ == "__main__":
             roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
 
             launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
-            launch.start()
+            # launch.start()
             is_launch = False
 
         if is_stop_sim:
