@@ -28,6 +28,7 @@ class Controller():
         ], name="UR5e")
 
         self.__ur5.base = SE3.RPY(0,0,pi)      # Rotate robot base so it matches Gazebo model
+        self.__ur5.tool = SE3(0.0, 0.0, 0.03)
         
         # Joint position vector: actual and home
         self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
@@ -41,12 +42,12 @@ class Controller():
         
         # Lista de publisher de las articulaciones
         self.__joints_com = []
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=50))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=50))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=50))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=50))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=50))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=50))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
 
         # Estado de las articulaciones
         rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
@@ -58,7 +59,7 @@ class Controller():
         self.__interval = 0.0
         self.__prev = time.time()
 
-        self.__interval2 = 0.0
+        self.__interval2 = 0.2
         self.__prev2 = time.time()
         
         
