@@ -525,6 +525,30 @@ de los dedos.
     (2 h) --> 11 / 02 / 23
     
     
+
+    En el bucle de control del Phantom se ha configurado para que vaya a menor frecuencia (menos retardos) y también se han configurado las ganancias
+de manera que mientras se están enviando posiciones al robot no se ejerca ninguna fuerza sobre el usuario. La única fuerza que aplica es un campo de
+fuerza hacia arriba, de manera que si el operador suelta el Phantom este mantenga la posición.
+    Todos los bucles de todos los programas están configurados para funcionar a la misma frecuencia.
+
+    PROYECCION:
+        - Para poder aplicar el feedback de fuerzas al operador se tiene que comprobar si el robot ha chocado con algún obstáculo. Para hacer esta
+        comprobaión se puede aplicar dos enfoques; comprobar el error que se comete y determinar un umbral o calcular la fuerza sobre el extremo a
+        partir de los pares articulares.
+    
+    Se ha establecido la articulaciones de la palma como fijas de momento, para que no den problemas a la hora de moverla y tiemble toda la pinza.
+Esta articulación da problemas porque parece que no está del todo enganchada a la pinza, lo que provoca que se mueva suelta, sin ningun comando
+    (3.5h) --> 14 / 02 / 23 --> SESIÓN REAL
+
+
+
+    Se ha creado la funcionalidad para medir la fuerza en el extremo a partir de la cinemática directa, esto es, a partir de los pares medidos en las
+articulaciones se computa la fuerza cartesiana que sentiría en el extremo. Esto se hace multiplicando el vector de pares por la matriz jacobiana.
+    Estos valores se deberían utilizar para detectar cuando se ha chocado con un elemento, estableciendo umbrales o haciendo derivadas y observando cuando
+la función tiene picos progresivos de fuerza para asi determinar el momento del contacto y aplicar fuerzas al operador en consecuencia.
+    (2 h) --> 15 / 02 / 23
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
