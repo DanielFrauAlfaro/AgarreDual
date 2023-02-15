@@ -546,6 +546,10 @@ Esta articulación da problemas porque parece que no está del todo enganchada a
 articulaciones se computa la fuerza cartesiana que sentiría en el extremo. Esto se hace multiplicando el vector de pares por la matriz jacobiana.
     Estos valores se deberían utilizar para detectar cuando se ha chocado con un elemento, estableciendo umbrales o haciendo derivadas y observando cuando
 la función tiene picos progresivos de fuerza para asi determinar el momento del contacto y aplicar fuerzas al operador en consecuencia.
+
+    En cuanto a la interfaz, se ha cambiado la manera en la que se selecciona la posición y orientación de los objetos para importarlos al mundo.
+En vez de tener campos de texto se utilizan sliders, así se puede hacer la selección de atributos más fácilmente. También se ha añadido un texto que 
+indica si los sliders son de posición o de orientación. El texto de indicación cambia según el objeto seleccionado
     (2 h) --> 15 / 02 / 23
 
 
