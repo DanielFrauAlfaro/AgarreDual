@@ -42,8 +42,11 @@ grip_palm = Float64()
 # Factor de escala de los movimientos 
 scale_x = 2
 scale_y = 2
-scale_z1 = 3.5 # Diferente según está por encima o por debajo de 0
-scale_z2 = 7
+scale_z = 8.5
+
+scale_roll = 1
+scale_pitch = 1
+scale_yaw = 1
 
 scale_grip_140 = 4.08
 scale_grip = 5
@@ -90,13 +93,13 @@ act_pose_phantom.orientation.y = -1.0
 act_pose_phantom.orientation.z = -1.0
 
 # Ganancia del feedback de fuerza
-K = 0.00001
+K = 0
 KD = 0.0
 
 Ke = 50
 Kde = 0.1
 
-limit = 0.01
+limit = 0.005
 
 # Tiempo para coger los mensajes del /joint_states
 interval = 0.0
@@ -139,7 +142,7 @@ EXPLICACIÓN
             Se distingue entre dos casos: la pinza de 2 dedos y la de tres dedos en función del nombre asignado al robot.
 '''
 def cb(data):
-    global pub, pose, scale_x, scale_y, scale_z1, scale_z2
+    global pub, pose, scale_x, scale_y, scale_z, scale_roll, scale_pitch, scale_yaw
     global prev_x, prev_y, prev_z
     global prev_roll, prev_pitch, prev_yaw
     global prev_pose_phantom, act_pose_phantom
@@ -158,11 +161,7 @@ def cb(data):
             if state == 0:
                 pose.position.x = data.pose.position.z * scale_x + or_x
                 pose.position.y = data.pose.position.x * scale_y + or_y
-                
-                if prev_z > 0:
-                    pose.position.z = data.pose.position.y * scale_z1 + or_z
-                else:
-                    pose.position.z = data.pose.position.y * scale_z2 + or_z
+                pose.position.z = data.pose.position.y * scale_z + or_z
                 
                 pose.orientation.x = prev_roll
                 pose.orientation.y = prev_pitch
@@ -176,9 +175,9 @@ def cb(data):
                 pose.position.y = prev_y
                 pose.position.z = prev_z
 
-                pose.orientation.x = data.pose.position.z + or_roll
-                pose.orientation.y = data.pose.position.x + or_pitch
-                pose.orientation.z = data.pose.position.y + or_yaw
+                pose.orientation.x = data.pose.position.z * scale_roll + or_roll
+                pose.orientation.y = data.pose.position.x * scale_pitch + or_pitch
+                pose.orientation.z = data.pose.position.y * scale_yaw + or_yaw
                 
                 prev_pose_phantom.orientation.x = data.pose.position.x
                 prev_pose_phantom.orientation.y = data.pose.position.y
@@ -305,7 +304,7 @@ if __name__ == "__main__":
         t = time.time()
 
         # Rate
-        r = rospy.Rate(38)
+        r = rospy.Rate(15)
 
         # Bucle infinito
         '''
@@ -415,21 +414,30 @@ if __name__ == "__main__":
                         elif state_3f == 1:
                             pub_grip[3].publish(grip_palm)
             
+            k = 0
+            kd = 0
 
-            wrench.wrench.force.x = ex * Ke - ex / (time.time() - t) * Kde
-            wrench.wrench.force.y = ey * Ke - ey / (time.time() - t) * Kde
-            wrench.wrench.force.z = ez * Ke - ez / (time.time() - t) * Kde
+            if change:
+                k = Ke
+                kd = Kde
+            else:
+                k = K
+                kd = KD
+
+            wrench.wrench.force.x = ex * k - ex / (time.time() - t) * kd
+            wrench.wrench.force.y = ey * k - ey / (time.time() - t) * kd
+            wrench.wrench.force.z = ez * k - ez / (time.time() - t) * kd
 
             if not change:
-                wrench.wrench.force.y = wrench.wrench.force.y + 1.5
+                wrench.wrench.force.y = wrench.wrench.force.y + 0.8
 
 
             if state == 2 and act_pose_phantom.position.z < 0:
                 wrench.wrench.force.z = ez0 * Ke - ez0 / (time.time() - t) * Kde
 
             # 4 --
-            pub_f.publish(wrench)  
-        
+            pub_f.publish(wrench)
+
             t = time.time()
 
             r.sleep()
