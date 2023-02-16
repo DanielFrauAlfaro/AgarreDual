@@ -553,6 +553,11 @@ indica si los sliders son de posición o de orientación. El texto de indicació
     (2 h) --> 15 / 02 / 23
 
 
+
+    Se ha creado el topic por el cual se envian los mensajes de fuerza desde el fichero que controla el estado del robot (cart_pos) al controlador
+del Phantom, de manera que se detecten picos de fuerza y se pueda actuar en consecuencia, aplicando una fuerza en el operador maestro.
+    (1 h) --> 16 / 02 / 23
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
