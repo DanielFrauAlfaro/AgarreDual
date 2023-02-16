@@ -30,6 +30,7 @@ movimiento.
 # Mensajes de la posición del robot y del wrench
 pose = Pose()
 wrench = WrenchStamped()
+wrench_robot = WrenchStamped()
 st = Int32()
 
 grip_140 = Float64()
@@ -108,10 +109,6 @@ prev = time.time()
 # Nombre del robot
 name = "ur5_2"
 grip = "3f"
-
-# Publisher del estado de la máquina
-pub_state = rospy.Publisher("/" + name + "/state", Int32, queue_size=10)
-
 
 # Callback de las posiciones del Phantom
 '''
@@ -200,7 +197,7 @@ def cb(data):
 
 # Callbacks de los botones
 def cb_bt1(data):
-    global change, state, pub_state, st
+    global change, state, pub_state
 
     if data.buttons[0] == 1:
         state = state + 1       # Incrementa el estado
@@ -208,11 +205,8 @@ def cb_bt1(data):
 
         if state > 2:           # Si se pasa del número de estados, ...
             state = 0           # ... vuelve al estado 0 ...
-    
-    st = state
-    
-    pub_state.publish(st)
         
+
 def cb_bt2(data):
     global change
     global state, state_3f
@@ -255,6 +249,11 @@ def grip_pos(data):
         prev_grip_mid = data.data[2]
         prev_grip_palm = data.data[3]
 
+def cart_force(data):
+    global wrench_robot
+
+    wrench_robot = data
+
 
 
 if __name__ == "__main__":
@@ -287,6 +286,7 @@ if __name__ == "__main__":
         rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
         rospy.Subscriber("/" + name + "/button2", Joy, cb_bt2)
         rospy.Subscriber('/' + name + '/cart_pos', Pose, cart_pos)
+        rospy.Subscriber('/' + name + '/cart_force', WrenchStamped, cart_force)
         rospy.Subscriber("/" + name + "/grip_pos", Float32MultiArray, grip_pos)
 
         pub_grip = []
@@ -434,6 +434,12 @@ if __name__ == "__main__":
 
             if state == 2 and act_pose_phantom.position.z < 0:
                 wrench.wrench.force.z = ez0 * Ke - ez0 / (time.time() - t) * Kde
+
+
+    ####################################################################################################################
+    ############## TODO: asigar umbrales u otra técnica para detectar colisiones y actuar en consecuencia ##############
+    ####################################################################################################################
+
 
             # 4 --
             pub_f.publish(wrench)

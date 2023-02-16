@@ -38,6 +38,7 @@ prev_roll, prev_pitch, prev_yaw = 1.57225, 1.07, -0.00166
 # Mensajes a enviar
 p = Pose()
 g = Float32MultiArray()
+f = WrenchStamped()
 
 # Tiempo para coger los mensajes del /joint_states
 interval = 0.2
@@ -90,7 +91,7 @@ def torque_cb_wrist_3(data):
 # Estado de las articulaciones
 def joint_state_cb(data):
     global q, qd, prev, interval
-    global p, g, pubs
+    global p, g, f, pubs
     global prev_grip_140
     global name, grip
     global tau
@@ -145,8 +146,16 @@ def joint_state_cb(data):
 
         # J_ = np.linalg.inv(J)
         J_ = J.transpose()
-        f = np.matmul(J, tau)
+        f_ = np.matmul(J, tau)
         
+        f.wrench.force.x = f_[0]
+        f.wrench.force.y = f_[1]
+        f.wrench.force.z = f_[2]
+
+        f.wrench.torque.x = f_[3]
+        f.wrench.torque.y = f_[4]
+        f.wrench.torque.z = f_[5]
+
         '''np.set_printoptions(precision=2)
         print (f)
         print("-------------------------------")
@@ -178,6 +187,7 @@ def joint_state_cb(data):
 
         pubs[0].publish(p)
         pubs[1].publish(g)
+        pubs[2].publish(f)
 
         # Actualiza el tiempo
         prev = time.time()
@@ -204,12 +214,12 @@ if __name__ == '__main__':
         rospy.Subscriber('/' + name + '/wrist_2_joint_torque_sensor', WrenchStamped, torque_cb_wrist_2)
         rospy.Subscriber('/' + name + '/wrist_3_joint_torque_sensor', WrenchStamped, torque_cb_wrist_3)
         
-
-        
-
         pubs.append(rospy.Publisher("/" + name + "/cart_pos", Pose, queue_size=10))
         
         if grip != "none":
             pubs.append(rospy.Publisher("/" + name + '/grip_pos', Float32MultiArray, queue_size=10))
+
+        pubs.append(rospy.Publisher("/" + name + "/cart_force", WrenchStamped, queue_size=10))
+
 
         rospy.spin()
