@@ -383,7 +383,7 @@
     </gazebo>
     <gazebo>
         <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-            <updateRate>10.0</updateRate>
+            <updateRate>100.0</updateRate>
             <topicName>shoulder_pan_joint_torque_sensor</topicName>
             <jointName>shoulder_pan_joint</jointName>
         </plugin>
@@ -394,7 +394,7 @@
     </gazebo>
     <gazebo>
         <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-            <updateRate>10.0</updateRate>
+            <updateRate>100.0</updateRate>
             <topicName>shoulder_lift_joint_torque_sensor</topicName>
             <jointName>shoulder_lift_joint</jointName>
         </plugin>
@@ -405,7 +405,7 @@
     </gazebo>
     <gazebo>
         <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-            <updateRate>10.0</updateRate>
+            <updateRate>100.0</updateRate>
             <topicName>elbow_joint_torque_sensor</topicName>
             <jointName>elbow_joint</jointName>
         </plugin>
@@ -416,7 +416,7 @@
     </gazebo>
     <gazebo>
         <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-            <updateRate>10.0</updateRate>
+            <updateRate>100.0</updateRate>
             <topicName>wrist_1_joint_torque_sensor</topicName>
             <jointName>wrist_1_joint</jointName>
         </plugin>
@@ -427,7 +427,7 @@
     </gazebo>
     <gazebo>
         <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-            <updateRate>10.0</updateRate>
+            <updateRate>100.0</updateRate>
             <topicName>wrist_2_joint_torque_sensor</topicName>
             <jointName>wrist_2_joint</jointName>
         </plugin>
@@ -438,7 +438,7 @@
     </gazebo>
     <gazebo>
         <plugin name="ft_sensor" filename="libgazebo_ros_ft_sensor.so">
-            <updateRate>10.0</updateRate>
+            <updateRate>100.0</updateRate>
             <topicName>wrist_3_joint_torque_sensor</topicName>
             <jointName>wrist_3_joint</jointName>
         </plugin>
