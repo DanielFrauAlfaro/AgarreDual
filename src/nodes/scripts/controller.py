@@ -6,7 +6,7 @@ from spatialmath import SE3
 import roboticstoolbox as rtb
 from math import pi
 import rospy
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Bool
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
 import time
@@ -51,6 +51,8 @@ class Controller():
 
         # Estado de las articulaciones
         rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
+        
+        rospy.Subscriber('/' + name + '/orientation', Bool, self.__orientation_cb)
 
         # Psociones a enviar por los topics
         self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
@@ -61,6 +63,8 @@ class Controller():
 
         self.__interval2 = 0.2
         self.__prev2 = time.time()
+
+        self.__orientation = False
         
         
 # --------------------- Move the desired homogeneus transform -----------------
@@ -86,14 +90,22 @@ class Controller():
             roll = data.orientation.x
             pitch = data.orientation.y
             yaw = data.orientation.z
-                          
-            T = SE3(x, y, z)
-            T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
+
+            if not self.__orientation:           
+                T = SE3(x, y, z)
+                T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
+                
+                T = T * T_
+                
+                self.__move(T)
             
-            T = T * T_
-            
-            self.__move(T)
+            else:
+                self.__joints_com[3].publish(roll)
+                self.__joints_com[4].publish(pitch)
+                self.__joints_com[5].publish(yaw)
         
+    def __orientation_cb(self, data):
+        self.__orientation = data
         
 # ---------------- Home position ----------------
     def home(self, key):
