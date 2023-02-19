@@ -557,6 +557,23 @@ indica si los sliders son de posición o de orientación. El texto de indicació
     Se ha creado el topic por el cual se envian los mensajes de fuerza desde el fichero que controla el estado del robot (cart_pos) al controlador
 del Phantom, de manera que se detecten picos de fuerza y se pueda actuar en consecuencia, aplicando una fuerza en el operador maestro.
     (1 h) --> 16 / 02 / 23
+    
+
+
+    Se ha cambiado el modo de funcionamiento de la orientación, ahora la tres coordenadas correspondientes a los ángulos de 
+Euler del robot se controlan mediante control articular. El control es más sencillo (creo yo) y resuelve un problema que se 
+tenía desde el inicio; los errores en la planificación de la cinemática inversa, sobretodo en la rotación en Y (pitch), que
+actuaba más articulaciones de las que debía, provocando un movimiento erróeneo (se movía no solo en pitch sino también en 
+yaw). 
+    Para realizarlo se ha añadido un flag en el controlador de alto nivel del robot, de manera que si se está moviendo en 
+posición se hace en coordenadas cartesianas, calculando la inversa. Al cambiar de modo (presionando el botón del Phantom),
+se cambia el flag, controlando directamente las articulaciones independientes, una por cada eje en el espacio cartesiano de
+trabajo del maestro. Esta funcionalidad ya estaba implementada en el Phantom, cambiando los modos de posición, orientación y 
+pinza
+    El controlador de momento está cambiado, junto con el programa de prueba con los sliders, faltaría cambiar el fichero
+de control del Phantom, de manera que al presionar un botón cambiar el modo
+    (3.5) --> 19 / 02 / 23
+
 
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
@@ -566,8 +583,60 @@ INSTALL sudo apt-get install ros-noetic-ros-controllers
 
 
 
-    BUSCAR COMO FUNCIONA EL roboticsgroup_gazebo_plugins INTERNAMENTE
 
+--------------------------------------------------------------------------------------------------
+                        ESTADO DEL ARTE
+
+
+
+Links:
+    - Shadow Space Modeling and Task Planning for Collision-free Cooperation of Dual Manipulators for Planar Task: https://link.springer.com/article/10.1007/s12555-018-0236-1
+        · Método para la planificación de trayectorias con dos brazos robóticis
+        · Evasión de colisiones
+    - Teleoperación de un brazo robot Kinova MICO2 a través de un dispositivo Omni Bundle: https://rua.ua.es/dspace/handle/10045/77712
+        · Trabajo de teleoperación de un Kinova
+        · Estructura de trabajo
+        · Idea para el control de fuerzas
+        · Cerrar bucles de control PID
+    - Experimental evaluation of magnified haptic feedback for robot-assisted needle insertion and palpation: https://onlinelibrary.wiley.com/doi/full/10.1002/rcs.1809?casa_token=lyiuUkXMm0sAAAAA%3Ad-5IaaZF66xAu0GZ9IcLRt_D_iwemnZsYkaf0n5Th22okqcmDOgaXHOSLjtzXJ_5tHaKubY4VaEZfeE
+        · Teleoperación médica
+        · Robótica compartida
+        · Pasividad
+    - KONTUR-2: Force-feedback teleoperation from the international space station: https://ieeexplore.ieee.org/document/7487246
+        · Feedback de fuerza
+        · Teleoperación
+        · NO SE PUEDE ACCEDER AL ATÍCULO
+    - Shared-Autonomy Control for Intuitive Bimanual Tele-Manipulation: https://ieeexplore.ieee.org/abstract/document/8625047?casa_token=GRWgO5RjOaoAAAAA:uBFHm_GJExJFxh1HuIkK3LVG6tvOjpasat0aNddHPd_1SOPrsfwR7y2DO-87KquuWwljS4sfyg
+        · Control de dos roots con los dos brazos
+        · Sensores sEMG para reconocimiento de gestos de mano
+        · IMU para obtención de posiciones y orientaciones
+    - Improvement of operability in remote robot control with force feedback: https://ieeexplore.ieee.org/abstract/document/7398509?casa_token=SWpv-FKCtt8AAAAA:uoZ4i2dH_YJYuxX8IXyxH61l8WP3BkRhF9v7yDMJru0gpXtbrntqQd84V8haMux4aqOW1t2Eig
+        · Realimentación de esfuerzos
+        · Mejora de la calidad de la manipulación
+        · Medidas de la mejora
+        · Métodos de control de fuerzas
+    - Force feedback based gripper control on a robotic arm: https://www.researchgate.net/publication/307435905_Force_feedback_based_gripper_control_on_a_robotic_arm
+        · Realimenración de esfuerzos
+    - Haptic Feedback in Robot-Assisted Minimally Invasive Surgery: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2701448/
+        · Robótica asistiva en operaciones
+        · Realimentación de esfuerzos y realimentación táctil
+        · Háptica
+
+
+Conceptos interesantes a investigar:
+    - Pasividad:
+        · https://web.mat.upc.edu/carles.batlle/Passive%20Control%20Theory%20I.pdf
+        · https://www3.nd.edu/~lemmon/courses/ee580/lectures/chapter10.pdf
+            - Libros que explican que es la pasividad
+    - Retroalimentación de fuerzas
+        · 
+    - Teleoperación
+    - Háptica
+        · Kinestesia
+        · Táctil
+    - Robótica compartida / control compartido
+    - Campos de aplicación de la teleoperación, retroalimentación de fuerzas, control compartido, ...
+--------------------------------------------------------------------------------------------------
 
 
 
