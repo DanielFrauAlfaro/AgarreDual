@@ -6,7 +6,7 @@ import numpy as np
 import roboticstoolbox as rtb
 import spatialmath as sm
 import rospy
-from std_msgs.msg import Int32
+from std_msgs.msg import Int32, Bool
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import CompressedImage
 
@@ -59,6 +59,9 @@ prev3 = time.time()
 
 interval4 = 0.1
 prev4 = time.time()
+
+mode = False
+pub_mode = rospy.Publisher("/ur5_2/orientation", Bool, queue_size=10)
 
 ####### Callbacks #######
 # Camaras: se pasan a formato numpy
@@ -162,7 +165,25 @@ def callbackSlider2(sender, app_data, user_data):
                 
             pub.publish(pose)
 
+def cb_check(sender, app_data, user_data):
+    global mode, pub_mode
 
+    b = Bool()
+
+    if not mode:
+        b = True
+        dpg.configure_item("position_slider", show=False)
+        dpg.configure_item("rotation_slider", show=True)
+    else:
+        dpg.configure_item("position_slider", show=True)
+        dpg.configure_item("rotation_slider", show=False)
+        b = False
+        
+    pub_mode.publish(b)
+    mode = not mode
+
+    print(mode)
+        
 
 def cart_pos(data):
     global prev_x, prev_y, prev_z
@@ -198,8 +219,9 @@ dpg.setup_dearpygui()
 # Se crean los sliders en las posiciones iniciales
 with dpg.window(tag="Controlador", width=600, height=600):
     dpg.add_3d_slider(label="Position XYZ", tag="position_slider", default_value=[0.5095, 0.1334, 0.7347], min_x=-1, max_x=0.7, min_y=-0.55, max_y=0.55, min_z=0.0, max_z=0.85, height=200, width=200,callback=callbackSlider, user_data="slider", )
-    dpg.add_3d_slider(label="Position RPY", tag="rotation_slider", default_value=[1.57225399 , 1.07079575, -0.001661], min_x=-3.14, max_x=3.14, min_y=-3.14, max_y=3.14, min_z=-3.14, max_z=3.14, height=200, width=200,callback=callbackSlider2, user_data="slider")
+    dpg.add_3d_slider(show=False, label="Position RPY", tag="rotation_slider", default_value=[1.57225399 , 1.07079575, -0.001661], min_x=-3.14, max_x=3.14, min_y=-3.14, max_y=3.14, min_z=-3.14, max_z=3.14, height=200, width=200,callback=callbackSlider2, user_data="slider")
 
+    dpg.add_checkbox(callback=cb_check)
 
 
 # Rate
