@@ -572,7 +572,23 @@ trabajo del maestro. Esta funcionalidad ya estaba implementada en el Phantom, ca
 pinza
     El controlador de momento está cambiado, junto con el programa de prueba con los sliders, faltaría cambiar el fichero
 de control del Phantom, de manera que al presionar un botón cambiar el modo
-    (3.5) --> 19 / 02 / 23
+    (3.5 h) --> 19 / 02 / 23
+
+
+
+    Se ha creado un topic para que la interfaz de usuario muestre si se está moviendo el Phantom para 
+llegar a una posición de reposo (un cambio). Esto se hace enviando el estado en el que se encuentra la 
+máquina de estados. En la interfaz se mantiene una copia de la variable del estado, de manera que muestra
+en que sistema se está moviendo o si está habiendo un cambio. Para indicar que deja de haber cambio se 
+envía un '-1' por el topic.
+    Se ha adecuado el sistema para que se mueva en orientación con las articulaciones de la muñeca en vez
+de los ángulos de Euler. Lo único que se ha hecho ha sido cambiar en el cart_pos a la hora de enviar la
+orientación en RPY, se envían los valores articulares. Además, también se envían los pares de las 
+articulaciones, para el feedback de fuerzas, que también se adecua a este formato.
+    Sin embargo, también se ha comprobado que si se pone el 'order='yxz'' en la cinemática directa y en las 
+transformadas, así como en las matrices de rotación, la orientación es correcta, moviéndose adecuadamente
+en los ángulos de Euler (aun así están cambiados, como ya ocurría con el 'order='xyz'')
+    (2.5 h) --> 21 / 02 / 23
 
 
 INSTALL sudo apt-get install ros-noetic-soem
