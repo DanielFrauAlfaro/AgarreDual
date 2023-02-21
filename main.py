@@ -4,6 +4,7 @@ import rospy
 import subprocess
 import dearpygui.dearpygui as dpg
 from math import pi
+from std_msgs.msg import Int32
 
 subprocess.Popen('roscore')
 rospy.sleep(1)
@@ -26,6 +27,11 @@ spawn_name = "002_master_chef_can"
 is_launch = False
 is_stop_sim = False
 is_spawn = False
+
+change1 = True
+change2 = True
+state = 0
+state_list = ["position", "rotation", "gripper"]
 
 def change2simulation(sender, app_data, user_data):
     # TODO: hacer el cambio de visibilidad
@@ -215,6 +221,31 @@ def stop_sim_cb(sender, app_data, user_data):
     dpg.configure_item("conf_w", show=True)
     dpg.configure_item("exec_w", show=False)
 
+def change_cb1(data):
+    global state_list, state
+    if n >= 1:
+        if data != -1:
+            msg = "Moving Phantom 1 to " + state_list[data] + " origin ..."
+            dpg.configure_item("change1", default_value=msg)
+
+            state = data
+        
+        else:
+            msg = "Moving " + names[0] + " in " + state_list[state]
+            dpg.configure_item("change1", default_value=msg)
+
+def change_cb2(data):
+    global state_list, state
+    if n >= 1:
+        if data != -1:
+            msg = "Moving Phantom 2 to " + state_list[data] + " origin ..."
+            dpg.configure_item("change2", default_value=msg)
+
+            state = data
+        
+        else:
+            msg = "Moving " + names[1] + " in " + state_list[state]
+            dpg.configure_item("change2", default_value=msg)
     
     
 
@@ -352,7 +383,12 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
 
     dpg.add_button(label="Stop Simulation", tag="stop_sim", callback=stop_sim_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_stop_sim"):
-        dpg.add_text("Clcik to stop the simulation")
+        dpg.add_text("Click to stop the simulation")
+
+    dpg.add_separator()
+
+    dpg.add_text(tag="change1", default_value="Moving Phantom 1 to position origin ...")
+    dpg.add_text(tag="change2", default_value="Moving Phantom 2 to position origin ...")
         
 
 dpg.setup_dearpygui()
@@ -392,8 +428,16 @@ if __name__ == "__main__":
             roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
 
             launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
-            # launch.start()
+            launch.start()
             is_launch = False
+
+            if n == 1:
+                rospy.Subscriber("/" + names[0] + "/change", Int32, change_cb1)
+                dpg.configure_item("change2", show=False)
+            
+            elif n == 2:
+                rospy.Subscriber("/" + names[0] + "/change", Int32, change_cb1)
+                rospy.Subscriber("/" + names[1] + "/change", Int32, change_cb2)
 
         if is_stop_sim:
             launch.shutdown()
