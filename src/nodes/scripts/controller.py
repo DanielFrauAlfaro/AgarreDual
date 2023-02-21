@@ -16,8 +16,8 @@ from pynput import keyboard
 # Main class for the controller
 class Controller():
     def __init__(self, name):
+
         # UR5 model in Robotic Toolbox
-                
         self.__ur5 = rtb.DHRobot([
             rtb.RevoluteDH(d=0.1625, alpha=pi/2.0),
             rtb.RevoluteDH(a=-0.425),
@@ -52,8 +52,10 @@ class Controller():
         # Estado de las articulaciones
         rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
         
+        # Modo de orientación y flag de orientación
         rospy.Subscriber('/' + name + '/orientation', Bool, self.__orientation_cb)
-
+        self.__orientation = False
+        
         # Psociones a enviar por los topics
         self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
         
@@ -64,8 +66,6 @@ class Controller():
         self.__interval2 = 0.2
         self.__prev2 = time.time()
 
-        self.__orientation = False
-        
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
@@ -79,11 +79,13 @@ class Controller():
     
 # -------------------- Callback for the haptic topic --------------------------
     def __callback(self, data):
-        if time.time() - self.__prev > self.__interval:         # Solo se ejecuta cuando pasa el intervalo
+        # Solo se ejecuta cuando pasa el intervalo
+        if time.time() - self.__prev > self.__interval:
+            # Actualiza el intervalo
+            self.__prev = time.time()                           
             
-            self.__prev = time.time()                           # Actualiza el intervalo
-            
-            x = data.position.x                                 # Obtiene las posiciones
+            # Obtiene las posiciones
+            x = data.position.x                                 
             y = data.position.y
             z = data.position.z
                 
@@ -91,22 +93,28 @@ class Controller():
             pitch = data.orientation.y
             yaw = data.orientation.z
 
-            if not self.__orientation:           
+            # Si no está en orientación construye la matriz de transformación
+            if True:           
                 T = SE3(x, y, z)
-                T_ = SE3.RPY(roll, pitch, yaw, order='xyz')
+                T_ = SE3.RPY(roll, pitch, yaw, order='yxz')
                 
                 T = T * T_
                 
+                # Envía a la función de movimiento
                 self.__move(T)
             
+            # Si se mueve en orientación, mueve directamente las articulaciones
             else:
                 self.__joints_com[3].publish(roll)
                 self.__joints_com[4].publish(pitch)
                 self.__joints_com[5].publish(yaw)
         
+
+    # Callback para el modo de orientación
     def __orientation_cb(self, data):
         self.__orientation = data
         
+
 # ---------------- Home position ----------------
     def home(self, key):
         if key == keyboard.Key.esc:
@@ -115,9 +123,10 @@ class Controller():
             for i in range(5):
                 self.__joints_com[i].publish(self.__q0[i])                
         
-
+# ---------------- Callback del estado de las articulaciones ----------------
     def __joint_state_cb(self, data):
-        if time.time() - self.__prev2 > self.__interval2:         # Solo se ejecuta cuando pasa el intervalo
+        # Solo se ejecuta cuando pasa el intervalo
+        if time.time() - self.__prev2 > self.__interval2:         
             
             self.__prev2 = time.time()   
 
