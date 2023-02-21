@@ -23,10 +23,10 @@ or_x = 0.5095
 or_y = 0.1334
 or_z = 0.7347
 
-# Origen RPY
-or_roll = 1.57225399
-or_pitch = 1.07079575
-or_yaw = -0.001661
+# Origen RPY 
+or_roll = 0.832
+or_pitch = 0.0
+or_yaw = 1.12
 
 # Posiciones de XYZ y RPY
 prev_x, prev_y, prev_z = or_x, or_y, or_z
@@ -162,6 +162,10 @@ def callbackSlider2(sender, app_data, user_data):
             pose.orientation.y = y
             pose.orientation.z = z
             pose.orientation.w = 1
+
+            prev_roll = x
+            prev_pitch = y
+            prev_yaw = z
                 
             pub.publish(pose)
 
@@ -219,7 +223,7 @@ dpg.setup_dearpygui()
 # Se crean los sliders en las posiciones iniciales
 with dpg.window(tag="Controlador", width=600, height=600):
     dpg.add_3d_slider(label="Position XYZ", tag="position_slider", default_value=[0.5095, 0.1334, 0.7347], min_x=-1, max_x=0.7, min_y=-0.55, max_y=0.55, min_z=0.0, max_z=0.85, height=200, width=200,callback=callbackSlider, user_data="slider", )
-    dpg.add_3d_slider(show=False, label="Position RPY", tag="rotation_slider", default_value=[1.57225399 , 1.07079575, -0.001661], min_x=-3.14, max_x=3.14, min_y=-3.14, max_y=3.14, min_z=-3.14, max_z=3.14, height=200, width=200,callback=callbackSlider2, user_data="slider")
+    dpg.add_3d_slider(show=False, label="Position RPY", tag="rotation_slider", default_value=[or_roll, or_pitch, or_yaw], min_x=-3.14, max_x=3.14, min_y=-3.14, max_y=3.14, min_z=-3.14, max_z=3.14, height=200, width=200,callback=callbackSlider2, user_data="slider")
 
     dpg.add_checkbox(callback=cb_check)
 
