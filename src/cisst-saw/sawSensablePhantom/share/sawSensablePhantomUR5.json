@@ -3,10 +3,6 @@
     [
         {
             "name": "Default Device",
-            "rename": "ur5_1"
-        },
-        {
-            "name": "Default Device2",
             "rename": "ur5_2"
         }
     ]
