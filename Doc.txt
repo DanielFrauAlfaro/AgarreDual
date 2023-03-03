@@ -591,6 +591,26 @@ en los ángulos de Euler (aun así están cambiados, como ya ocurría con el 'or
     (2.5 h) --> 21 / 02 / 23
 
 
+
+    Se ha aumentado la velocidad de las articulaciones en el fichero .urdf.xacro del UR5 para que a la hora de
+la teleoperación llegue a mayores velocidades y no se produzcan tantos retardos.
+    Se ha creado un topic 'change' para que al hacer un cambio en el funcionamiento del robot se indique hacia que
+estado se está moviendo el sistema y en cual modo se está moviendo.
+    Se ha disminuido el buffer de entrada de los publishers articulares del controlador, ya que así si se realizan
+movimientos suaves se hace correctamente (se envía todo el rato desde el phantom) y si se interrumpen movimientos,
+no hace la trayectoria entera, lo que suple algunos retardos.
+    (4 h) --> 01 / 03 / 23
+
+
+
+    Se ha implementado un filtro de mediana en el controlador cartesiano del robot a la hora de mandar
+las consignas articulares al robot, de manera que el ruido en la entrada no influya en el movimiento del
+robot, ya que la entrada del Phantom es muy ruidosa.
+    (3 h) --> 03 / 03 / 23
+
+
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
