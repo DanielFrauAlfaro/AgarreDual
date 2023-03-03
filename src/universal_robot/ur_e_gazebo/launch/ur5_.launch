@@ -22,7 +22,7 @@
     </include>
     
     <!-- push robot_description to factory and spawn robot in gazebo -->
-    <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model $(arg robot_name) $(arg origin) -model $(arg robot_name) -J shoulder_lift_joint -1.5 -J elbow_joint 1.0 -J wrist_2_joint 1.57 -J gripper_palm_finger_1_joint 0 -J gripper_finger_1_joint_1 0 -J gripper_finger_1_joint_2 0 -J gripper_finger_1_joint_3 0 -J gripper_finger_2_joint_1 0 -J gripper_finger_2_joint_2 0 -J gripper_finger_2_joint_3 0 -J gripper_finger_middle_joint_1 0 -J gripper_finger_middle_joint_2 0 -J gripper_finger_middle_joint_3 0" respawn="false" output="screen" />
+    <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model $(arg robot_name) $(arg origin) -model $(arg robot_name) -J shoulder_lift_joint -1.5 -J elbow_joint 1.0 -J wrist_2_joint -1.57 -J wrist_2_joint -1.57 -J gripper_palm_finger_1_joint 0 -J gripper_finger_1_joint_1 0 -J gripper_finger_1_joint_2 0 -J gripper_finger_1_joint_3 0 -J gripper_finger_2_joint_1 0 -J gripper_finger_2_joint_2 0 -J gripper_finger_2_joint_3 0 -J gripper_finger_middle_joint_1 0 -J gripper_finger_middle_joint_2 0 -J gripper_finger_middle_joint_3 0" respawn="false" output="screen" />
 
     
       <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
