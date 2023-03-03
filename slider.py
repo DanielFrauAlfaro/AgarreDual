@@ -19,14 +19,14 @@ import numpy as np
 import time
 
 # Origen en XYZ
-or_x = 0.5095
-or_y = 0.1334
-or_z = 0.7347
+or_x = 0.5137                        # Origen del movimiento cartesiano
+or_y = 0.1334                       
+or_z = 0.4397
 
-# Origen RPY 
-or_roll = 0.832
-or_pitch = 0.0
-or_yaw = 1.12
+or_roll = -2.296 # 0.832 # 0.87                # Origen del movimiento articular de la muñeca del robot
+or_pitch = 0.0 # 1.12                   # YXZ hacia abajo # YXZ # XYZ
+or_yaw = -3.03
+
 
 # Posiciones de XYZ y RPY
 prev_x, prev_y, prev_z = or_x, or_y, or_z
@@ -48,57 +48,11 @@ bridge = CvBridge()
 
 pose = Pose()
 
-interval = 0.1
+interval = 0.11
 prev = time.time()
 
-interval2 = 0.1
+interval2 = 0.11
 prev2 = time.time()
-
-interval3 = 0.1
-prev3 = time.time()
-
-interval4 = 0.1
-prev4 = time.time()
-
-mode = False
-pub_mode = rospy.Publisher("/ur5_2/orientation", Bool, queue_size=10)
-
-####### Callbacks #######
-# Camaras: se pasan a formato numpy
-def camera_cb(data):
-    global frame_, first_frame_cam1 , bridge
-    frame_ = bridge.compressed_imgmsg_to_cv2(data)
-    
-    first_frame_cam1 = True
-    
-def camera_cb2(data):
-    global bridge, frame2_, first_frame_cam2
-    frame2_ = bridge.compressed_imgmsg_to_cv2(data)
-    
-    first_frame_cam2 = True
-
-# Callback para el topic de la posicion cartesiana del robot
-def cart_cb(data):
-    global prev_x, prev_y, prev_z
-    global prev_roll, prev_pitch, prev_yaw
-    
-    prev_x = data.position.x
-    prev_y = data.position.y
-    prev_z = data.position.z
-    
-    prev_roll = data.orientation.x
-    prev_pitch = data.orientation.y
-    prev_yaw = data.orientation.z
-
-# Callback del checker: publica modo seleccionado
-def callbackCheck(sender, app_data, user_data):
-    global vel_controller, cb
-    cb = True
-    vel_controller = dpg.get_value(sender)
-    if vel_controller == True:
-        pubMoveType.publish(1)
-    else:
-        pubMoveType.publish(0)         
 
 ### Slider ###
 # XYZ posicion: se mantiene los RPY y se cambian los XYZ al pasar un umbral
@@ -169,51 +123,28 @@ def callbackSlider2(sender, app_data, user_data):
                 
             pub.publish(pose)
 
+mode = False
+
 def cb_check(sender, app_data, user_data):
-    global mode, pub_mode
+    global mode
 
     b = Bool()
 
     if not mode:
-        b = True
         dpg.configure_item("position_slider", show=False)
         dpg.configure_item("rotation_slider", show=True)
+        mode = True
     else:
         dpg.configure_item("position_slider", show=True)
         dpg.configure_item("rotation_slider", show=False)
-        b = False
+        mode = False
         
-    pub_mode.publish(b)
-    mode = not mode
-
-    print(mode)
-        
-
-def cart_pos(data):
-    global prev_x, prev_y, prev_z
-    global prev_roll, prev_pitch, prev_yaw
-
-    if False:
-        prev_x = data.position.x
-        prev_y = data.position.y
-        prev_z = data.position.z
-    if False:
-        prev_roll = data.orientation.x
-        prev_pitch = data.orientation.y
-        prev_yaw = data.orientation.z
-
-# Variables de ROS:
-# Nodo
 
 name = "ur5_2"
 rospy.init_node("nodo_"+name)
 
 # Publosher de la pose y el modo de movimiento
 pub = rospy.Publisher("/"+name+"/pose", Pose, queue_size=10)
-pubMoveType = rospy.Publisher("/move_type", Int32, queue_size=10) 
-
-rospy.Subscriber("/" + name + "/cart_pos", Pose, cart_pos)
-
 
 # GUI
 dpg.create_context()
@@ -229,32 +160,8 @@ with dpg.window(tag="Controlador", width=600, height=600):
 
 
 # Rate
-r = rospy.Rate(40)
+r = rospy.Rate(20)
 
 # Muestra las ventanas
 dpg.show_viewport()
 dpg.start_dearpygui()
-# Bucle infinito
-while dpg.is_dearpygui_running():
-
-    
-    # Si hubo un cambio de modo, muestra otros sliders y cambia sus valores
-    if cb:
-        if vel_controller == True:
-            dpg.configure_item("position_slider", show=False)
-            dpg.configure_item("rotation_slider", show=False)
-            dpg.configure_item("position_slider_v", show=True, label="Velocity XYZ", default_value=[0, 0, 0])
-            dpg.configure_item("rotation_slider_v", show=True, label="Velocity RPY", default_value=[0, 0, 0])
-        else:
-            dpg.configure_item("position_slider_v", show=False)
-            dpg.configure_item("rotation_slider_v", show=False)
-            dpg.configure_item("position_slider", show=True, label="Position XYZ", default_value=[prev_x, prev_y, prev_z])
-            dpg.configure_item("rotation_slider", show=True, label="Position RPY", default_value=[prev_roll, prev_pitch, prev_yaw])
-        
-        cb = False
-
-
-
-    r.sleep()
-    
-# On ctrl+c client.stop()# pybullet
