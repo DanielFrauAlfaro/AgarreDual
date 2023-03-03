@@ -15,7 +15,7 @@ from pynput import keyboard
 
 # Main class for the controller
 class Controller():
-    def __init__(self, name):
+    def __init__(self, name, grip):
 
         # UR5 model in Robotic Toolbox
         self.__ur5 = rtb.DHRobot([
@@ -31,8 +31,8 @@ class Controller():
         self.__ur5.tool = SE3(0.0, 0.0, 0.03)
         
         # Joint position vector: actual and home
-        self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
-        self.__q0 = [0, -1.5, 1 , 0.0, 1.57, 0.0]
+        self.__q = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
+        self.__q0 = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
         
         # ROS parameters: node, publishers and subscribers
         rospy.init_node(name + "_controller", anonymous=False)
@@ -42,28 +42,45 @@ class Controller():
         
         # Lista de publisher de las articulaciones
         self.__joints_com = []
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=100))
-        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=100))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=8))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=8))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/elbow_joint_position_controller/command', Float64, queue_size=8))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_1_joint_position_controller/command', Float64, queue_size=8))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=8))
+        self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=8))
+
+        self.grip_pub = []
+
+        if grip != "":
+            if grip == "2f":
+                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
+
+            else:
+                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_finger_1_joint_1/command", Float64, queue_size=10 ))
+                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_finger_2_joint_1/command", Float64, queue_size=10 ))
+                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_finger_middle_joint_1/command", Float64, queue_size=10 ))
+                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_palm_finger_1_joint/command", Float64, queue_size=10 ))
+        
+
 
         # Estado de las articulaciones
         rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
         
-        # Modo de orientación y flag de orientación
-        rospy.Subscriber('/' + name + '/orientation', Bool, self.__orientation_cb)
-        self.__orientation = False
-        
         # Psociones a enviar por los topics
-        self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
-        
+        self.__qp = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
+        self.__smooth = [[], [], [], [], [], []]
+
+        self.size_filt = 6
+
+        for i in range(6):
+            for j in range(self.size_filt):
+                self.__smooth[i].append(self.__q[i])
+
         # Intervalos para ajustar la frecuencia de funcionamiento
         self.__interval = 0.0
         self.__prev = time.time()
 
-        self.__interval2 = 0.2
+        self.__interval2 = 0.0
         self.__prev2 = time.time()
 
         
@@ -72,8 +89,15 @@ class Controller():
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)       # Inversa: obtiene las posiciones articulares a través de la posición
         self.__qp = q.q
         
+        median = [0,0,0,0,0,0]
+
+        for i in range(6):
+            self.__smooth[i].pop(-1)
+            self.__smooth[i].insert(0, self.__qp[i])
+            median[i] =  sum(self.__smooth[i]) / self.size_filt
+
         for i in range(6):                              # Se envían los valores
-            self.__joints_com[i].publish(self.__qp[i])
+            self.__joints_com[i].publish(median[i])
 
 
     
@@ -92,28 +116,15 @@ class Controller():
             roll = data.orientation.x
             pitch = data.orientation.y
             yaw = data.orientation.z
-
-            # Si no está en orientación construye la matriz de transformación
-            if True:           
-                T = SE3(x, y, z)
-                T_ = SE3.RPY(roll, pitch, yaw, order='yxz')
-                
-                T = T * T_
-                
-                # Envía a la función de movimiento
-                self.__move(T)
+          
+            T = SE3(x, y, z)
+            T_ = SE3.RPY(roll, pitch, yaw, order='yxz')
             
-            # Si se mueve en orientación, mueve directamente las articulaciones
-            else:
-                self.__joints_com[3].publish(roll)
-                self.__joints_com[4].publish(pitch)
-                self.__joints_com[5].publish(yaw)
-        
-
-    # Callback para el modo de orientación
-    def __orientation_cb(self, data):
-        self.__orientation = data
-        
+            T = T * T_
+            
+            # Envía a la función de movimiento
+            self.__move(T)
+            
 
 # ---------------- Home position ----------------
     def home(self, key):
@@ -121,7 +132,11 @@ class Controller():
             self.__q = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             self.__qp = [0, -1.5, 1 , 0.0, 1.57, 0.0]
             for i in range(5):
-                self.__joints_com[i].publish(self.__q0[i])                
+                self.__joints_com[i].publish(self.__q0[i]) 
+
+            for i in range(len(self.grip_pub)):
+                self.grip_pub[i].publish(0.0) 
+                           
         
 # ---------------- Callback del estado de las articulaciones ----------------
     def __joint_state_cb(self, data):
@@ -152,10 +167,11 @@ class Controller():
            
 # ------------------ Main --------------------
 if __name__ == '__main__':
-    if len(sys.argv) == 4:
+    if len(sys.argv) == 5:
 
         name = sys.argv[1]
-        ur5 = Controller(name)
+        grip = sys.argv[2]
+        ur5 = Controller(name, grip)
 
         listener = keyboard.Listener(on_press=ur5.home)
         listener.start()
