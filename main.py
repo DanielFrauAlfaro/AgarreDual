@@ -9,14 +9,16 @@ from std_msgs.msg import Int32
 subprocess.Popen('roscore')
 rospy.sleep(1)
 
+rospy.init_node("gui_node")
+
 dpg.create_context()
 dpg.create_viewport(title='GUI', width=400, height=400)
 
-names = ["ur5_1", "ur5_2"]
+names = ["ur5_2", "ur5_1"]
 positions = [["-0.2","0.8","1.02"], ["-0.2", "0.1", "1.02"]]
 positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]
-n = "2"
-gripp = ["2f_140", "3f"]
+n = "1"
+gripp = ["3f", "2f_140"]
 
 spawnables_show = ("Masterchef can", "Cracker box", "Sugar box", "Tomatosoup can", "Mustard bottle", "Tuna fish can", "Pudding box", "Gelatin box", "Potted meat can", "Banana", "Strawberry", "Apple", "Lemon", "Peach", "Pear", "Orange", "Plum", "Bleach cleanser")
     
@@ -223,20 +225,23 @@ def stop_sim_cb(sender, app_data, user_data):
 
 def change_cb1(data):
     global state_list, state
-    if n >= 1:
-        if data != -1:
-            msg = "Moving Phantom 1 to " + state_list[data] + " origin ..."
-            dpg.configure_item("change1", default_value=msg)
+    global names
 
-            state = data
-        
-        else:
-            msg = "Moving " + names[0] + " in " + state_list[state]
-            dpg.configure_item("change1", default_value=msg)
+    msg = ["NOT A STATE",
+           "MOVING: " + names[0] + " in: POSITION mode", 
+           "MOVING: " + names[0] + " in: ORIENTATION mode",
+           "MOVING: " + names[0] + " in: GRIPPER mode",
+           "CHANGE: " + names[0] + " to: GRIPPER coordinates ...",
+           "CHANGE: " + names[0] + " to: ORIENTATION coordinates ...",
+           "CHANGE: " + names[0] + " to: POSITION coordinates ..."]
+
+    if n == "1" or n == "2":
+        dpg.configure_item("change1", default_value = msg[data.data])
+
 
 def change_cb2(data):
     global state_list, state
-    if n >= 1:
+    if n == "2":
         if data != -1:
             msg = "Moving Phantom 2 to " + state_list[data] + " origin ..."
             dpg.configure_item("change2", default_value=msg)
@@ -272,13 +277,13 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
 
     with dpg.collapsing_header(label="Simulation", tag="Simulation", show=True, default_open=True):
         items = ("0", "1", "2")
-        dpg.add_combo(label="Number of Robots",indent=8,  default_value="2", items=items, width=50, callback=n_robots)
+        dpg.add_combo(label="Number of Robots",indent=8,  default_value=n, items=items, width=50, callback=n_robots)
         with dpg.tooltip(dpg.last_item(), tag="tut_n"):
             dpg.add_text("Select the number of robots to spawn")
 
-        with dpg.tree_node(label="UR5 1", indent= 15,tag="ur51", default_open=True):
+        with dpg.tree_node(label="UR5 1", indent= 15,tag="ur51", default_open=True, show=(n=="1" or n=="2")):
             items = ("none","2f 140", "3f")
-            dpg.add_combo(label="Gripper", default_value="2f 140", items=items, width=90, callback=grip1_cb)
+            dpg.add_combo(label="Gripper", default_value=gripp[0], items=items, width=90, callback=grip1_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_grip1"):
                 dpg.add_text("Select which gripper attach to the UR5 1")
 
@@ -286,16 +291,16 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
             with dpg.tooltip(dpg.last_item(), tag="tut_spa1"):
                 dpg.add_text("Select XYZ position for the UR5 1")
 
-            dpg.add_input_text(label="Robot Name", tag="name1", default_value="ur5_1", callback=name1_cb)
+            dpg.add_input_text(label="Robot Name", tag="name1", default_value=names[0], callback=name1_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_name1"):
                 dpg.add_text("Select name for the UR5 1")
 
             dpg.add_separator()
 
 
-        with dpg.tree_node(label="UR5 2", indent=15, tag="ur52", default_open=True):
+        with dpg.tree_node(label="UR5 2", indent=15, tag="ur52", default_open=True, show=(n == "2")):
             items = ("none","2f 140", "3f")
-            dpg.add_combo(label="Gripper", default_value="3f", items=items, width=90, callback=grip2_cb)
+            dpg.add_combo(label="Gripper", default_value=gripp[1], items=items, width=90, callback=grip2_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_grip2"):
                 dpg.add_text("Select which gripper attach to the UR5 2")
 
@@ -303,7 +308,7 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
             with dpg.tooltip(dpg.last_item(), tag="tut_spa2"):
                 dpg.add_text("Select XYZ position for the UR5 2")
 
-            dpg.add_input_text(label="Robot Name", tag="name2", default_value="ur5_2", callback=name2_cb)
+            dpg.add_input_text(label="Robot Name", tag="name2", default_value=names[1], callback=name2_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_name2"):
                 dpg.add_text("Select name for the UR5 2")
 
@@ -387,8 +392,8 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
 
     dpg.add_separator()
 
-    dpg.add_text(tag="change1", default_value="Moving Phantom 1 to position origin ...")
-    dpg.add_text(tag="change2", default_value="Moving Phantom 2 to position origin ...")
+    dpg.add_text(tag="change1", default_value="Moving Phantom 1 to position origin ...", show = (n == "1" or n == "2"))
+    dpg.add_text(tag="change2", default_value="Moving Phantom 2 to position origin ...", show = n == "2")
         
 
 dpg.setup_dearpygui()
@@ -410,10 +415,14 @@ if __name__ == "__main__":
     roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
 
     launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
-
+    
 
     while dpg.is_dearpygui_running():
         if is_launch:
+            aux = Int32()
+            aux.data = -1
+            change_cb1(aux)
+
             uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
             roslaunch.configure_logging(uuid)
 
@@ -431,11 +440,10 @@ if __name__ == "__main__":
             launch.start()
             is_launch = False
 
-            if n == 1:
+            if n == "1":
                 rospy.Subscriber("/" + names[0] + "/change", Int32, change_cb1)
-                dpg.configure_item("change2", show=False)
             
-            elif n == 2:
+            elif n == "2":
                 rospy.Subscriber("/" + names[0] + "/change", Int32, change_cb1)
                 rospy.Subscriber("/" + names[1] + "/change", Int32, change_cb2)
 
