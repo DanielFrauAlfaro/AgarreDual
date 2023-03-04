@@ -606,9 +606,27 @@ no hace la trayectoria entera, lo que suple algunos retardos.
     Se ha implementado un filtro de mediana en el controlador cartesiano del robot a la hora de mandar
 las consignas articulares al robot, de manera que el ruido en la entrada no influya en el movimiento del
 robot, ya que la entrada del Phantom es muy ruidosa.
+    Se comprobó que no se puede poner el publisher de la posición en el callback del Phantom no funciona
+seguramente sea porque se ejecuta demasiado rápido muchas veces y no da tiempo a que se ejecute correctamente.
     (3 h) --> 03 / 03 / 23
 
 
+
+    Se ha implementado la opción de ejecutar las simulaciones con Pybullet a parte de con Gazebo, de manera
+que, si se selecciona la opción en la GUI, se pueden importar los robots deseados en una simulación de 
+Pybullet de la misma manera que se hace en la de Gazebo.
+    Para hacerlo se ha creado una clase que carga un modelo del robot urdf en una simulación. En esta clase 
+se realiza la conexión con los topics de ROS, de manera que resulte transparente a los otros nodos que se 
+usan en Gazebo y sean reutilizables en este caso. Los topics de /joint_states y /pose se recrean, así como los
+de los sensores de par del plugin de Gazebo.
+    Desde el fichero launch de la GUI se llama a un script maestro, pasando todos los argumentos (los dos 
+nombres, el número de robots, ...) haciendo el filtrado de argumentos. Luego, se crean tantos objetos como 
+robots se hayan seleccionado y se empieza un bucle de control infinito. En este, se ejeuctan las observaciones;
+el robot carga los datos de posición, velocidad y esfuerzo de sus articulaciones en el topic de /joint_states.
+Las posiciones se envían desde el callback del /pose.
+    
+    Se ha probado a mover el robot en Pybullet y Gazebo, comprobando que en el simulador de Pybullet funciona
+bastante mejor. En Gazebo hay que ajustar los controladores.
 
 
 INSTALL sudo apt-get install ros-noetic-soem
