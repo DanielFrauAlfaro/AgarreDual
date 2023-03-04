@@ -49,6 +49,14 @@ prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm = 0, 0, 0, 0
 # Publishers
 pubs = []
 
+# Vector para el filtro de mediana y su tamaño
+smooth = [[], [], [], [], [], []]
+size_filt = 40
+
+for i in range(6):
+    for j in range(size_filt):
+        smooth[i].append(0.0)
+
 
 # Callbacks de los sensores de par de cada articulación
 def torque_cb_shoulder_pan(data):
@@ -88,6 +96,8 @@ def joint_state_cb(data):
     global prev_grip_140
     global name, grip
     global tau
+    global prev_grip_140
+    global prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm
     
     # Cuando pasa el intervalo de tiempo se ejecuta el feedback
     if time.time() - prev > interval:        
@@ -157,6 +167,11 @@ def joint_state_cb(data):
 
         # Fuerza cartesiana en el extremo
         f_ = np.matmul(J, tau)
+
+        for i in range(6):
+            smooth[i].pop(-1)
+            smooth[i].insert(0, f_[i])
+            f_[i] =  sum(smooth[i]) / size_filt
 
         # Construye el mensaje para la fuerza        
         f.force.x = f_[0]
