@@ -5,6 +5,8 @@ import subprocess
 import dearpygui.dearpygui as dpg
 from math import pi
 from std_msgs.msg import Int32
+import pybullet as p
+import pybullet_data
 
 subprocess.Popen('roscore')
 rospy.sleep(1)
@@ -18,7 +20,8 @@ names = ["ur5_2", "ur5_1"]
 positions = [["-0.2","0.8","1.02"], ["-0.2", "0.1", "1.02"]]
 positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]
 n = "1"
-gripp = ["3f", "2f_140"]
+gripp = ["2f_140", "2f_140"]
+pybullet = True
 
 spawnables_show = ("Masterchef can", "Cracker box", "Sugar box", "Tomatosoup can", "Mustard bottle", "Tuna fish can", "Pudding box", "Gelatin box", "Potted meat can", "Banana", "Strawberry", "Apple", "Lemon", "Peach", "Pear", "Orange", "Plum", "Bleach cleanser")
     
@@ -35,6 +38,12 @@ change2 = True
 state = 0
 state_list = ["position", "rotation", "gripper"]
 
+tut_tags = ["tut_sim",  "tut_real", "tut_act", "tut_deact", "tut_act2", "tut_deact2", 
+"tut_n", "tut_grip1", "tut_spa1", "tut_grip2", "tut_spa2", "tut_name1", "tut_name2", "tut_launch",
+"tut_ph_conf", "tut_ph_calib", "tut_spawn_name", "tut_add_obj", "tut_stop_sim", 
+"tut_x_slider", "tut_y_slider", "tut_z_slider", "tut_roll_slider", "tut_pitch_slider", 
+"tut_yaw_slider", "tut_sim_op"]
+
 def change2simulation(sender, app_data, user_data):
     # TODO: hacer el cambio de visibilidad
     dpg.configure_item("Simulation", show=True)
@@ -45,58 +54,18 @@ def change2real(sender, app_data, user_data):
     dpg.configure_item("Simulation", show=False)
 
 def activate_tut(sender, app_data, user_data):
-    dpg.configure_item("tut_sim", show=True)
-    dpg.configure_item("tut_real", show=True)
-    dpg.configure_item("tut_act", show=True)
-    dpg.configure_item("tut_deact", show=True)
-    dpg.configure_item("tut_act2", show=True)
-    dpg.configure_item("tut_deact2", show=True)
-    dpg.configure_item("tut_n", show=True)
-    dpg.configure_item("tut_grip1", show=True)
-    dpg.configure_item("tut_spa1", show=True)
-    dpg.configure_item("tut_grip2", show=True)
-    dpg.configure_item("tut_spa2", show=True)
-    dpg.configure_item("tut_ph_conf", show=True)
-    dpg.configure_item("tut_ph_calib", show=True)
-    dpg.configure_item("tut_spawn_name", show=True)
-    dpg.configure_item("tut_spa_pos_obj", show=True)
-    dpg.configure_item("tut_spa_or_obj", show=True)
-    dpg.configure_item("tut_add_obj", show=True)
-    dpg.configure_item("tut_stop_sim", show=True)
-    dpg.configure_item("tut_x_slider", show=True)
-    dpg.configure_item("tut_y_slider", show=True)
-    dpg.configure_item("tut_z_slider", show=True)
-    dpg.configure_item("tut_roll_slider", show=True)
-    dpg.configure_item("tut_pitch_slider", show=True)
-    dpg.configure_item("tut_yaw_slider", show=True)
+    global tut_tags
 
+    for i in tut_tags:
+        dpg.configure_item(i, show=True)
+    
 
 def deactivate_tut(sender, app_data, user_data):
-    dpg.configure_item("tut_sim", show=False)
-    dpg.configure_item("tut_real", show=False)
-    dpg.configure_item("tut_act", show=False)
-    dpg.configure_item("tut_deact", show=False)
-    dpg.configure_item("tut_act2", show=False)
-    dpg.configure_item("tut_deact2", show=False)
-    dpg.configure_item("tut_n", show=False)
-    dpg.configure_item("tut_grip1", show=False)
-    dpg.configure_item("tut_spa1", show=False)
-    dpg.configure_item("tut_grip2", show=False)
-    dpg.configure_item("tut_spa2", show=False)
-    dpg.configure_item("tut_ph_conf", show=False)
-    dpg.configure_item("tut_ph_calib", show=False)
-    dpg.configure_item("tut_spawn_name", show=False)
-    dpg.configure_item("tut_spa_pos_obj", show=False)
-    dpg.configure_item("tut_spa_or_obj", show=False)
-    dpg.configure_item("tut_add_obj", show=False)
-    dpg.configure_item("tut_stop_sim", show=False)
-    dpg.configure_item("tut_x_slider", show=False)
-    dpg.configure_item("tut_y_slider", show=False)
-    dpg.configure_item("tut_z_slider", show=False)
-    dpg.configure_item("tut_roll_slider", show=False)
-    dpg.configure_item("tut_pitch_slider", show=False)
-    dpg.configure_item("tut_yaw_slider", show=False)
+    global tut_tags
 
+    for i in tut_tags:
+        dpg.configure_item(i, show=False)
+    
 
 def n_robots(sender, app_data, user_data):
     global n
@@ -145,6 +114,11 @@ def spawn_ur52(sender, app_data, user_data):
     pos = dpg.get_value(sender)
     positions[1] = [str(pos[0]), str(pos[1]), str(pos[2])]
 
+def sim_op(sender, app_data, user_data):
+    global pybullet
+
+    pybullet = dpg.get_value(sender)
+
 def conf_ph(sender, app_data, user_data):
     subprocess.Popen('./Touch_Setup')
 
@@ -166,8 +140,6 @@ def spawn_names_cb(sender, app_data, user_data):
     i = spawnables_show.index(obj)
 
     spawn_name = spawnables[i]
-
-
 
     dpg.configure_item("pos_obj_text", default_value=spawnables_show[i] + " Position")
     dpg.configure_item("or_obj_text", default_value=obj + " Orientation")
@@ -282,7 +254,7 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
             dpg.add_text("Select the number of robots to spawn")
 
         with dpg.tree_node(label="UR5 1", indent= 15,tag="ur51", default_open=True, show=(n=="1" or n=="2")):
-            items = ("none","2f 140", "3f")
+            items = ("none","2f_140", "3f")
             dpg.add_combo(label="Gripper", default_value=gripp[0], items=items, width=90, callback=grip1_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_grip1"):
                 dpg.add_text("Select which gripper attach to the UR5 1")
@@ -299,7 +271,7 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
 
 
         with dpg.tree_node(label="UR5 2", indent=15, tag="ur52", default_open=True, show=(n == "2")):
-            items = ("none","2f 140", "3f")
+            items = ("none","2f_140", "3f")
             dpg.add_combo(label="Gripper", default_value=gripp[1], items=items, width=90, callback=grip2_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_grip2"):
                 dpg.add_text("Select which gripper attach to the UR5 2")
@@ -313,10 +285,15 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
                 dpg.add_text("Select name for the UR5 2")
 
             dpg.add_separator()
+
+        dpg.add_checkbox(label="Pybullet Simulator", tag="sim_op", default_value = pybullet,callback=sim_op)
+        with dpg.tooltip(dpg.last_item(), tag="tut_sim_op"):
+            dpg.add_text("Click to select Pybullet simulator")
         
         dpg.add_button(label="Launch Simulation", tag="launch_sim", callback=launch_sim)
         with dpg.tooltip(dpg.last_item(), tag="tut_launch"):
-            dpg.add_text("Clcik to launch the simulation")
+            dpg.add_text("Clik to launch the simulation")
+        
 
     # TODO: GUI PARA EL CASO DE MANEJO CON EL REAL
     with dpg.collapsing_header(label="Real", tag="Real",default_open=True, show=False):
@@ -325,11 +302,11 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
 
     dpg.add_button(label="Configure Phantom", tag="conf_ph1", callback=conf_ph)
     with dpg.tooltip(dpg.last_item(), tag="tut_ph_conf"):
-        dpg.add_text("Clcik to configure the Phantom devices")
+        dpg.add_text("Click to configure the Phantom devices")
 
     dpg.add_button(label="Calibrate Phantom", tag="calib_ph1", callback=calib_ph)
     with dpg.tooltip(dpg.last_item(), tag="tut_ph_calib"):
-        dpg.add_text("Clcik to calibrate the Phantom devices")
+        dpg.add_text("Click to calibrate the Phantom devices")
 
 
 with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, height=400):
@@ -431,7 +408,13 @@ if __name__ == "__main__":
 
             name1 = 'name1:=' + names[0]
             name2 = 'name2:=' + names[1]
-            cli_args = ['src/universal_robot/ur_e_gazebo/launch/ur5_2.launch', 'number:=' + n,'grip1:=' + gripp[0],'grip2:=' + gripp[1], origin1, origin2, name1, name2]
+
+            py = "sim_gaz:=true"
+
+            if pybullet:
+                py = "sim_gaz:=false"
+            
+            cli_args = ['src/universal_robot/ur_e_gazebo/launch/ur5_2.launch', 'number:=' + n,'grip1:=' + gripp[0],'grip2:=' + gripp[1], origin1, origin2, name1, name2, py]
 
             roslaunch_args = cli_args[1:]
             roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
