@@ -70,7 +70,7 @@ class Controller():
         self.__qp = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
         self.__smooth = [[], [], [], [], [], []]
 
-        self.size_filt = 6
+        self.size_filt = 3
 
         for i in range(6):
             for j in range(self.size_filt):
@@ -89,15 +89,12 @@ class Controller():
         q = self.__ur5.ikine_LMS(T,q0 = self.__q)       # Inversa: obtiene las posiciones articulares a través de la posición
         self.__qp = q.q
         
-        median = [0,0,0,0,0,0]
-
-        for i in range(6):
+        for i in range(6):                              # Se envían los valores
             self.__smooth[i].pop(-1)
             self.__smooth[i].insert(0, self.__qp[i])
-            median[i] =  sum(self.__smooth[i]) / self.size_filt
-
-        for i in range(6):                              # Se envían los valores
-            self.__joints_com[i].publish(median[i])
+            self.__qp[i] =  sum(self.__smooth[i]) / self.size_filt
+            
+            self.__joints_com[i].publish(self.__qp[i])
 
 
     
