@@ -144,7 +144,7 @@ name = "ur5_2"
 rospy.init_node("nodo_"+name)
 
 # Publosher de la pose y el modo de movimiento
-pub = rospy.Publisher("/"+name+"/pose", Pose, queue_size=10)
+pub = rospy.Publisher("/"+name+"/pose_aux", Pose, queue_size=10)
 
 # GUI
 dpg.create_context()
@@ -153,7 +153,7 @@ dpg.setup_dearpygui()
 
 # Se crean los sliders en las posiciones iniciales
 with dpg.window(tag="Controlador", width=600, height=600):
-    dpg.add_3d_slider(label="Position XYZ", tag="position_slider", default_value=[0.5095, 0.1334, 0.7347], min_x=-1, max_x=0.7, min_y=-0.55, max_y=0.55, min_z=0.0, max_z=0.85, height=200, width=200,callback=callbackSlider, user_data="slider", )
+    dpg.add_3d_slider(label="Position XYZ", tag="position_slider", default_value=[or_x, or_y, or_z], min_x=-1, max_x=0.7, min_y=-0.55, max_y=0.55, min_z=0.0, max_z=0.85, height=200, width=200,callback=callbackSlider, user_data="slider", )
     dpg.add_3d_slider(show=False, label="Position RPY", tag="rotation_slider", default_value=[or_roll, or_pitch, or_yaw], min_x=-3.14, max_x=3.14, min_y=-3.14, max_y=3.14, min_z=-3.14, max_z=3.14, height=200, width=200,callback=callbackSlider2, user_data="slider")
 
     dpg.add_checkbox(callback=cb_check)
