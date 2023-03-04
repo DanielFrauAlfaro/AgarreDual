@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-
     <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
     <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
     <arg name="gui" default="true" doc="Starts gazebo gui" />
@@ -11,44 +10,79 @@
     <arg name="origin2" default="-x -0.2 -y 0.1 -z 1.02"/>
     <arg name="grip1" default="2f_140"/>
     <arg name="grip2" default="3f" />
+    <arg name="sim_gaz" default="false" />
 
-   <!-- startup simulated world -->
-    <include file="$(find gazebo_ros)/launch/empty_world.launch">
-        <arg name="world_name" default="$(find nodes)/worlds/arm_example.world"/>
-        <arg name="paused" value="$(arg paused)"/>
-        <arg name="gui" value="$(arg gui)"/>
-    </include>
+    <group if="$(eval arg('sim_gaz'))">
+        <!-- startup simulated world -->
+        <include file="$(find gazebo_ros)/launch/empty_world.launch">
+            <arg name="world_name" default="$(find nodes)/worlds/arm_example.world"/>
+            <arg name="paused" value="$(arg paused)"/>
+            <arg name="gui" value="$(arg gui)"/>
+        </include>
 
 
-    <!-- Launch each robot separately -->
-    <group if="$(eval arg('number')==1)">
-        <group ns='$(arg name1)'>
-            <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
-                <arg name="origin" value="$(arg origin1)"/>
-                <arg name="robot_name" value='$(arg name1)'/>
-                <arg name='grip' value='$(arg grip1)' />
-            </include>
+        <!-- Launch each robot separately -->
+        <group if="$(eval arg('number')==1)">
+            <group ns='$(arg name1)'>
+                <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
+                    <arg name="origin" value="$(arg origin1)"/>
+                    <arg name="robot_name" value='$(arg name1)'/>
+                    <arg name='grip' value='$(arg grip1)' />
+                </include>
+                
+                <!-- phantom / master controller -->
+                <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+            </group>
+        </group>
+
+        <group if="$(eval arg('number')==2)">
+            <group ns='$(arg name1)'>
+                <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
+                    <arg name="origin" value="$(arg origin1)"/>
+                    <arg name="robot_name" value="$(arg name1)"/>
+                    <arg name='grip' value='$(arg grip1)' />
+                </include>
+                <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+            </group>
+            <group ns='$(arg name2)'>
+                <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
+                    <arg name="origin" value="$(arg origin2)"/>
+                    <arg name="robot_name" value="$(arg name2)"/>
+                    <arg name='grip' value='$(arg grip2)' />
+                </include>
+                <node name="phantom_controller2" pkg="nodes" type="phantom.py" args="$(arg name2) $(arg grip2)" output="screen" />
+            </group>
         </group>
     </group>
 
-    <group if="$(eval arg('number')==2)">
-        <group ns='$(arg name1)'>
-            <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
-                <arg name="origin" value="$(arg origin1)"/>
-                <arg name="robot_name" value="$(arg name1)"/>
-                <arg name='grip' value='$(arg grip1)' />
-            </include>
+    <!-- PYBULLET -->
+    <group unless= "$(eval arg('sim_gaz'))">
+        <node name="pybullet_master" pkg="pybullet_nodes" type="ur5.py" args="$(arg number) $(arg name1) $(arg name2) $(arg origin1) $(arg origin2) $(arg grip1) $(arg grip2) $(find pybullet_description)" output="screen"/>
+
+        <group if="$(eval arg('number')==1)">
+            <group ns='$(arg name1)'>
+                <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" />  
+                
+                <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+            </group>
         </group>
-        <group ns='$(arg name2)'>
-            <include file='$(find ur_e_gazebo)/launch/ur5e.launch'>
-                <arg name="origin" value="$(arg origin2)"/>
-                <arg name="robot_name" value="$(arg name2)"/>
-                <arg name='grip' value='$(arg grip2)' />
-            </include>
+
+        <group if="$(eval arg('number')==2)">
+            <group ns='$(arg name1)'>
+                <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" /> 
+
+                <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+            </group>
+            <group ns='$(arg name2)'>
+                <node name="cart_pos2" pkg="nodes" type="cart_pos.py" args="$(arg name2) $(arg grip2)" output="screen" /> 
+            
+                <node name="phantom_controller2" pkg="nodes" type="phantom.py" args="$(arg name2) $(arg grip2)" output="screen" />
+            </group>
         </group>
+
     </group>
 
     <!-- phantom nodes -->
-    <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="screen"/>
+    <!-- <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="screen"/> -->
 
 </launch>

@@ -1,0 +1,9 @@
+<launch>
+    
+    <arg name="robot_name" default="ur5_1"/>
+    <arg name="grip" default="3f" />
+    <arg name="origin" default="[0, 0, 0]" />
+    <arg name="client" default="0" />
+
+    <node name="ur5" pkg="pybullet_description" type="ur5_class.py" args="$(arg robot_name) $(arg grip) $(arg origin)" output="screen"/> 
+</launch>
