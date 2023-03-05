@@ -627,6 +627,28 @@ Las posiciones se envían desde el callback del /pose.
     
     Se ha probado a mover el robot en Pybullet y Gazebo, comprobando que en el simulador de Pybullet funciona
 bastante mejor. En Gazebo hay que ajustar los controladores.
+    A la hora de la teleoperacion con el Phantom se puede hacer, tanto en el simulador de Pybullet como en el
+de Gazebo, un límite de velocidad, de manera que limite la velocidad a la que se puede mover el robot.
+    (7 h) --> 4 / 03 / 23
+
+
+
+    Se han creado los topics que genera Gazebo por defecto (los topics de par de las articulaciones, para la 
+publicación de referencias de posición para la pinza, ...) para que estén completamente integrados los demás 
+nodos con el simulador de Pybullet. El funcionamiento es el siguiente; se recibe el mensaje por el topic
+correspondiente y luego envía el mensaje por la API de Pybullet para el control de los motores de las 
+articulaciones. Para los pares de las articulaciones, se crea un Publisher para cada articulación y en el
+bucle de control se genera el mensaje y se publica. Cabe destacar que, como en Gazebo los ejes en los que se
+actúan las articulaciones son el Z o el Y, solo se asignan esos valores del mensaje tipo WrenchStamped para que
+lo reciba el nodo de 'cart_pos'. 
+    Además, se puede calcular la velocidad a la que se mueve el extrtemo del robot haciendo la cinemática
+diferencial directa a partir de las velocidades articulares del topic /joint_states. Esta información se puede 
+enviar por un topic y limitar la velocidad del Phantom para que sea más seguro, fiable y para que no genere
+tantos retrasos.
+    También se ha creado una imagen Docker para poder pasar el proyecto más fácilmente. El Dockerfile es el 
+mismo que el de Ignacio en las prácticas de AUROVA.
+    (3 h) --> 5 / 03 / 23
+
 
 
 INSTALL sudo apt-get install ros-noetic-soem
