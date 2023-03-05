@@ -86,6 +86,11 @@
     <xacro:property name="forearm_radius" value="0.040" />    <!-- manually measured -->
     <xacro:property name="wrist_radius" value="0.045" />      <!-- manually measured -->
 
+    <xacro:property name="velocity_base" value="3.14" />
+    <xacro:property name="velocity_wrist" value="6.28" />
+
+    <xacro:property name="effort_base" value="150" />
+    <xacro:property name="effort_wrist" value="28" />
 
     <link name="${prefix}base_link" >
       <visual>
@@ -112,7 +117,7 @@
       <origin xyz="0.0 0.0 ${shoulder_height}" rpy="0.0 0.0 0.0" />
       <axis xyz="0 0 1" />
       <xacro:unless value="${joint_limited}">
-        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="400.0" velocity="50"/>
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="${effort_base}" velocity="${velocity_base}"/>
         <xacro:if value="${safety_limits}">
           <safety_controller soft_lower_limit="${-2.0 * pi + safety_pos_margin}" soft_upper_limit="${2.0 * pi - safety_pos_margin}" k_position="${safety_k_position}" k_velocity="0.0"/>
         </xacro:if>
@@ -151,7 +156,7 @@
       <origin xyz="0.0 ${shoulder_offset} 0.0" rpy="0.0 ${pi / 2.0} 0.0" />
       <axis xyz="0 1 0" />
       <xacro:unless value="${joint_limited}">
-        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="400.0" velocity="50"/>
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="${effort_base}" velocity="${velocity_base}"/>
         <xacro:if value="${safety_limits}">
           <safety_controller soft_lower_limit="${-2.0 * pi + safety_pos_margin}" soft_upper_limit="${2.0 * pi - safety_pos_margin}" k_position="${safety_k_position}" k_velocity="0.0"/>
         </xacro:if>
@@ -190,7 +195,7 @@
       <origin xyz="0.0 ${elbow_offset} ${upper_arm_length}" rpy="0.0 0.0 0.0" />
       <axis xyz="0 1 0" />
       <xacro:unless value="${joint_limited}">
-        <limit lower="${-pi}" upper="${pi}" effort="400.0" velocity="50"/>
+        <limit lower="${-pi}" upper="${pi}" effort="${effort_base}" velocity="${velocity_base}"/>
         <xacro:if value="${safety_limits}">
           <safety_controller soft_lower_limit="${-2.0 * pi + safety_pos_margin}" soft_upper_limit="${2.0 * pi - safety_pos_margin}" k_position="${safety_k_position}" k_velocity="0.0"/>
         </xacro:if>
@@ -229,7 +234,7 @@
       <origin xyz="0.0 0.0 ${forearm_length}" rpy="0.0 ${pi / 2.0} 0.0" />
       <axis xyz="0 1 0" />
       <xacro:unless value="${joint_limited}">
-        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="50.0" velocity="12"/>
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="${effort_wrist}" velocity="${velocity_wrist}"/>
         <xacro:if value="${safety_limits}">
           <safety_controller soft_lower_limit="${-2.0 * pi + safety_pos_margin}" soft_upper_limit="${2.0 * pi - safety_pos_margin}" k_position="${safety_k_position}" k_velocity="0.0"/>
         </xacro:if>
@@ -268,7 +273,7 @@
       <origin xyz="0.0 ${wrist_1_length} 0.0" rpy="0.0 0.0 0.0" />
       <axis xyz="0 0 1" />
       <xacro:unless value="${joint_limited}">
-        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="50.0" velocity="12"/>
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="${effort_wrist}" velocity="${velocity_wrist}"/>
         <xacro:if value="${safety_limits}">
           <safety_controller soft_lower_limit="${-2.0 * pi + safety_pos_margin}" soft_upper_limit="${2.0 * pi - safety_pos_margin}" k_position="${safety_k_position}" k_velocity="0.0"/>
         </xacro:if>
@@ -307,7 +312,7 @@
       <origin xyz="0.0 0.0 ${wrist_2_length}" rpy="0.0 0.0 0.0" />
       <axis xyz="0 1 0" />
       <xacro:unless value="${joint_limited}">
-        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="50.0" velocity="12"/>
+        <limit lower="${-2.0 * pi}" upper="${2.0 * pi}" effort="${effort_wrist}" velocity="${velocity_wrist}"/>
         <xacro:if value="${safety_limits}">
           <safety_controller soft_lower_limit="${-2.0 * pi + safety_pos_margin}" soft_upper_limit="${2.0 * pi - safety_pos_margin}" k_position="${safety_k_position}" k_velocity="0.0"/>
         </xacro:if>
