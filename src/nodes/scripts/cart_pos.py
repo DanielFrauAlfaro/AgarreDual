@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-from std_msgs.msg import Float32MultiArray, Bool
+from std_msgs.msg import Float32MultiArray
 from geometry_msgs.msg import Pose, Wrench, WrenchStamped
 from sensor_msgs.msg import JointState
 import rospy
@@ -181,6 +181,11 @@ def joint_state_cb(data):
         f.torque.x = f_[3]
         f.torque.y = f_[4]
         f.torque.z = f_[5]
+
+
+        # TODO: VELOCIDAD
+        v_ = np.matmul(J, qd)
+
 
         # En función del nombre crea unos mensajes para el gripper
         if grip == "2f_140":
