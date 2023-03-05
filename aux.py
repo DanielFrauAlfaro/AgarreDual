@@ -45,7 +45,7 @@ rospy.init_node("aux")
 pub = rospy.Publisher("/ur5_2/pose", Pose, queue_size=10)
 rospy.Subscriber("/ur5_2/pose_aux", Pose, aux)
 
-r = rospy.Rate(15)
+r = rospy.Rate(13)
 
 while not rospy.is_shutdown():
     pub.publish(pose)
