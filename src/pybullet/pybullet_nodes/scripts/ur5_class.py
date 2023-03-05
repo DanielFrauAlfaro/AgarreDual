@@ -3,14 +3,14 @@
 import pybullet as p
 import pybullet_data
 import collections
-import os
 from spatialmath import SE3
 import roboticstoolbox as rtb
 from math import pi
-import sys
 import rospy
+from std_msgs.msg import Float64
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
+from geometry_msgs.msg import WrenchStamped
 
 # Class for the UR5
 class UR5e:
@@ -140,11 +140,24 @@ class UR5e:
         # Publishers and subscribers
         rospy.Subscriber("/" + self.name + "/pose", Pose, self.pose_cb)
         self.pub_state = rospy.Publisher("/" + self.name + "/joint_states", JointState, queue_size=10)
+        self.torque_pub = []
+
+        for i in controlJoints:
+            self.torque_pub.append(rospy.Publisher("/" + self.name + "/" + i + "_torque_sensor", WrenchStamped, queue_size=10))
+
+        if grip == "2f_140":
+            rospy.Subscriber("/" + name + "/gripper/command", Float64, self.grip_2f_cb )
+
+        else:
+            rospy.Subscriber("/" + name + "/finger_1_joint_1_controller/command", Float64, self.grip_3f_1_cb )
+            rospy.Subscriber("/" + name + "/finger_2_joint_1_controller/command", Float64, self.grip_3f_2_cb )
+            rospy.Subscriber("/" + name + "/finger_middle_joint_1_controller/command", Float64, self.grip_3f_mid_cb )
+            rospy.Subscriber("/" + name + "/palm_finger_1_joint_controller/command", Float64, self.grip_3f_palm_cb )
+        
+        self.t_q = WrenchStamped()
 
         self.j_state = JointState()
-        self.j_state.name = ["shoulder_pan_joint","shoulder_lift_joint",
-                             "elbow_joint", "wrist_1_joint",
-                             "wrist_2_joint", "wrist_3_joint"] + gripperJoints
+        self.j_state.name = controlJoints + gripperJoints
         self.j_state.position = self.q + self.gripper
         self.j_state.velocity = [0,0,0,0,0,0] +  self.gripper
         self.j_state.effort = [0,0,0,0,0,0] + self.gripper
@@ -169,13 +182,10 @@ class UR5e:
     def apply_action(self, action):
         # Decodes the action in robot joint position, gripper position and palm state
         q = action[0:6]
-        # grip = action[6:10]
 
         # Assigns the action to the internal values of the robot
         self.q = q
         
-        # self.gripper = grip
-
         # UR5 control
         p.setJointMotorControlArray(bodyUniqueId=self.ur5, 
                                     jointIndices=self.ur5_joints_id, 
@@ -196,7 +206,10 @@ class UR5e:
 
             self.j_state.position[cont] = aux[0]
             self.j_state.velocity[cont] = aux[1]
-            self.j_state.effort[cont] = aux[2][-1]
+
+            self.t_q.wrench.torque.y = aux[2][-1]
+            self.t_q.wrench.torque.z = aux[2][-1]
+            self.torque_pub[cont].publish(self.t_q)
 
             cont = cont + 1
 
@@ -208,7 +221,7 @@ class UR5e:
             
             self.j_state.position[cont] = aux[0]
             self.j_state.velocity[cont] = aux[1]
-            self.j_state.effort[cont] = aux[2][-1]
+
             cont = cont + 1
         
         
@@ -330,6 +343,41 @@ class UR5e:
     def get_ids(self):
         return self.client, self.ur5
     
+
+    def grip_3f_1_cb(self, data):
+        p.setJointMotorControl2(bodyIndex=self.ur5, 
+                                jointIndex=self.gripper_joints_id[1], 
+                                controlMode=p.POSITION_CONTROL,
+                                targetPosition=data.data,
+                                physicsClientId=self.client)
+
+    def grip_3f_2_cb(self, data):
+        p.setJointMotorControl2(bodyIndex=self.ur5, 
+                                jointIndex=self.gripper_joints_id[2], 
+                                controlMode=p.POSITION_CONTROL,
+                                targetPosition=data.data,
+                                physicsClientId=self.client)
+
+    def grip_3f_mid_cb(self, data):
+        p.setJointMotorControl2(bodyIndex=self.ur5, 
+                                jointIndex=self.gripper_joints_id[3], 
+                                controlMode=p.POSITION_CONTROL,
+                                targetPosition=data.data,
+                                physicsClientId=self.client)
+    def grip_3f_palm_cb(self, data):
+        p.setJointMotorControl2(bodyIndex=self.ur5, 
+                                jointIndex=self.gripper_joints_id[0], 
+                                controlMode=p.POSITION_CONTROL,
+                                targetPosition=data.data,
+                                physicsClientId=self.client)
+    
+    def grip_2f_cb(self, data):
+        
+        p.setJointMotorControl2(bodyIndex=self.ur5, 
+                                jointIndex=self.gripper_joints_id[0], 
+                                controlMode=p.POSITION_CONTROL,
+                                targetPosition=data.data,
+                                physicsClientId=self.client)
 
     def pose_cb(self, data):
         x = data.position.x                                 
