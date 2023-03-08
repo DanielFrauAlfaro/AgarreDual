@@ -651,6 +651,13 @@ mismo que el de Ignacio en las prácticas de AUROVA.
 
 
 
+    Se han añadido ganancias mientras se mueve el robot, de esta manera, se ejercerá una fuerza al operario mientras
+mueve el robot. Otro rasgo a destacar de esta arquitectura es que así ya no se hacen tan significativos los retardos en 
+el movimiento, ya que los comandos del operario están limitados por la fuerza del robot.
+    Se ha eliminado los callbacks de los sensores de fuerza y su procesamiento.
+    (4 h) --> 8 / 03 / 23
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
