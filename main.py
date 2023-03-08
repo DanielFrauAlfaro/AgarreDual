@@ -20,8 +20,8 @@ names = ["ur5_2", "ur5_1"]
 positions = [["-0.2","0.8","1.02"], ["-0.2", "0.1", "1.02"]]
 positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]
 n = "1"
-gripp = ["2f_140", "2f_140"]
-pybullet = True
+gripp = ["3f", "2f_140"]
+pybullet = False
 
 spawnables_show = ("Masterchef can", "Cracker box", "Sugar box", "Tomatosoup can", "Mustard bottle", "Tuna fish can", "Pudding box", "Gelatin box", "Potted meat can", "Banana", "Strawberry", "Apple", "Lemon", "Peach", "Pear", "Orange", "Plum", "Bleach cleanser")
     
