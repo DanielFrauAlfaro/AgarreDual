@@ -35,7 +35,7 @@ g = Float32MultiArray()
 f = Wrench()
 
 # Tiempo para coger los mensajes del /joint_states
-interval = 0.2
+interval = 0.0
 prev = time.time()
 
 # Nombres
@@ -46,48 +46,10 @@ grip = "2f_140"
 prev_grip_140 = 0
 prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm = 0, 0, 0, 0
 
+grip_pos = []
+
 # Publishers
 pubs = []
-
-# Vector para el filtro de mediana y su tamaño
-smooth = [[], [], [], [], [], []]
-size_filt = 40
-
-for i in range(6):
-    for j in range(size_filt):
-        smooth[i].append(0.0)
-
-
-# Callbacks de los sensores de par de cada articulación
-def torque_cb_shoulder_pan(data):
-    global tau
-
-    tau[0] = data.wrench.torque.z
-
-def torque_cb_shoulder_lift(data):
-    global tau
-
-    tau[1] = data.wrench.torque.y
-
-def torque_cb_elbow(data):
-    global tau
-
-    tau[2] = data.wrench.torque.y
-
-def torque_cb_wrist_1(data):
-    global tau
-
-    tau[3] = data.wrench.torque.y
-
-def torque_cb_wrist_2(data):
-    global tau
-
-    tau[4] = data.wrench.torque.z
-
-def torque_cb_wrist_3(data):
-    global tau
-
-    tau[5] = data.wrench.torque.y
 
 # Estado de las articulaciones
 def joint_state_cb(data):
@@ -95,10 +57,8 @@ def joint_state_cb(data):
     global p, g, f, pubs
     global prev_grip_140
     global name, grip
-    global tau
-    global prev_grip_140
-    global prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm
-    
+    global grip_pos
+
     # Cuando pasa el intervalo de tiempo se ejecuta el feedback
     if time.time() - prev > interval:        
         
@@ -129,20 +89,20 @@ def joint_state_cb(data):
                 qd[5] = data.velocity[i]
             
             elif grip == "2f_140" and data.name[i] == "finger_joint":
-                prev_grip_140 = data.position[i]
+                grip_pos[0] = data.position[i]
 
             elif grip == "3f":
-                if data.name[i] == "gripper_finger_middle_joint_1":
-                    prev_grip_3f_1 = data.position[i]
-                
-                elif data.name[i] == "gripper_finger_1_joint_1":
-                    prev_grip_3f_2 = data.position[i]
+                if data.name[i] == "gripper_finger_1_joint_1":
+                    grip_pos[0]= data.position[i]
 
                 elif data.name[i] == "gripper_finger_2_joint_1":
-                    prev_grip_3f_mid = data.position[i]
+                    grip_pos[1] = data.position[i]
 
-                '''elif data.name[i] == "gripper_palm_finger_1_joint":
-                    prev_grip_3f_palm = data.position[i]'''
+                elif data.name[i] == "gripper_finger_middle_joint_1":
+                    grip_pos[2] = data.position[i]
+                
+                elif data.name[i] == "gripper_palm_finger_1_joint":
+                    grip_pos[3] = data.position[i]
 
 
         # Cinemática directa (CD)
@@ -161,47 +121,12 @@ def joint_state_cb(data):
         p.orientation.y = eul[1] # q[4]
         p.orientation.z = eul[2] # q[5]
 
-
-        # Jacobiana directa
-        J = ur5.jacob0(q, T)
-
-        # Fuerza cartesiana en el extremo
-        f_ = np.matmul(J, tau)
-
-        for i in range(6):
-            smooth[i].pop(-1)
-            smooth[i].insert(0, f_[i])
-            f_[i] =  sum(smooth[i]) / size_filt
-
-        # Construye el mensaje para la fuerza        
-        f.force.x = f_[0]
-        f.force.y = f_[1]
-        f.force.z = f_[2]
-
-        f.torque.x = f_[3]
-        f.torque.y = f_[4]
-        f.torque.z = f_[5]
-
-
-        # TODO: VELOCIDAD
-        v_ = np.matmul(J, qd)
-
-
-        # En función del nombre crea unos mensajes para el gripper
-        if grip == "2f_140":
-            g_aux = [prev_grip_140]
-
-            g.data = g_aux
-            
-        elif grip == "3f":
-            g_aux = [prev_grip_3f_1, prev_grip_3f_2, prev_grip_3f_mid, prev_grip_3f_palm]
-
-            g.data = g_aux
+        # Crea el mensaje para el gripper
+        g.data = grip_pos
 
         # Publica los mensajes
         pubs[0].publish(p)
         pubs[1].publish(g)
-        pubs[2].publish(f)        
 
         # Actualiza el tiempo
         prev = time.time()
@@ -217,21 +142,15 @@ if __name__ == '__main__':
 
         # Nodo
         rospy.init_node(name + "_cart_pos")
+        if grip == "2f_140":
+            grip_pos = [0.0]
+        elif grip == "3f":
+            grip_pos = [0.0, 0.0, 0.0, 0.0]
 
         rospy.Subscriber('/' + name + '/joint_states', JointState, joint_state_cb)
-
-        rospy.Subscriber('/' + name + '/shoulder_pan_joint_torque_sensor', WrenchStamped, torque_cb_shoulder_pan)
-        rospy.Subscriber('/' + name + '/shoulder_lift_joint_torque_sensor', WrenchStamped, torque_cb_shoulder_lift)
-        rospy.Subscriber('/' + name + '/elbow_joint_torque_sensor', WrenchStamped, torque_cb_elbow)
-        rospy.Subscriber('/' + name + '/wrist_1_joint_torque_sensor', WrenchStamped, torque_cb_wrist_1)
-        rospy.Subscriber('/' + name + '/wrist_2_joint_torque_sensor', WrenchStamped, torque_cb_wrist_2)
-        rospy.Subscriber('/' + name + '/wrist_3_joint_torque_sensor', WrenchStamped, torque_cb_wrist_3)
-        
         pubs.append(rospy.Publisher("/" + name + "/cart_pos", Pose, queue_size=10))
         
         if grip != "none":
             pubs.append(rospy.Publisher("/" + name + '/grip_pos', Float32MultiArray, queue_size=10))
-
-        pubs.append(rospy.Publisher("/" + name + "/cart_force", Wrench, queue_size=10))
 
         rospy.spin()
