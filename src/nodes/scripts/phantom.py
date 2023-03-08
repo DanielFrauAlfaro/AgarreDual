@@ -6,7 +6,7 @@ from sensor_msgs.msg import Joy
 import rospy
 import sys
 import time
-import numpy as np
+from math import pi
 
 '''
 x_limit: 0.09 - -0.07           * 2
@@ -36,20 +36,28 @@ wrench = WrenchStamped()            # Wrench del Phantom
 wrench_robot = Wrench()      # Wrench del robot
 
 grip_140 = Float64()                # Posición de la pinza de 2 dedos
+grip_140.data = 0.0
 
 grip_1 = Float64()                  # Posición de los dedos de la pinza de 3 dedos y la palma
+grip_1.data = 0.0
+
 grip_2 = Float64()
+grip_2.data = 0.0
+
 grip_mid = Float64()
+grip_mid.data = 0.0
+
 grip_palm = Float64()
+grip_palm.data = 0.0
 
 # Factor de escala de los movimientos 
 scale_x = 2                         # Escala del movimiento cartesiano
 scale_y = 2
 scale_z = 3.5
 
-scale_roll = 8                      # Escala del movimiento en ángulos de Euler
-scale_pitch = 8
-scale_yaw = 8
+scale_roll = 12                      # Escala del movimiento en ángulos de Euler
+scale_pitch = 12
+scale_yaw = 12
 
 scale_grip_140 = 4.08               # Escala en el movimiento de las pinzas
 scale_grip = 7
@@ -67,7 +75,7 @@ or_yaw = -3.03 # 1.12 # -0.001661
 # Posiciones previas para XYZ y RPY
 #   Para al cambiar de XYZ a RPY y viceversa se guarden las XYZ o RPY segun convenga en el mensaje de pose
 prev_x, prev_y, prev_z = 0.516, 0.1334, 0.72
-prev_roll, prev_pitch, prev_yaw = or_roll, or_pitch, or_yaw
+prev_roll, prev_pitch, prev_yaw = -2.296, 0.0, -3.03
 
 prev_grip_140 = 0
 prev_grip_1, prev_grip_2, prev_grip_mid, prev_grip_palm = 0, 0, 0, 0
@@ -96,10 +104,19 @@ act_pose_phantom.orientation.y = -1.0
 act_pose_phantom.orientation.z = -1.0
 
 # Ganancia del feedback de fuerza
-K = 0                               # Ganancia en el movimiento
-KD = 0.0
+K = 40                              # Ganancia en la posición
+KD = 0.2
 
-Ke = 90                             # Ganancia del feedback de fuerza en los cambios de modo
+K_or = 15                           # Ganancia en la orientación
+KD_or = 0.05
+
+K_grip_2f = 40                      # Ganancia de la pinza de 2 dedos
+KD_grip_2f = 0.2
+
+K_grip_3f = 20                      # Ganancia de la pinza de 3 dedos
+KD_grip_3f = 0.0
+
+Ke = 80                             # Ganancia del feedback de fuerza en los cambios de modo
 Kde = 0.3
 
 # Umbral de detección para los cambios
@@ -225,8 +242,8 @@ def cb_bt2(data):
     global change
     global state, state_3f
     
-    # Si está en el segundo estado y se presiona el botón
-    if state == 2:
+    # Si está en el segundo estado sin cambio y se presiona el botón
+    if state == 2 and not change:
         if data.buttons[0] == 1:
             # Cambia el subestado de la pinza
             state_3f = state_3f + 1
@@ -253,6 +270,7 @@ def cb_bt2(data):
 def cart_pos(data):
     global prev_x, prev_y, prev_z
     global prev_roll, prev_pitch, prev_yaw
+    global change
 
     # Si está en el estado 2, obtiene la posición del extremo
     if state == 0:
@@ -400,7 +418,6 @@ if __name__ == "__main__":
                         
             # 3 --   
             else:   
-                
                 if state == 0:
                     ex = (prev_y - pose.position.y)
                     ey = (prev_z - pose.position.z)
@@ -408,19 +425,25 @@ if __name__ == "__main__":
                 
                 elif state == 1:
                     ex = (prev_pitch - pose.orientation.y)
+                    
+                    if prev_yaw < 0.0:
+                        prev_yaw = 2*pi + prev_yaw
+                    if pose.orientation.z < 0.0:
+                        pose.orientation.z = 2*pi + pose.orientation.z
+
                     ey = (prev_yaw - pose.orientation.z)
                     ez = (prev_roll - pose.orientation.x)
 
                 elif state == 2:
                     ex = (0 - act_pose_phantom.position.x)
                     ez = (0 - act_pose_phantom.position.z)
-                    ex0 = (0 - act_pose_phantom.position.x)
-                    ey0 = (0 - act_pose_phantom.position.y)
-                    ez0 = (0 - act_pose_phantom.position.z)
+                    ex0 = (0 - act_pose_phantom.position.x)*2
+                    ey0 = (0 - act_pose_phantom.position.y)*2
+                    ez0 = (0 - act_pose_phantom.position.z)*2
 
 
                     if grip == "2f":
-                        ey = (prev_grip_140 - grip_140) * 0  
+                        ey = (prev_grip_140 - grip_140) 
 
                         if act_pose_phantom.position.y < 0:
                             ey = ey0
@@ -429,7 +452,7 @@ if __name__ == "__main__":
                         if state_3f == 0:
                             ex = (prev_grip_1 - grip_1) * 0
                             ez = (prev_grip_2 - grip_2) * 0
-                            ey = (prev_grip_mid - grip_mid) * 0 
+                            ey = (prev_grip_mid - grip_mid) * 0
 
                         elif state_3f == 1:
                             ey = (prev_grip_palm - grip_palm) * 0
@@ -446,33 +469,42 @@ if __name__ == "__main__":
 # --------------------------------------------------------------------------------------------------
 
                 # Publicar la posición
-                if state != 2:
-                    pub.publish(pose)
+                pub.publish(pose)
 
                 # Publicar el gripper
+                if grip == "2f":
+                    pub_grip[0].publish(grip_140)
+
                 else:
-                    if grip == "2f":
-                        pub_grip[0].publish(grip_140)
+                    if state_3f == 0:
+                        pub_grip[0].publish(grip_1)
+                        pub_grip[1].publish(grip_2)
+                        pub_grip[2].publish(grip_mid)
 
-                    else:
-                        if state_3f == 0:
-                            pub_grip[0].publish(grip_1)
-                            pub_grip[1].publish(grip_2)
-                            pub_grip[2].publish(grip_mid)
-
-                        elif state_3f == 1:
-                            pub_grip[3].publish(grip_palm)
+                    elif state_3f == 1:
+                        pub_grip[3].publish(grip_palm)
             
             # Cálculo de ganancias
             k = 0
             kd = 0
 
-            if change or state == 2:
+            if change:
                 k = Ke
                 kd = Kde
-            else:
+            elif state == 0:
                 k = K
                 kd = KD
+            elif state == 1:
+                k = K_or
+                kd = KD_or
+            elif state == 2:
+                if grip == "2f_140":
+                    k = K_grip_2f
+                    kd = KD_grip_2f
+                elif grip == "3f":
+                    k = K_grip_3f
+                    kd = KD_grip_3f 
+            
 
             # Aplicar las fuerzas
             wrench.wrench.force.x = ex * k - ex / (time.time() - t) * kd
@@ -481,7 +513,7 @@ if __name__ == "__main__":
 
             # Fuerza constante hacia arriba
             if not change:
-                wrench.wrench.force.y = wrench.wrench.force.y + 0.7
+                wrench.wrench.force.y = wrench.wrench.force.y + 0.0
 
 
     ####################################################################################################################
