@@ -655,6 +655,8 @@ mismo que el de Ignacio en las prácticas de AUROVA.
 mueve el robot. Otro rasgo a destacar de esta arquitectura es que así ya no se hacen tan significativos los retardos en 
 el movimiento, ya que los comandos del operario están limitados por la fuerza del robot.
     Se ha eliminado los callbacks de los sensores de fuerza y su procesamiento.
+    Se ha añadido la publicación constante de los comandos del gripper y del robot, así la pinza puede mantener los valores
+preestablecidos durante otros estados además del suyo propio y el robot no pierde la posición dada.
     (4 h) --> 8 / 03 / 23
 
 
