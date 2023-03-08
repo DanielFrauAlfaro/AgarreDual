@@ -79,7 +79,6 @@ class UR5e:
         self.ur5_joints_id = []
         self.gripper_joints_id = []
         numJoints = p.getNumJoints(self.ur5)
-        jointInfo = collections.namedtuple("jointInfo",["id","name","type",'damping','friction',"lowerLimit","upperLimit","maxForce","maxVelocity","controllable"])
         
         # Iterates for each joint
         for i in range(numJoints):
@@ -87,12 +86,7 @@ class UR5e:
             jointID = info[0]
             jointName = info[1].decode("utf-8")
             jointType = info[2]
-            jointDamping = info[6]
-            jointFriction = info[7]
-            jointLowerLimit = info[8]
-            jointUpperLimit = info[9]
-            jointMaxForce = info[10]
-            jointMaxVelocity = info[11]
+
             controllable = (jointType != p.JOINT_FIXED)
 
             # If a joint is controllable ...
@@ -104,8 +98,7 @@ class UR5e:
                                                physicsClientId=self.client)
 
                 # ... saves its properties, ...
-                info = jointInfo(jointID,jointName,jointType,jointDamping,jointFriction,jointLowerLimit,
-                            jointUpperLimit,jointMaxForce,jointMaxVelocity,controllable)
+                info = [jointID,jointName,jointType,controllable]
                 self.joints.append(info)
 
                 # ... saves the IDs of the UR5 joints, ...
@@ -119,9 +112,9 @@ class UR5e:
 
         # Setups mimic joints for the fingers
         if grip == "3f":
+            self.gripperControl3f('middle')
             self.gripperControl3f('1')
             self.gripperControl3f('2')
-            self.gripperControl3f('middle')
             self.palmControl()
 
         elif grip == "2f_140":
@@ -233,7 +226,7 @@ class UR5e:
 ####################################################################
     
     # Apply constraints to each finger - 2f gripper
-    def setup_mimic_joints_2f(self, robot, mimic_parent_name, mimic_children_names):
+    def setup_mimic_joints_2f(self, mimic_parent_name, mimic_children_names):
         keys = list(mimic_children_names.keys())
         for i in self.joints:
             for j in mimic_children_names:
@@ -257,7 +250,7 @@ class UR5e:
 
         c = []
         for joint_id in mimic_child_multiplier:
-            c.append(p.createConstraint(robot, mimic_parent_id, robot, joint_id, jointType=p.JOINT_GEAR, jointAxis=[0, 1, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0]))
+            c.append(p.createConstraint(self.ur5, mimic_parent_id, self.ur5, joint_id, jointType=p.JOINT_GEAR, jointAxis=[0, 1, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0]))
 
         cont = 0
         for i in mimic_children_names:
@@ -290,7 +283,7 @@ class UR5e:
         mimic_parent_id = self.setup_mimic_joints_3f(self.ur5, mimic_parent_name, mimic_children_names)
       
     # Apply constraints to each finger - 3f gripper
-    def setup_mimic_joints_3f(self, robot, mimic_parent_name, mimic_children_names):
+    def setup_mimic_joints_3f(self, mimic_parent_name, mimic_children_names):
 
         keys = list(mimic_children_names.keys())
 
@@ -310,14 +303,12 @@ class UR5e:
 
         c = []
         for joint_id in mimic_child_multiplier:
-            c.append(p.createConstraint(robot, mimic_parent_id, robot, joint_id, jointType=p.JOINT_GEAR, jointAxis=[0, 0, 1], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0]))
+            c.append(p.createConstraint(self.ur5, mimic_parent_id, self.ur5, joint_id, jointType=p.JOINT_GEAR, jointAxis=[0, 0, 1], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0]))
 
         cont = 0
         for i in mimic_children_names:
             p.changeConstraint(c[cont], gearRatio=-mimic_children_names[i], maxForce=100, erp=1)  # Note: the mysterious `erp` is of EXTREME importance
             cont=cont+1
-
-        return mimic_parent_id
 
     # Apply constraint to the palm joints - 3f gripper
     def palmControl(self):
@@ -395,16 +386,3 @@ class UR5e:
 
         q = self.__ur5.ikine_LMS(self.T,q0 = self.j_state.position[0:6])       # Inversa: obtiene las posiciones articulares a través de la posición    
         self.apply_action(q.q)
-
-
-    def control_loop(self):
-
-        r = rospy.Rate(50)
-
-        while not rospy.is_shutdown():
-            self.get_observation()
-            p.stepSimulation()
-            self.pub_state.publish(self.j_state)
-
-
-    
