@@ -1,12 +1,10 @@
-
 import roslaunch
 import rospy
 import subprocess
 import dearpygui.dearpygui as dpg
 from math import pi
-from std_msgs.msg import Int32
-import pybullet as p
-import pybullet_data
+from std_msgs.msg import Int32, String
+import os
 
 subprocess.Popen('roscore')
 rospy.sleep(1)
@@ -21,7 +19,7 @@ positions = [["-0.2","0.8","1.02"], ["-0.2", "0.1", "1.02"]]
 positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]
 n = "1"
 gripp = ["3f", "2f_140"]
-pybullet = False
+pybullet = True
 
 spawnables_show = ("Masterchef can", "Cracker box", "Sugar box", "Tomatosoup can", "Mustard bottle", "Tuna fish can", "Pudding box", "Gelatin box", "Potted meat can", "Banana", "Strawberry", "Apple", "Lemon", "Peach", "Pear", "Orange", "Plum", "Bleach cleanser")
     
@@ -393,6 +391,7 @@ if __name__ == "__main__":
 
     launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
     
+    pyb_sp_obj = []
 
     while dpg.is_dearpygui_running():
         if is_launch:
@@ -436,19 +435,33 @@ if __name__ == "__main__":
             is_stop_sim = False
 
         if is_spawn:
-            uuid_obj = roslaunch.rlutil.get_or_generate_uuid(None, False)
+            if not pybullet:
+                uuid_obj = roslaunch.rlutil.get_or_generate_uuid(None, False)
 
-            origin_obj = 'origin:=-x' + positions_obj[0][0] + ' -y ' + positions_obj[0][1] + ' -z ' + positions_obj[0][2] + ' -R ' + positions_obj[1][0] + ' -P ' + positions_obj[1][1] + ' -Y ' + positions_obj[1][2]
-            object_name = 'object_name:=' + spawn_name
+                origin_obj = 'origin:=-x' + positions_obj[0][0] + ' -y ' + positions_obj[0][1] + ' -z ' + positions_obj[0][2] + ' -R ' + positions_obj[1][0] + ' -P ' + positions_obj[1][1] + ' -Y ' + positions_obj[1][2]
+                object_name = 'object_name:=' + spawn_name
 
-            cli_args_obj = ['src/objects_models/launch/object_model.launch', origin_obj, object_name]
-            roslaunch_args_obj = cli_args_obj[1:]
-            roslaunch_file_obj = [(roslaunch.rlutil.resolve_launch_arguments(cli_args_obj)[0], roslaunch_args_obj)]
+                cli_args_obj = ['src/objects_models/launch/object_model.launch', origin_obj, object_name]
+                roslaunch_args_obj = cli_args_obj[1:]
+                roslaunch_file_obj = [(roslaunch.rlutil.resolve_launch_arguments(cli_args_obj)[0], roslaunch_args_obj)]
 
-            parent_obj = roslaunch.parent.ROSLaunchParent(uuid_obj, roslaunch_file_obj)
+                parent_obj = roslaunch.parent.ROSLaunchParent(uuid_obj, roslaunch_file_obj)
 
-            parent_obj.start()
+                parent_obj.start()
+            
+            else:
+                pyb_sp_obj.append(rospy.Publisher("/object_spawn", String, queue_size=10))
+                spawn_msg = String()
 
+                dir_path = os.path.dirname(os.path.realpath(__file__))
+                
+                spawn_msg.data = spawn_name + ' ' + positions_obj[0][0] + ' ' + positions_obj[0][1] + ' ' + positions_obj[0][2] + ' ' + positions_obj[1][0] + ' ' + positions_obj[1][1] + ' ' + positions_obj[1][2] + ' ' + dir_path
+                
+
+                pyb_sp_obj[0].publish(spawn_msg)
+
+                pyb_sp_obj.pop()
+            
             is_spawn = False
 
         dpg.render_dearpygui_frame()
