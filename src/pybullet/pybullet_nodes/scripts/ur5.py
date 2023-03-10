@@ -1,18 +1,26 @@
 #!/usr/bin/env python3
 
 import pybullet as p
-import pybullet_data
-import collections
-import os
-from spatialmath import SE3
-import roboticstoolbox as rtb
-from math import pi
 import sys
 import rospy
-from geometry_msgs.msg import Pose
-from sensor_msgs.msg import JointState
-import time
 from ur5_class import UR5e
+from std_msgs.msg import String
+
+client = 0
+
+def spawn_cb(data):
+    global client
+    
+    s = data.data.split()
+    name = s[0]
+    pos = [float(s[1]), float(s[2]), float(s[3])]
+    orient = p.getQuaternionFromEuler(eulerAngles=[float(s[4]), float(s[5]), float(s[6])],
+                                      physicsClientId=client)
+    
+    # p.loadURDF(fileName=s[-1] + "/src/object_models/urdf/" + name + "/model.urdf",
+    #            basePosition=pos,
+    #            baseOrientation=orient)
+    
 
 if __name__ == "__main__":
     rospy.init_node("master_pybullet")
@@ -29,6 +37,8 @@ if __name__ == "__main__":
 
     for i in range(n):
         ur.append(UR5e(client=client, name=names[i], grip=grip[i], pos=origin[i], dir=dir))
+
+    rospy.Subscriber("/object_spawn", String, spawn_cb)
 
     r = rospy.Rate(100)
     while not rospy.is_shutdown():
