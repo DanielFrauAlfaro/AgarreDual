@@ -660,6 +660,12 @@ preestablecidos durante otros estados además del suyo propio y el robot no pier
     (4 h) --> 8 / 03 / 23
 
 
+
+    Testeo general:
+        - Falla la pinza de tres dedos en Gazebo --> poner el controlador de esfuerzo a ver
+        - El Phantom se cae --> Fuerza continua
+    (4 h) --> 9 / 03 / 23
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
