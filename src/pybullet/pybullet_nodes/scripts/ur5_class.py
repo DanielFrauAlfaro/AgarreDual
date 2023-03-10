@@ -2,7 +2,6 @@
 
 import pybullet as p
 import pybullet_data
-import collections
 from spatialmath import SE3
 import roboticstoolbox as rtb
 from math import pi
@@ -10,7 +9,6 @@ import rospy
 from std_msgs.msg import Float64
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
-from geometry_msgs.msg import WrenchStamped
 
 # Class for the UR5
 class UR5e:
@@ -33,10 +31,6 @@ class UR5e:
         self.__ur5.base = SE3.RPY(0,0,-pi)      # Rotate robot base so it matches Gazebo model
         self.__ur5.tool = SE3(0.0, 0.0, 0.03)
 
-        # Client ID of the Pybullet server
-        
-
-
         # Load the UR5 URDF according to 'grip' value
         self.ur5 = 0
         p.setAdditionalSearchPath(pybullet_data.getDataPath()) 
@@ -49,6 +43,7 @@ class UR5e:
 
             # Gripper joint names
             gripperJoints = ["palm_finger_1_joint", "finger_1_joint_1", "finger_2_joint_1", "finger_middle_joint_1"]
+            gripper_gripperJoints = ["gripper_palm_finger_1_joint", "gripper_finger_1_joint_1", "gripper_finger_2_joint_1", "gripper_finger_middle_joint_1"]
 
             # Gripper 3f initial position
             self.gripper = [0.0, 0.0, 0.0, 0]
@@ -66,7 +61,7 @@ class UR5e:
             
             # Gripper 2f initial position
             self.gripper = [0.0]
-
+            gripper_gripperJoints = ["finger_joint"]
 
 
         # Name of the UR5 joints (all joints are included on the same body)
@@ -113,8 +108,8 @@ class UR5e:
         # Setups mimic joints for the fingers
         if grip == "3f":
             self.gripperControl3f('middle')
-            self.gripperControl3f('1')
             self.gripperControl3f('2')
+            self.gripperControl3f('1')
             self.palmControl()
 
         elif grip == "2f_140":
@@ -126,6 +121,7 @@ class UR5e:
         # Brings the robot to a starting position
         self.apply_action(self.q + self.gripper)
         
+        # Waits for the robot to be in position
         for i in range(22):
             p.stepSimulation(self.client)
 
@@ -133,10 +129,6 @@ class UR5e:
         # Publishers and subscribers
         rospy.Subscriber("/" + self.name + "/pose", Pose, self.pose_cb)
         self.pub_state = rospy.Publisher("/" + self.name + "/joint_states", JointState, queue_size=10)
-        self.torque_pub = []
-
-        for i in controlJoints:
-            self.torque_pub.append(rospy.Publisher("/" + self.name + "/" + i + "_torque_sensor", WrenchStamped, queue_size=10))
 
         if grip == "2f_140":
             rospy.Subscriber("/" + name + "/gripper/command", Float64, self.grip_2f_cb )
@@ -147,10 +139,8 @@ class UR5e:
             rospy.Subscriber("/" + name + "/finger_middle_joint_1_controller/command", Float64, self.grip_3f_mid_cb )
             rospy.Subscriber("/" + name + "/palm_finger_1_joint_controller/command", Float64, self.grip_3f_palm_cb )
         
-        self.t_q = WrenchStamped()
-
         self.j_state = JointState()
-        self.j_state.name = controlJoints + gripperJoints
+        self.j_state.name = controlJoints + gripper_gripperJoints
         self.j_state.position = self.q + self.gripper
         self.j_state.velocity = [0,0,0,0,0,0] +  self.gripper
         self.j_state.effort = [0,0,0,0,0,0] + self.gripper
@@ -200,10 +190,6 @@ class UR5e:
             self.j_state.position[cont] = aux[0]
             self.j_state.velocity[cont] = aux[1]
 
-            self.t_q.wrench.torque.y = aux[2][-1]
-            self.t_q.wrench.torque.z = aux[2][-1]
-            self.torque_pub[cont].publish(self.t_q)
-
             cont = cont + 1
 
         # Gripper joint values
@@ -216,8 +202,7 @@ class UR5e:
             self.j_state.velocity[cont] = aux[1]
 
             cont = cont + 1
-        
-        
+    
         self.pub_state.publish(self.j_state)
     
         
@@ -269,7 +254,7 @@ class UR5e:
                                 'right_inner_finger_joint': 1,  
                                 'right_inner_knuckle_joint': -1}
 
-        mimic_parent_id = self.setup_mimic_joints_2f(self.ur5, mimic_parent_name, mimic_children_names)
+        mimic_parent_id = self.setup_mimic_joints_2f(mimic_parent_name, mimic_children_names)
 
         return mimic_parent_id
 
@@ -280,7 +265,7 @@ class UR5e:
         mimic_children_names = {'finger_' + n + '_joint_2': 1,
                                 'finger_' + n + '_joint_3': 1}
 
-        mimic_parent_id = self.setup_mimic_joints_3f(self.ur5, mimic_parent_name, mimic_children_names)
+        mimic_parent_id = self.setup_mimic_joints_3f(mimic_parent_name, mimic_children_names)
       
     # Apply constraints to each finger - 3f gripper
     def setup_mimic_joints_3f(self, mimic_parent_name, mimic_children_names):
@@ -363,7 +348,6 @@ class UR5e:
                                 physicsClientId=self.client)
     
     def grip_2f_cb(self, data):
-        
         p.setJointMotorControl2(bodyIndex=self.ur5, 
                                 jointIndex=self.gripper_joints_id[0], 
                                 controlMode=p.POSITION_CONTROL,
