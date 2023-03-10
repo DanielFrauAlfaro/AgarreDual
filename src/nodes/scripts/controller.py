@@ -67,7 +67,7 @@ class Controller():
         rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
         
         # Psociones a enviar por los topics
-        self.__qp = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
+        self.__qp = [0, -1.57, 1.57 , -1.57, -1.57, 0.0]
         self.__smooth = [[], [], [], [], [], []]
 
         self.size_filt = 6

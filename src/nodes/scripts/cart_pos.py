@@ -23,9 +23,10 @@ ur5 = rtb.DHRobot([
         ], name="UR5e")
 
 ur5.base = SE3.RPY(0,0,pi)      # Rotate robot base so it matches Gazebo model
+ur5.tool = SE3(0.0, 0.0, 0.03)
 
 # Posición articular
-q = [0, -1.5, 1 , -1.57, -1.57, 0.0]
+q = [0, -1.57, 1.57 , -1.57, -1.57, 0.0]
 qd = [0, 0, 0, 0, 0, 0]
 tau = [0, 0, 0, 0, 0, 0]
 
@@ -90,6 +91,7 @@ def joint_state_cb(data):
             
             elif grip == "2f_140" and data.name[i] == "finger_joint":
                 grip_pos[0] = data.position[i]
+                
 
             elif grip == "3f":
                 if data.name[i] == "gripper_finger_1_joint_1":
@@ -104,7 +106,6 @@ def joint_state_cb(data):
                 elif data.name[i] == "gripper_palm_finger_1_joint":
                     grip_pos[3] = data.position[i]
 
-
         # Cinemática directa (CD)
         T = ur5.fkine(q, order='yxz')
 
@@ -117,9 +118,9 @@ def joint_state_cb(data):
         p.position.y = trans[1]
         p.position.z = trans[2]
 
-        p.orientation.x = eul[0] # q[3]
-        p.orientation.y = eul[1] # q[4]
-        p.orientation.z = eul[2] # q[5]
+        p.orientation.x = eul[0]
+        p.orientation.y = eul[1]
+        p.orientation.z = eul[2]
 
         # Crea el mensaje para el gripper
         g.data = grip_pos
