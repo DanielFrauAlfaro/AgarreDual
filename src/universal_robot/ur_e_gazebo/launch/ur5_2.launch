@@ -79,10 +79,9 @@
                 <node name="phantom_controller2" pkg="nodes" type="phantom.py" args="$(arg name2) $(arg grip2)" output="screen" />
             </group>
         </group>
-
     </group>
 
     <!-- phantom nodes -->
-    <!-- <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="screen"/> -->
+    <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="log"/> 
 
 </launch>
