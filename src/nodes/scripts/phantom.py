@@ -451,7 +451,8 @@ if __name__ == "__main__":
                 # Publicar el gripper
                 for i in range(len(pub_grip)):
                     pub_grip[i].publish(grip_pos[i])
-                
+
+
             # Cálculo de ganancias
             k = 0
             kd = 0
@@ -484,7 +485,7 @@ if __name__ == "__main__":
 
             # Fuerza constante hacia arriba
             if not change:
-                wrench.wrench.force.y = wrench.wrench.force.y + 0.0
+                wrench.wrench.force.y = wrench.wrench.force.y + 0.85
 
             # 4 --
             pub_f.publish(wrench)
