@@ -83,8 +83,8 @@ act_pose_phantom.orientation.z = -1.0
 K = 40                             # Positonal gains
 KD = 0.2
 
-K_or = 10                          # Orientational gain
-KD_or = 0.05
+K_or = 9                          # Orientational gain
+KD_or = 0.06
 
 K_grip_2f = 10                     # 2f gripper joints gains
 KD_grip_2f = 0.05
@@ -488,7 +488,7 @@ if __name__ == "__main__":
             wrench.wrench.force.z = ez * k - ez / (time.time() - t) * kd
 
             # Upwards constant force if there is not any change
-            if not change:
+            if not change and state != 1:
                 wrench.wrench.force.y = wrench.wrench.force.y + 0.85
 
             # Wrench publisher
