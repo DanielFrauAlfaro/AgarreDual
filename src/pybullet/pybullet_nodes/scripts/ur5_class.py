@@ -14,7 +14,6 @@ from sensor_msgs.msg import JointState
 class UR5e:
     def __init__(self, client, grip="3f", pos = [0,0,0], name="ur5_1", dir=""):
         self.client = client
-        # rospy.init_node(name + "_controller")
 
         self.name = name
 
@@ -116,9 +115,9 @@ class UR5e:
             self.gripperControl2f()
 
         # Starting joint positions for the robot and the gripper
-        self.q = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
+        self.q = [0, -1.57, 1.57 , -1.57, -1.57, 0.0]
         
-        # Brings the robot to a starting position
+        # Gets the robot to a starting position
         self.apply_action(self.q + self.gripper)
         
         # Waits for the robot to be in position
@@ -126,10 +125,16 @@ class UR5e:
             p.stepSimulation(self.client)
 
 
-        # Publishers and subscribers
-        rospy.Subscriber("/" + self.name + "/pose", Pose, self.pose_cb)
+        # ------ Publishers ------
+        # Publish joint states
         self.pub_state = rospy.Publisher("/" + self.name + "/joint_states", JointState, queue_size=10)
 
+
+        # ------ Subscribers ------
+        # Reference robot cartesian pose
+        rospy.Subscriber("/" + self.name + "/pose", Pose, self.pose_cb)
+
+        # Gripper position callbacks
         if grip == "2f_140":
             rospy.Subscriber("/" + name + "/gripper/command", Float64, self.grip_2f_cb )
 
@@ -139,21 +144,25 @@ class UR5e:
             rospy.Subscriber("/" + name + "/finger_middle_joint_1_controller/command", Float64, self.grip_3f_mid_cb )
             rospy.Subscriber("/" + name + "/palm_finger_1_joint_controller/command", Float64, self.grip_3f_palm_cb )
         
+
+        # ------ Messages ------
+        # Builds up the names and length of the message
         self.j_state = JointState()
         self.j_state.name = controlJoints + gripper_gripperJoints
         self.j_state.position = self.q + self.gripper
         self.j_state.velocity = [0,0,0,0,0,0] +  self.gripper
         self.j_state.effort = [0,0,0,0,0,0] + self.gripper
 
+        # Robot cartesian pose
         self.pose = Pose()
 
-        x = 0.5137                       
+        x = 0.4921                      # Cartesian origin
         y = 0.1334                       
-        z = 0.4397
+        z = 0.4578
 
-        roll = -2.296 
-        pitch = 0.0 
-        yaw = -3.03
+        roll = -1.57                   # Euler orientation origin
+        pitch = -0.00079                   
+        yaw = -3.14 
 
         T = SE3(x, y, z)
         T_ = SE3.RPY(roll, pitch, yaw, order='yxz')
@@ -179,9 +188,10 @@ class UR5e:
     
     # Returns observation of the robot state
     def get_observation(self):
-        # UR5 joint values
         cont = 0
-
+        
+        # Fills the joint states message
+        # Robot joints values
         for i in self.ur5_joints_id:
             aux = p.getJointState(bodyUniqueId=self.ur5, 
                                 jointIndex=i,
@@ -202,7 +212,9 @@ class UR5e:
             self.j_state.velocity[cont] = aux[1]
 
             cont = cont + 1
-    
+
+
+        # Publish the joint states
         self.pub_state.publish(self.j_state)
     
         
@@ -320,6 +332,7 @@ class UR5e:
         return self.client, self.ur5
     
 
+    # Gripper callbacks: assigns the commands to each gripper joints
     def grip_3f_1_cb(self, data):
         p.setJointMotorControl2(bodyIndex=self.ur5, 
                                 jointIndex=self.gripper_joints_id[1], 
@@ -354,7 +367,10 @@ class UR5e:
                                 targetPosition=data.data,
                                 physicsClientId=self.client)
 
+    # Pose callback
     def pose_cb(self, data):
+
+        # Gets message data
         x = data.position.x                                 
         y = data.position.y
         z = data.position.z
@@ -363,10 +379,14 @@ class UR5e:
         pitch = data.orientation.y
         yaw = data.orientation.z
         
+        # Builds up homogeneus matrix
         T = SE3(x, y, z)
         T_ = SE3.RPY(roll, pitch, yaw, order='yxz')
         
         self.T = T * T_
 
+        # Computes inverse kinematics
         q = self.__ur5.ikine_LMS(self.T,q0 = self.j_state.position[0:6])       # Inversa: obtiene las posiciones articulares a través de la posición    
+        
+        # Applies the joint action
         self.apply_action(q.q)
