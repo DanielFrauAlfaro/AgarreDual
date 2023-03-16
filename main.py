@@ -6,42 +6,57 @@ from math import pi
 from std_msgs.msg import Int32, String
 import os
 
+# Start roscore process on the same terminal
 subprocess.Popen('roscore')
 rospy.sleep(1)
 
+# GUI node
 rospy.init_node("gui_node")
 
+# Initialize DearPyGUI
 dpg.create_context()
 dpg.create_viewport(title='GUI', width=400, height=400)
 
-names = ["ur5_2", "ur5_1"]
-positions = [["-0.2","0.8","1.02"], ["-0.2", "0.1", "1.02"]]
-positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]
-n = "1"
-gripp = ["3f", "2f_140"]
-pybullet = True
+# --------- Default variables -----------
+names = ["ur5_2", "ur5_1"]                                          # Robot names
+positions = [["0.0","0.0","0.0"], ["0.0", "0.7", "0.0"]]            # Robot positions
+positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]      # Objects positions
+n = "1"                                                             # Number of robots
+gripp = ["3f", "2f_140"]                                            # Gripper options
+pybullet = True                                                     # Pybullet flag
 
+# Object names shown in the GUI
 spawnables_show = ("Masterchef can", "Cracker box", "Sugar box", "Tomatosoup can", "Mustard bottle", "Tuna fish can", "Pudding box", "Gelatin box", "Potted meat can", "Banana", "Strawberry", "Apple", "Lemon", "Peach", "Pear", "Orange", "Plum", "Bleach cleanser")
     
+# Object code names
 spawnables = ("002_master_chef_can", "003_cracker_box", "004_sugar_box", "005_tomato_soup_can", "006_mustard_bottle", "007_tuna_fish_can", "008_pudding_box", "009_gelatin_box", "010_potted_meat_can", "011_banana", "012_strawberry", "013_apple", "014_lemon", "015_peach", "016_pear", "017_orange", "018_plum", "021_bleach_cleanser")
 
+# Object selected to spawn
 spawn_name = "002_master_chef_can"
 
-is_launch = False
-is_stop_sim = False
-is_spawn = False
+# Flags
+is_launch = False       # Flag to launch the world
+is_stop_sim = False     # Flag to stop the simulation
+is_spawn = False        # Flag to spawn a model
 
-change1 = True
-change2 = True
-state = 0
+change1 = True          # Variable to detect if the robot's 1 state is changing
+change2 = True          # Variable to detect if the robot's 2 state is changing
+
+# List of possibles states
 state_list = ["position", "rotation", "gripper"]
 
+# Tag names of the tutorial elements
 tut_tags = ["tut_sim",  "tut_real", "tut_act", "tut_deact", "tut_act2", "tut_deact2", 
 "tut_n", "tut_grip1", "tut_spa1", "tut_grip2", "tut_spa2", "tut_name1", "tut_name2", "tut_launch",
 "tut_ph_conf", "tut_ph_calib", "tut_spawn_name", "tut_add_obj", "tut_stop_sim", 
 "tut_x_slider", "tut_y_slider", "tut_z_slider", "tut_roll_slider", "tut_pitch_slider", 
 "tut_yaw_slider", "tut_sim_op"]
 
+# Simulation Options
+sim_options = ["Gazebo", "Pybullet"]
+
+# -------------------- GUI callbacks -------------------------
+# Changes the overviw between real and simulation
 def change2simulation(sender, app_data, user_data):
     # TODO: hacer el cambio de visibilidad
     dpg.configure_item("Simulation", show=True)
@@ -51,12 +66,13 @@ def change2real(sender, app_data, user_data):
     dpg.configure_item("Real", show=True)
     dpg.configure_item("Simulation", show=False)
 
+
+# Activate and deactivate tutorial messages
 def activate_tut(sender, app_data, user_data):
     global tut_tags
 
     for i in tut_tags:
         dpg.configure_item(i, show=True)
-    
 
 def deactivate_tut(sender, app_data, user_data):
     global tut_tags
@@ -65,6 +81,7 @@ def deactivate_tut(sender, app_data, user_data):
         dpg.configure_item(i, show=False)
     
 
+# Number of robots selection
 def n_robots(sender, app_data, user_data):
     global n
 
@@ -80,6 +97,8 @@ def n_robots(sender, app_data, user_data):
         dpg.configure_item("ur51", show=True)
         dpg.configure_item("ur52", show=True)
 
+
+# Gripper option and robot name - 1
 def grip1_cb(sender, app_data, user_data):
     global gripp
 
@@ -90,21 +109,25 @@ def name1_cb(sender, app_data, user_data):
 
     names[0] = dpg.get_value(sender)
 
+
+# Gripper option and robot name - 2
 def name2_cb(sender, app_data, user_data):
     global names
 
     names[1] = dpg.get_value(sender)
 
+def grip2_cb(sender, app_data, user_data):
+    global gripp
+
+    gripp[1] = dpg.get_value(sender)
+
+
+# Robot positions
 def spawn_ur51(sender, app_data, user_data):
     global positions
     
     pos = dpg.get_value(sender)
     positions[0] = [str(pos[0]), str(pos[1]), str(pos[2])]
-
-def grip2_cb(sender, app_data, user_data):
-    global gripp
-
-    gripp[1] = dpg.get_value(sender)
 
 def spawn_ur52(sender, app_data, user_data):
     global positions
@@ -112,17 +135,29 @@ def spawn_ur52(sender, app_data, user_data):
     pos = dpg.get_value(sender)
     positions[1] = [str(pos[0]), str(pos[1]), str(pos[2])]
 
+
+# Select to launch simulation with Pybullet
 def sim_op(sender, app_data, user_data):
-    global pybullet
+    global pybullet, sim_options
 
-    pybullet = dpg.get_value(sender)
+    option = dpg.get_value(sender)
 
+    if option == sim_options[0]:
+        pybullet = False
+
+    elif option == sim_options[1]:
+        pybullet = True
+
+
+# Configure and calibration of the Phantom buttons
 def conf_ph(sender, app_data, user_data):
     subprocess.Popen('./Touch_Setup')
 
 def calib_ph(sender, app_data, user_data):
     subprocess.Popen('./Touch_Diagnostic')
 
+
+# Launch simulation button
 def launch_sim(sender, app_data, user_data):
     global is_launch
 
@@ -130,6 +165,10 @@ def launch_sim(sender, app_data, user_data):
     dpg.configure_item("conf_w", show=False)
     dpg.configure_item("exec_w", show=True)
 
+
+# --------------- Simulation callbacks -------------
+
+# When new object is selected, changes the GUIs tags
 def spawn_names_cb(sender, app_data, user_data):
     global spawnables, spawn_name, spawnables_show
 
@@ -142,6 +181,8 @@ def spawn_names_cb(sender, app_data, user_data):
     dpg.configure_item("pos_obj_text", default_value=spawnables_show[i] + " Position")
     dpg.configure_item("or_obj_text", default_value=obj + " Orientation")
 
+
+# Gets the positions and orientation by coordinates
 def spawn_obj_x(sender, app_data, user_data):
     global positions_obj
     
@@ -179,12 +220,14 @@ def spawn_obj_yaw(sender, app_data, user_data):
     positions_obj[1][2] = str(pos)
 
 
-
+# Button for object addition to the simulation
 def add_obj_cb(sender, app_data, user_data):
     global is_spawn
 
     is_spawn = True
 
+
+# When stopping the simulation, change overview
 def stop_sim_cb(sender, app_data, user_data):
     global is_stop_sim
 
@@ -193,8 +236,10 @@ def stop_sim_cb(sender, app_data, user_data):
     dpg.configure_item("conf_w", show=True)
     dpg.configure_item("exec_w", show=False)
 
+
+# Callbacks to show the state of the robots
 def change_cb1(data):
-    global state_list, state
+    global state_list
     global names
 
     msg = ["NOT A STATE",
@@ -208,24 +253,29 @@ def change_cb1(data):
     if n == "1" or n == "2":
         dpg.configure_item("change1", default_value = msg[data.data])
 
-
 def change_cb2(data):
-    global state_list, state
-    if n == "2":
-        if data != -1:
-            msg = "Moving Phantom 2 to " + state_list[data] + " origin ..."
-            dpg.configure_item("change2", default_value=msg)
+    global state_list
+    global names
 
-            state = data
-        
-        else:
-            msg = "Moving " + names[1] + " in " + state_list[state]
-            dpg.configure_item("change2", default_value=msg)
-    
+    msg = ["NOT A STATE",
+           "MOVING: " + names[1] + " in: POSITION mode", 
+           "MOVING: " + names[1] + " in: ORIENTATION mode",
+           "MOVING: " + names[1] + " in: GRIPPER mode",
+           "CHANGE: " + names[1] + " to: GRIPPER coordinates ...",
+           "CHANGE: " + names[1] + " to: ORIENTATION coordinates ...",
+           "CHANGE: " + names[1] + " to: POSITION coordinates ..."]
+
+    if n == "1" or n == "2":
+        dpg.configure_item("change1", default_value = msg[data.data])
+
     
 
+# --------------------------- GUI -------------------------------------
 with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
+
+    # Menue Bar
     with dpg.menu_bar():
+        # Select between simulation and real mode
         with dpg.menu(label="Mode"):
             dpg.add_menu_item(label="Simulation", tag="Simulation_mode", callback=change2simulation)
             with dpg.tooltip(dpg.last_item(), tag="tut_sim"):
@@ -235,6 +285,7 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
             with dpg.tooltip(dpg.last_item(), tag="tut_real"):
                 dpg.add_text("Click to access real robot configuration")
 
+        # Activate or deactivate tutorial messages
         with dpg.menu(label="Tutorial"):
             dpg.add_menu_item(label="Activate", callback=activate_tut)
             with dpg.tooltip(dpg.last_item(), tag="tut_act"):
@@ -244,23 +295,32 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
             with dpg.tooltip(dpg.last_item(), tag="tut_deact"):
                 dpg.add_text("Click to deactivate tutorials")
 
-
+    # Simulation header
     with dpg.collapsing_header(label="Simulation", tag="Simulation", show=True, default_open=True):
-        items = ("0", "1", "2")
+        
+        items = ("0", "1", "2")     # Number of robots
+
+        # Number of robots selector
         dpg.add_combo(label="Number of Robots",indent=8,  default_value=n, items=items, width=50, callback=n_robots)
         with dpg.tooltip(dpg.last_item(), tag="tut_n"):
             dpg.add_text("Select the number of robots to spawn")
 
+        # ------ Robot 1 options -------
         with dpg.tree_node(label="UR5 1", indent= 15,tag="ur51", default_open=True, show=(n=="1" or n=="2")):
-            items = ("none","2f_140", "3f")
+            
+            items = ("none","2f_140", "3f")     # Gripper options
+            
+            # Gripper option selector
             dpg.add_combo(label="Gripper", default_value=gripp[0], items=items, width=90, callback=grip1_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_grip1"):
                 dpg.add_text("Select which gripper attach to the UR5 1")
 
-            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[-0.2,0.8,1.02], callback=spawn_ur51, format='%.2f')
+            # Position selector
+            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[float(positions[0][0]),float(positions[0][1]),float(positions[0][2])], callback=spawn_ur51, format='%.2f')
             with dpg.tooltip(dpg.last_item(), tag="tut_spa1"):
                 dpg.add_text("Select XYZ position for the UR5 1")
 
+            # Robot 1 name
             dpg.add_input_text(label="Robot Name", tag="name1", default_value=names[0], callback=name1_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_name1"):
                 dpg.add_text("Select name for the UR5 1")
@@ -268,26 +328,35 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
             dpg.add_separator()
 
 
+        # ------ Robot 2 options -------
         with dpg.tree_node(label="UR5 2", indent=15, tag="ur52", default_open=True, show=(n == "2")):
-            items = ("none","2f_140", "3f")
+            
+            items = ("none","2f_140", "3f")     # Gripper options
+
+            # Gripper option selector
             dpg.add_combo(label="Gripper", default_value=gripp[1], items=items, width=90, callback=grip2_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_grip2"):
                 dpg.add_text("Select which gripper attach to the UR5 2")
 
-            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[-0.2, 0.1, 1.02], callback=spawn_ur52, format='%.2f')
+            # Postion selector
+            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[float(positions[1][0]), float(positions[1][1]), float(positions[1][2])], callback=spawn_ur52, format='%.2f')
             with dpg.tooltip(dpg.last_item(), tag="tut_spa2"):
                 dpg.add_text("Select XYZ position for the UR5 2")
 
+            # Robot 2 name
             dpg.add_input_text(label="Robot Name", tag="name2", default_value=names[1], callback=name2_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_name2"):
                 dpg.add_text("Select name for the UR5 2")
 
             dpg.add_separator()
 
-        dpg.add_checkbox(label="Pybullet Simulator", tag="sim_op", default_value = pybullet,callback=sim_op)
+
+        # Simulator selector
+        dpg.add_combo(label="Select Simulator", default_value=sim_options[1], items=sim_options, width=90, callback=sim_op)
         with dpg.tooltip(dpg.last_item(), tag="tut_sim_op"):
             dpg.add_text("Click to select Pybullet simulator")
         
+        # Launch button
         dpg.add_button(label="Launch Simulation", tag="launch_sim", callback=launch_sim)
         with dpg.tooltip(dpg.last_item(), tag="tut_launch"):
             dpg.add_text("Clik to launch the simulation")
@@ -297,7 +366,8 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
     with dpg.collapsing_header(label="Real", tag="Real",default_open=True, show=False):
         pass
 
-
+    
+    # Phantom configuration and calibration buttons
     dpg.add_button(label="Configure Phantom", tag="conf_ph1", callback=conf_ph)
     with dpg.tooltip(dpg.last_item(), tag="tut_ph_conf"):
         dpg.add_text("Click to configure the Phantom devices")
@@ -307,7 +377,10 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
         dpg.add_text("Click to calibrate the Phantom devices")
 
 
+# ---------------- Simulation going GUI -------------
 with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, height=400):
+    
+    # Menu with tutorial options
     with dpg.menu_bar():
         with dpg.menu(label="Tutorial"):
             dpg.add_menu_item(label="Activate", callback=activate_tut)
@@ -318,13 +391,16 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
             with dpg.tooltip(dpg.last_item(), tag="tut_deact2"):
                 dpg.add_text("Click to deactivate tutorials")
     
+    # Select objects to spawn
     dpg.add_combo(label="Spawnables Objects",indent=8,  default_value="Masterchef can", items=spawnables_show, width=160, callback=spawn_names_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_spawn_name"):
         dpg.add_text("Select an object to spawn")
 
+
     dpg.add_separator()
 
 
+    # Select the object position and orientation in the world
     dpg.add_text(tag="pos_obj_text", default_value="Master Chef Can Position")
 
     dpg.add_slider_double(label="X", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_x)
@@ -357,28 +433,36 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
 
     dpg.add_separator()
 
+
+    # Add object button
     dpg.add_button(label="Add Object", tag="add_obj", callback=add_obj_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_add_obj"):
         dpg.add_text("Clcik to add the object to the simulation")
 
+    # Stop simulation
     dpg.add_button(label="Stop Simulation", tag="stop_sim", callback=stop_sim_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_stop_sim"):
         dpg.add_text("Click to stop the simulation")
 
     dpg.add_separator()
 
+    # State messages
     dpg.add_text(tag="change1", default_value="Moving Phantom 1 to position origin ...", show = (n == "1" or n == "2"))
     dpg.add_text(tag="change2", default_value="Moving Phantom 2 to position origin ...", show = n == "2")
         
-
 dpg.setup_dearpygui()
 dpg.show_viewport()
 
+
+
+# ---- Main ---
 if __name__ == "__main__":
 
+    # Generate an ID for the launch
     uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid)
 
+    # Builds a roslacunh parent object, so it can be called inside the loop
     origin1 = 'origin1:=-x ' + positions[0][0] + ' -y ' + positions[0][1] + ' -z ' + positions[0][2]
     origin2 = 'origin2:=-x ' + positions[1][0] + ' -y ' + positions[1][1] + ' -z ' + positions[1][2]
 
@@ -390,15 +474,19 @@ if __name__ == "__main__":
     roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
 
     launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
-    
-    pyb_sp_obj = []
 
+    # ---------- GUI loop
     while dpg.is_dearpygui_running():
+
+        # If there is a launch ...
         if is_launch:
+
+            # ... sets up the inital state message
             aux = Int32()
             aux.data = -1
             change_cb1(aux)
 
+            # Initializes the roslaunch object with the selected arguments
             uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
             roslaunch.configure_logging(uuid)
 
@@ -419,9 +507,12 @@ if __name__ == "__main__":
             roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
 
             launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+
+            # Executes the launch
             launch.start()
             is_launch = False
 
+            # Depending on the number of robot, it subscribes to the change topics
             if n == "1":
                 rospy.Subscriber("/" + names[0] + "/change", Int32, change_cb1)
             
@@ -429,13 +520,20 @@ if __name__ == "__main__":
                 rospy.Subscriber("/" + names[0] + "/change", Int32, change_cb1)
                 rospy.Subscriber("/" + names[1] + "/change", Int32, change_cb2)
 
+
+        # If there has been a stop, shutdowns the simulation
         if is_stop_sim:
             launch.shutdown()
 
             is_stop_sim = False
 
+        # If there is an object to be spawn ...
         if is_spawn:
+
+            # If the simulation is running in Gazebo ...
             if not pybullet:
+
+                # ... calls the launch for the objects
                 uuid_obj = roslaunch.rlutil.get_or_generate_uuid(None, False)
 
                 origin_obj = 'origin:=-x' + positions_obj[0][0] + ' -y ' + positions_obj[0][1] + ' -z ' + positions_obj[0][2] + ' -R ' + positions_obj[1][0] + ' -P ' + positions_obj[1][1] + ' -Y ' + positions_obj[1][2]
@@ -449,23 +547,27 @@ if __name__ == "__main__":
 
                 parent_obj.start()
             
+
+            # If the simulation is running in PyBullet ...
             else:
-                pyb_sp_obj.append(rospy.Publisher("/object_spawn", String, queue_size=10))
+                # ... publcihses in a topic with the name of the desired object
+                pyb_sp_obj = (rospy.Publisher("/object_spawn", String, queue_size=10))
                 spawn_msg = String()
 
+                # Gets the actual directory
                 dir_path = os.path.dirname(os.path.realpath(__file__))
                 
                 spawn_msg.data = spawn_name + ' ' + positions_obj[0][0] + ' ' + positions_obj[0][1] + ' ' + positions_obj[0][2] + ' ' + positions_obj[1][0] + ' ' + positions_obj[1][1] + ' ' + positions_obj[1][2] + ' ' + dir_path
-                
 
-                pyb_sp_obj[0].publish(spawn_msg)
-
-                pyb_sp_obj.pop()
+                pyb_sp_obj.publish(spawn_msg)
             
             is_spawn = False
 
+        # Renderizes the window
         dpg.render_dearpygui_frame()
 
+    
+    # When the program ends, kills rosmaster and closes all windows
     subprocess.run(["gnome-terminal","--", "sh", "-c","killall -9 rosmaster"])
     rospy.sleep(2)
     
