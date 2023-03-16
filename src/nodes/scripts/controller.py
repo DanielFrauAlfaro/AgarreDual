@@ -1,12 +1,11 @@
 #! /usr/bin/python3
 
-
 import  sys
 from spatialmath import SE3
 import roboticstoolbox as rtb
 from math import pi
 import rospy
-from std_msgs.msg import Float64, Bool
+from std_msgs.msg import Float64
 from geometry_msgs.msg import Pose
 from sensor_msgs.msg import JointState
 import time
@@ -30,17 +29,17 @@ class Controller():
         self.__ur5.base = SE3.RPY(0,0,pi)      # Rotate robot base so it matches Gazebo model
         self.__ur5.tool = SE3(0.0, 0.0, 0.03)
         
-        # Joint position vector: actual and home
-        self.__q = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
-        self.__q0 = [0, -1.5, 1.57 , -1.57, -1.57, 0.0]
+        # Joint position vector: current, reference and home
+        self.__q = [0, -1.57, 1.57 , -1.57, -1.57, 0.0]
+        self.__qp = [0, -1.57, 1.57 , -1.57, -1.57, 0.0]
+        self.__q0 = [0, -1.57, 1.57 , -1.57, -1.57, 0.0]
         
-        # ROS parameters: node, publishers and subscribers
+        # Node
         rospy.init_node(name + "_controller", anonymous=False)
         
-        # Subscriber para recibir posiciones y el modo de movimiento
-        rospy.Subscriber('/' + name + '/pose', Pose, self.__callback)
         
-        # Lista de publisher de las articulaciones
+        # ------ Publishers ------
+        # List of UR5e joint publishers
         self.__joints_com = []
         self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_pan_joint_position_controller/command', Float64, queue_size=3))
         self.__joints_com.append(rospy.Publisher('/' + name + '/shoulder_lift_joint_position_controller/command', Float64, queue_size=3))
@@ -49,8 +48,8 @@ class Controller():
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_2_joint_position_controller/command', Float64, queue_size=3))
         self.__joints_com.append(rospy.Publisher('/' + name + '/wrist_3_joint_position_controller/command', Float64, queue_size=3))
 
+        # List of gripper joint publishers according to the gripper type
         self.grip_pub = []
-
         if grip != "":
             if grip == "2f":
                 self.grip_pub.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
@@ -62,21 +61,22 @@ class Controller():
                 self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_palm_finger_1_joint/command", Float64, queue_size=10 ))
         
 
+        # ------ Subscribers ------
+        # Reference cartesian pose
+        rospy.Subscriber('/' + name + '/pose', Pose, self.__callback)
 
-        # Estado de las articulaciones
+        # Joint states
         rospy.Subscriber('/' + name + '/joint_states', JointState, self.__joint_state_cb)
         
-        # Psociones a enviar por los topics
-        self.__qp = [0, -1.57, 1.57 , -1.57, -1.57, 0.0]
+        # Median filter for each joint        
         self.__smooth = [[], [], [], [], [], []]
-
-        self.size_filt = 6
+        self.__size_filt = 4
 
         for i in range(6):
-            for j in range(self.size_filt):
+            for j in range(self.__size_filt):
                 self.__smooth[i].append(self.__q[i])
 
-        # Intervalos para ajustar la frecuencia de funcionamiento
+        # Execution time intervals
         self.__interval = 0.0
         self.__prev = time.time()
 
@@ -86,26 +86,29 @@ class Controller():
         
 # --------------------- Move the desired homogeneus transform -----------------
     def __move(self, T):
-        q = self.__ur5.ikine_LMS(T,q0 = self.__q)       # Inversa: obtiene las posiciones articulares a través de la posición
+        # Computes inverse kinematics
+        q = self.__ur5.ikine_LMS(T,q0 = self.__q)       
         self.__qp = q.q
         
-        for i in range(6):                              # Se envían los valores
+        # Applies median filter and publishes the joint values
+        for i in range(6):                              
             self.__smooth[i].pop(-1)
             self.__smooth[i].insert(0, self.__qp[i])
-            self.__qp[i] =  sum(self.__smooth[i]) / self.size_filt
+            self.__qp[i] =  sum(self.__smooth[i]) / self.__size_filt
             
             self.__joints_com[i].publish(self.__qp[i])
 
 
     
-# -------------------- Callback for the haptic topic --------------------------
+# -------------------- Callback for the pose topic --------------------------
     def __callback(self, data):
-        # Solo se ejecuta cuando pasa el intervalo
+        # When the interval has passed
         if time.time() - self.__prev > self.__interval:
-            # Actualiza el intervalo
+            
+            # Updates the time
             self.__prev = time.time()                           
             
-            # Obtiene las posiciones
+            # Gets the message values
             x = data.position.x                                 
             y = data.position.y
             z = data.position.z
@@ -114,12 +117,13 @@ class Controller():
             pitch = data.orientation.y
             yaw = data.orientation.z
           
+            # Builds the homogeneus matrix
             T = SE3(x, y, z)
             T_ = SE3.RPY(roll, pitch, yaw, order='yxz')
             
             T = T * T_
             
-            # Envía a la función de movimiento
+            # Calls the movement function
             self.__move(T)
             
 
@@ -137,11 +141,13 @@ class Controller():
         
 # ---------------- Callback del estado de las articulaciones ----------------
     def __joint_state_cb(self, data):
-        # Solo se ejecuta cuando pasa el intervalo
+        # When the interval has passed
         if time.time() - self.__prev2 > self.__interval2:         
             
+            # Updates the time
             self.__prev2 = time.time()   
 
+            # Gets all the joint position values iterating the message
             for i in range(len(data.name)):
                 if data.name[i] == "shoulder_lift_joint":
                     self.__q[0] = data.position[i]

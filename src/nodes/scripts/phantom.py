@@ -12,68 +12,55 @@ from math import pi
 x_limit: 0.09 - -0.07           * 2
 y_limit: 0.2                    * 2
 z_limit: 0.19  - -0.075         * 0.4 // *7
-
-OBJETIVO
-    El Phantom presenta 5 GDL pero solo 3 son actuables para el feedback de fuerza. Por ello, se mueve en XYZ con las coordenadas XYZ del Phantom
-por defecto.
-
-    Hay tres estados en los que se puede mover el robot:
-        - Estado 0: Posición XYZ en el espacio
-        - Estado 1: Control articular de la muñeca del robot
-        - Estado 2: Control de la pinza
-            · Estado 2.1: Control de los dedos
-            · Estado 2.2: Control de la palma
-
-    Las transiciones se realizan con los botones del Phantom, de manera que con el botón 1 se avanza el estado y con el botón
-2 se retrocede.
-    En el Estado 2 el botón 2 sirve para cambiar entre sub - estados, se manera que solo se puede avanzar de estado mediante el
-botón 1.
 '''
 
-# Mensajes
-pose = Pose()                       # Posición del extremo del robot
-wrench = WrenchStamped()            # Wrench del Phantom
+# Messages
+pose = Pose()                      # End effector position
+wrench = WrenchStamped()           # Phantom wrench
 
+# Joint position of the gripper
 grip_pos = []
 
-# Factor de escala de los movimientos 
-scale_x = 2                         # Escala del movimiento cartesiano
+# Movements scalation
+scale_x = 2                        # Cartesian movement scalation
 scale_y = 2
 scale_z = 3.5
 
-scale_roll = 12                      # Escala del movimiento en ángulos de Euler
+scale_roll = 12                    # Euler orientation movement scalation
 scale_pitch = 12
 scale_yaw = 12
 
-scale_grip_140 = 4.08               # Escala en el movimiento de las pinzas
-scale_grip = 10
+scale_grip_140 = 4.08              # Gripper movement scalation
+scale_grip = 15
 scale_grip_palm = 0.5
 
-# Origen del robot
-or_x = 0.5137                        # Origen del movimiento cartesiano
+# Origin
+or_x = 0.4921                      # Cartesian origin
 or_y = 0.1334                       
-or_z = 0.4397
+or_z = 0.4578
 
-or_roll = -2.296 # 0.832 # 0.87                # Origen del movimiento articular de la muñeca del robot
-or_pitch = 0.0 # 1.12                   # YXZ hacia abajo # YXZ # XYZ
-or_yaw = -3.03 # 1.12 # -0.001661
+or_roll = -1.57                   # Euler orientation origin
+or_pitch = -0.00079                   
+or_yaw = -3.14 
 
-or_3f = 0.0495
+or_3f = 0.0495                     # 3f gripper origin
 
-# Posiciones previas para XYZ y RPY
-#   Para al cambiar de XYZ a RPY y viceversa se guarden las XYZ o RPY segun convenga en el mensaje de pose
-prev_x, prev_y, prev_z = 0.516, 0.1334, 0.72
-prev_roll, prev_pitch, prev_yaw = -2.296, 0.0, -3.03
 
+# Previous positions and orientation in the main loop
+prev_x, prev_y, prev_z = or_x, or_y, or_z
+prev_roll, prev_pitch, prev_yaw = or_roll, or_pitch, or_yaw
+
+# Previous position of the gripper
 prev_grip_pos = []
 
 
-# Modos y Flags
-change = True                       # Flag para indicar cambio (a True para mandarlo al (0,0,0) al empezar)
-state = 0                           # Estado del movimiento 
-state_3f = 0                        # Estado del movimiento de la pinza
+# Modes and Flags
+change = True                       # Flag to indicate a mode change
+state = 0                           # Movement state
+state_3f = 0                        # 3f gripper movement state
 
-# Posición actual y previa del Phantom
+
+# Actual and previous position and orientation of the Phantom
 prev_pose_phantom = Pose()
 act_pose_phantom = Pose()
 
@@ -91,65 +78,67 @@ act_pose_phantom.orientation.x = -1.0
 act_pose_phantom.orientation.y = -1.0
 act_pose_phantom.orientation.z = -1.0
 
-# Ganancia del feedback de fuerza
-K = 40                             # Ganancia en la posición
+
+# Force feedback gains (Proportional and derivative)
+K = 40                             # Positonal gains
 KD = 0.2
 
-K_or = 10                          # Ganancia en la orientación
+K_or = 10                          # Orientational gain
 KD_or = 0.05
 
-K_grip_2f = 10                     # Ganancia de la pinza de 2 dedos
+K_grip_2f = 10                     # 2f gripper joints gains
 KD_grip_2f = 0.05
 
-K_grip_3f = 10                      # Ganancia de la pinza de 3 dedos
+K_grip_3f = 10                     # 3f gripper joints gains
 KD_grip_3f = 0.05
 
-Ke = 70                             # Ganancia del feedback de fuerza en los cambios de modo
+Ke = 70                             # Mode change gain 
 Kde = 0.2
 
-# Umbral de detección para los cambios
+
+# Detection umbral
 limit = 0.005
 
-# Nombre del robot y de la pinza
+
+# Names
 name = "ur5_2"
 grip = "3f"
 
-# Publicar modo en orientación
-pub_orient = []
 
-# Publisher para el cambio
+# Publisher for the mode change
 pub_change = []
 
+
+# Intervals and times
 prev = time.time()
 interval = 0.07
 
-# Callback de las posiciones del Phantom
+# Phantom cartesian position callback
 '''
-Las coordenadas del Phantom son diferentes de las del robot --> 
+The robot reference system is different than the one of the Phantom --> 
   - x_robot = z_phantom
   - y_robot = x_phantom
   - z_robot = y_phantom
   
-Se actúa sobre dos variables: 
-  - pose: comando de posición al robot
-  - prev_pose_phantom: posición previa del phantom.
-     - .position: para XYZ
-     - .orientation: para RPY (aunque ponga orientation, se usa para almacenar las posiciones XYZ del Phantom en el modo RPY)
-  - act_pose_phantom: posición actual del Phantom
+Two variables: 
+  - pose: position commands to the controller
+  - prev_pose_phantom: previous state of the Phantom
+     - .position: prevoius position
+     - .orientation: prevoius orientation in Euler angles
+  - act_pose_phantom: actual Phantom pose
   
-EXPLICACIÓN
-    - 1. Almacena la posición actual en coordenadas del Phantom
-    - 2. Si no hay un cambio ...
-        - 2.1 ... se almacena la POSICIÓN del robot a partir de las coordenadas del Phantom (reescaladas y con el offset del origen)
-            También se guarda la POSICIÓN actual de la posición del Phantom
-            La orientación del robot es la anterior registrada
+EXPLANATION
+    - 1. Gets the current pose of the Phantom
+    - 2. If there has not been any changes ...
+        - 2.1 ... stores the robot's POSITION according to the Phantom reference system (rescaleted respect the origin)
+            The orientation is the last recorded from orientation mode movement
+
+        - 2.2 ... stores the robot's ORIENTTION according to the Phantom reference system (rescaleted respect the origin)
+            The position is the last recorded from orientation mode movement
             
-        - 2.2 ... se almacena la ORIENTACIÓN del robot a partir de las coordenadas del Phantom (reescaladas y con el offset del origen)
-            También se guarda la ORIENTACIÓN actual de la posición del Phantom
-            La posición del robot es la anterior registrada
         
-        - 2.3 ... se almacenan la posiciones del Phantom, correspondiente a la apertura y cierre de cada dedo de la pinza. 
-            Se distingue entre dos casos: la pinza de 2 dedos y la de tres dedos en función del nombre asignado al robot.
+        - 2.3 ... stores the Phantom positions that corresponds to the gripper joints position of each finger. 
+            The system distinguishes between the 2 finger and 3 finger gripper.
 '''
 def cb(data):
     global pub, pose, scale_x, scale_y, scale_z, scale_roll, scale_pitch, scale_yaw
@@ -209,86 +198,89 @@ def cb(data):
                         grip_pos[3] = data.pose.position.y * scale_grip_palm
 
 
-# Callbacks de los botones
+# Button 1 callback
 def cb_bt1(data):
     global change, state, state_3f
     global pub_change
 
     if data.buttons[0] == 1:
-        state = state + 1       # Incrementa el estado
-        change = True
+        state = state + 1       # Advances the state
+        change = True           # A change happened
         state_3f = 0
 
-        # Si se pasa del número de estados, vuelve al estado 0
+        # If the number exceeds the total state, returns to state 0
         if state > 2:           
             state = 0
         
+        # Publishes the change
         pub_change[0].publish(-(state + 1))
         
 
-# Callback del botón 2
+# Button 2 callback
 def cb_bt2(data):
     global change
     global state, state_3f
     
-    # Si está en el segundo estado sin cambio y se presiona el botón
+    # If it is in the state 2 and is not changing
     if state == 2 and not change:
         if data.buttons[0] == 1:
-            # Cambia el subestado de la pinza
-            state_3f = state_3f + 1
+            state_3f = state_3f + 1     # Changes the gripper sub - state
             change = True
             
-            # Si se pasa del número de sub-estados, vuelve al 0
+            # If the number exceeds the total state, returns to state 0
             if state_3f > 1:
                 state_3f = 0
 
-    # Si se está en cualquier otro, vuelve al anterior
+    # If it is in another case, goes to the previous state 
     else:
         if data.buttons[0] == 1:
             state = state - 1
             change = True
 
-            # Si se pasa por debajo de 0, vuelve al máximo
+            # If the number exceeds under the total state, returns to state 2
             if state < 0:
                 state = 2
 
+    # Publisher the change
     pub_change[0].publish(-(state + 1))
 
 
-# Estado del robot
+# Robot cartesian position feedback
 def cart_pos(data):
     global prev_x, prev_y, prev_z
     global prev_roll, prev_pitch, prev_yaw
     global change
 
-    # Si está en el estado 2, obtiene la posición del extremo
-    
-    if state == 0:
+    # Gets the position in every mode except in orientation
+    if state != 1:
         prev_x = data.position.x
         prev_y = data.position.y
         prev_z = data.position.z
 
-    # Si está en el estado 1 obtiene la orientación
-    if state == 1:
+    # Gets the orientation in every mode except in position
+    if state != 0:
         prev_roll = data.orientation.x
         prev_pitch = data.orientation.y
         prev_yaw = data.orientation.z
 
-# Callback de la posición de la pinza
+
+# Gripper position callback
 def grip_pos_cb(data):
     global grip
     global prev_grip_pos
 
-    # En función de la pinza se asignan unos valores u otros
     for i in range(len(data.data)):
         prev_grip_pos[i] = data.data[i]
+
 
 
 # Main
 if __name__ == "__main__":
 
+    # If there are arguments, starts the function
     if len(sys.argv) > 0:
         
+        # Initializes the robot name and gripper type
         name = sys.argv[1]
         grip = ""
 
@@ -304,21 +296,35 @@ if __name__ == "__main__":
             grip = ""
         
 
-        # Nodo
+        # Node
         rospy.init_node(name + "_phantom_ctr")
 
-        # Publishers: pose al robot, fuerza al Phantom y modo de movimiento para el robot
+        # ------ Publishers ------
+        # Cartesian position command
         pub = rospy.Publisher("/" + name + "/pose", Pose, queue_size=10)
+        
+        # Phantom cartesian force
         pub_f = rospy.Publisher("/" + name + "/servo_cf", WrenchStamped, queue_size=10)
+
+        # System changes and state
         pub_change.append(rospy.Publisher("/" + name + "/change", Int32, queue_size=10))
 
-        # Subscribers: posición del phantom, posición del robot, botones y cámaras del robot
+
+        # ------ Subscribers -----
+        # Phantom cartesian position
         rospy.Subscriber("/" + name + "/measured_cp", PoseStamped,cb)
+        
+        # Phantom buttons
         rospy.Subscriber("/" + name + "/button1", Joy, cb_bt1)
         rospy.Subscriber("/" + name + "/button2", Joy, cb_bt2)
+        
+        # Robot cartesian position feedback
         rospy.Subscriber('/' + name + '/cart_pos', Pose, cart_pos)
+        
+        # Gripper postion feedback
         rospy.Subscriber("/" + name + "/grip_pos", Float32MultiArray, grip_pos_cb)
         
+        # Gripper publisher: the lists is filled with Publisher according to the gripper type
         pub_grip = []
 
         if grip != "":
@@ -331,49 +337,40 @@ if __name__ == "__main__":
                 pub_grip.append(rospy.Publisher("/" + name + "/finger_middle_joint_1_controller/command", Float64, queue_size=10 ))
                 pub_grip.append(rospy.Publisher("/" + name + "/palm_finger_1_joint_controller/command", Float64, queue_size=10 ))
         
+        # Time
         t = time.time()
 
         # Rate
-        r = rospy.Rate(15)
+        r = rospy.Rate(18)
 
-        # Bucle infinito
-        '''
-            - 1. El Phantom mantiene la posición sin moverse, compensando la gravedad (wrench obtenido experimentalmente)
-            
-            - 2. Si se pordujo un cambio (se presionó cualquiera de los botones para cambiar uno de los modos) ...
-                - 2.1 ... al cambio intentará volver a la anterior posición del Phantom registrada para la POSICIÓN del robot hasta cierto umbral
-                - 2.2 ... al cambio intentará vovler a la anterior posición del Phantom registrada para la ORIENTACIÓN del robot hasta cierto umbral
-                - 2.3 ... al cambio intentará volver a la anterior posición  del Phantom registrada para la PINZA del robot hasta cierto umbral
-
-            - 3. Si no hubo cambio, se está funcionando normal, entonces envía las posiciones al robot
-                
-            - 4. Se publican los Wrenches calculados según el caso
-        '''
-        
+        # Initializes errors
         ex = 0
         ey = 0
         ez = 0
         ex0 = 0
         ey0 = 0
         ez0 = 0
-        
+
+
+        # Control loop: sends catesian commands to the robot controller and applies forces
+        #   to the manipulator according to the error between the robot position and 
+        #   the Phantom one
         while not rospy.is_shutdown():
 
-            # 2 --
+            # If there has been a change, computes the error the previous position of that 
+            #   mode
             if change:
-                # 2.1 --
+
                 if state == 0:
                     ex = (prev_pose_phantom.position.x - act_pose_phantom.position.x)
                     ey = (prev_pose_phantom.position.y - act_pose_phantom.position.y)
                     ez = (prev_pose_phantom.position.z - act_pose_phantom.position.z)
 
-                # 2.2 --
                 elif state == 1:
                     ex = (prev_pose_phantom.orientation.x - act_pose_phantom.position.x)
                     ey = (prev_pose_phantom.orientation.y - act_pose_phantom.position.y)
                     ez = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)
 
-                # 2.3 --
                 elif state == 2:
                     if grip == "2f":
                         ex = (0.0 - act_pose_phantom.position.x)
@@ -392,13 +389,26 @@ if __name__ == "__main__":
                             ez = (prev_grip_pos[3] / scale_grip_palm - act_pose_phantom.position.z)
 
 
+                # If the Phantom end effector is within the previous position, 
+                #   ends the mode changing state
                 if abs(ex) < limit and abs(ey) < limit and abs(ez) < limit:
                     change = False
                     pub_change[0].publish((state + 1))
 
                         
-            # 3 --   
-            else:   
+            # If there has not been a mode changing, the Phantom sends position to the 
+            #   robot and applies forces to the operator to restrict his / her movements and
+            #   minimize errors. Force is computed by the error 
+            else:  
+
+                # Publishes the robot position
+                pub.publish(pose)
+
+                # Publishes the gripper position
+                for i in range(len(pub_grip)):
+                    pub_grip[i].publish(grip_pos[i]) 
+
+
                 if state == 0:
                     ex = (prev_y - pose.position.y)
                     ey = (prev_z - pose.position.z)
@@ -406,7 +416,8 @@ if __name__ == "__main__":
                 
                 elif state == 1:
                     ex = (prev_pitch - pose.orientation.y)
-                    
+
+                    # Corrects the orientation so it remains inside the [-pi,pi] interval    
                     if prev_yaw < 0.0:
                         prev_yaw = 2*pi + prev_yaw
                     if pose.orientation.z < 0.0:
@@ -415,13 +426,13 @@ if __name__ == "__main__":
                     ey = (prev_yaw - pose.orientation.z)
                     ez = (prev_roll - pose.orientation.x)
 
+                # On the gripper mode, the Phantom can not go to negative positions
                 elif state == 2:
                     ex = (0 - act_pose_phantom.position.x) * 10
                     ez = (0 - act_pose_phantom.position.z) * 10
                     ex0 = (0 - act_pose_phantom.position.x) * 10
                     ey0 = (0 - act_pose_phantom.position.y) * 10
                     ez0 = (0 - act_pose_phantom.position.z) * 10
-
 
                     if grip == "2f":
                         ey = (prev_grip_pos[0] - grip_pos[0]) 
@@ -435,25 +446,17 @@ if __name__ == "__main__":
                         elif state_3f == 1:
                             ey = (prev_grip_pos[3] - grip_pos[3])
 
-                    if act_pose_phantom.position.x < 0:
+                    # If some coordinate is negative, the error is the one between the 
+                    #   origin and the actual position
+                    if act_pose_phantom.position.x < 0.0:
                         ex = ex0
-                    if act_pose_phantom.position.y < 0:
+                    if act_pose_phantom.position.y < 0.0:
                         ey = ey0
-                    if act_pose_phantom.position.z < 0:
+                    if act_pose_phantom.position.z < 0.0:
                         ez = ez0
 
-                    
-# --------------------------------------------------------------------------------------------------
 
-                # Publicar la posición
-                pub.publish(pose)
-
-                # Publicar el gripper
-                for i in range(len(pub_grip)):
-                    pub_grip[i].publish(grip_pos[i])
-
-
-            # Cálculo de ganancias
+            # Depending on the mode, some gains are applied
             k = 0
             kd = 0
 
@@ -478,18 +481,20 @@ if __name__ == "__main__":
                     k = K_grip_3f
                     kd = KD_grip_3f 
             
-            # Aplicar las fuerzas
+
+            # Computes the forces
             wrench.wrench.force.x = ex * k - ex / (time.time() - t) * kd
             wrench.wrench.force.y = ey * k - ey / (time.time() - t) * kd
             wrench.wrench.force.z = ez * k - ez / (time.time() - t) * kd
 
-            # Fuerza constante hacia arriba
+            # Upwards constant force if there is not any change
             if not change:
                 wrench.wrench.force.y = wrench.wrench.force.y + 0.85
 
-            # 4 --
+            # Wrench publisher
             pub_f.publish(wrench)
 
+            # Updates time
             t = time.time()
 
             r.sleep()
