@@ -105,7 +105,7 @@ if __name__ == "__main__":
 
     # Approaches camera point of view
     width, height, viewMatrix, projectionMatrix, cameraUp, cameraForward, horizontal, vertical, yaw, pitch, dist, target = p.getDebugVisualizerCamera(physicsClientId = client)
-    p.resetDebugVisualizerCamera(cameraDistance=dist-2.5,
+    p.resetDebugVisualizerCamera(cameraDistance=dist-3.3,
                                 cameraYaw=yaw, 
                                 cameraPitch=pitch,
                                 cameraTargetPosition=target,
