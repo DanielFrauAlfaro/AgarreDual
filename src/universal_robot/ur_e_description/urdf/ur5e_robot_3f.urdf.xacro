@@ -4,6 +4,9 @@
   <!-- common stuff -->
   <xacro:include filename="$(find ur_e_description)/urdf/common.gazebo.xacro" />
 
+  <!-- Cameras -->
+  <xacro:include filename="$(find ur_e_description)/urdf/camera/camera.urdf.xacro"/>
+
   <!-- ur5e -->
   <xacro:include filename="$(find ur_e_description)/urdf/ur5e.urdf.xacro" />
 
@@ -29,5 +32,10 @@
     <origin xyz="0 0 0.02" rpy="1.57 0 0"/>
   </joint>
 
+  <xacro:camera_v0 parent="tool0">
+	     <origin xyz="0.0 -0.1 0.03" rpy="0.0 -1.9 4.7226"/>
+  </xacro:camera_v0>
 
+  <xacro:camera_gazebo_v0 />
+  
 </robot>
