@@ -488,8 +488,8 @@ if __name__ == "__main__":
             wrench.wrench.force.z = ez * k - ez / (time.time() - t) * kd
 
             # Upwards constant force if there is not any change
-            if not change and state != 1:
-                wrench.wrench.force.y = wrench.wrench.force.y + 0.85
+            if not change and state == 0:
+                wrench.wrench.force.y = wrench.wrench.force.y + 0.9
 
             # Wrench publisher
             pub_f.publish(wrench)
