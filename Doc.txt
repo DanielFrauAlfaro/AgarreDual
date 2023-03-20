@@ -666,6 +666,16 @@ preestablecidos durante otros estados además del suyo propio y el robot no pier
         - El Phantom se cae --> Fuerza continua
     (4 h) --> 9 / 03 / 23
 
+
+
+TODO: 
+    - Cambiar ur5.py en Pybullet --> Usar el controller.py en Pybullet --> que ur5_class solo
+    tenga el publisher de /joint_states y el subscriber de cada joint/command
+    - Poner dos cámaras en Gazebo fijas (Eje X e Y)
+    - Poner cámara móvil en el extremo      - DONE
+    - Hacer un launch para los lanzamientos de Gazebo y juntar los dos grupos
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
