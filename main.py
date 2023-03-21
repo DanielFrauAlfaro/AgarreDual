@@ -17,7 +17,7 @@ rospy.init_node("gui_node")
 dpg.create_context()
 dpg.create_viewport(title='GUI', width=400, height=400)
 
-# --------- Default variables -----------
+# --------- Default variables for launch arguments -----------
 names = ["ur5_2", "ur5_1"]                                          # Robot names
 positions = [["0.0","0.0","0.0"], ["0.0", "0.7", "0.0"]]            # Robot positions
 positions_obj = [["1.0", "1.0", "1.0"], ["0.0", "0.0", "0.0"]]      # Objects positions
@@ -268,7 +268,6 @@ def change_cb2(data):
     if n == "1" or n == "2":
         dpg.configure_item("change1", default_value = msg[data.data])
 
-    
 
 # --------------------------- GUI -------------------------------------
 with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
@@ -449,13 +448,13 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
     # State messages
     dpg.add_text(tag="change1", default_value="Moving Phantom 1 to position origin ...", show = (n == "1" or n == "2"))
     dpg.add_text(tag="change2", default_value="Moving Phantom 2 to position origin ...", show = n == "2")
-        
+
 dpg.setup_dearpygui()
 dpg.show_viewport()
 
 
 
-# ---- Main ---
+# ---- Main ----
 if __name__ == "__main__":
 
     # Generate an ID for the launch
@@ -475,9 +474,9 @@ if __name__ == "__main__":
 
     launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
 
-    # ---------- GUI loop
+    # ---------- GUI loop --------
     while dpg.is_dearpygui_running():
-
+        
         # If there is a launch ...
         if is_launch:
 
@@ -500,7 +499,7 @@ if __name__ == "__main__":
 
             if pybullet:
                 py = "sim_gaz:=false"
-            
+
             cli_args = ['src/universal_robot/ur_e_gazebo/launch/ur5_2.launch', 'number:=' + n,'grip1:=' + gripp[0],'grip2:=' + gripp[1], origin1, origin2, name1, name2, py]
 
             roslaunch_args = cli_args[1:]
@@ -565,7 +564,6 @@ if __name__ == "__main__":
 
         # Renderizes the window
         dpg.render_dearpygui_frame()
-
     
     # When the program ends, kills rosmaster and closes all windows
     subprocess.run(["gnome-terminal","--", "sh", "-c","killall -9 rosmaster"])
