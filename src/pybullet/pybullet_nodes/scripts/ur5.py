@@ -13,11 +13,11 @@ import matplotlib.pyplot as plt
 # Client
 client = 0
 
-rendered_img = None
-fps = 100
+rendered_img = plt.imshow(np.zeros((100, 100, 3)))
+fps = 5000000
 
-cam_roll, cam_pitch, cam_yaw = 1.2, 0.0, 0.4
-cam_pos = [2, 0.0, 0.4]
+cam_roll, cam_pitch, cam_yaw = 0.0, 0.0, 3.14
+cam_pos = [1, 0.0, 0.4]
 
 # Computes projection matrix
 proj_matrix = p.computeProjectionMatrixFOV(fov = 80, 
@@ -83,10 +83,10 @@ def render():
                                 viewMatrix = view_matrix, 
                                 projectionMatrix = proj_matrix, 
                                 physicsClientId = client)[2]
-    frame = np.reshape(frame, (100, 100, 4))
-    # rendered_img.set_data(frame)
-    # plt.draw()
-    # plt.pause(1/fps) 
+    # frame = np.reshape(frame, (100, 100, 4))
+    rendered_img.set_data(frame)
+    plt.draw()
+    plt.pause(1/fps) 
 
 
 # Main
