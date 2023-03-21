@@ -64,6 +64,8 @@
                 <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" />  
                 
                 <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+            
+                <node name="controller" pkg="nodes" type="controller.py" args="$(arg name1) $(arg grip1)" output="screen" />
             </group>
         </group>
 
@@ -72,16 +74,21 @@
                 <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" /> 
 
                 <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+
+                <node name="controller" pkg="nodes" type="controller.py" args="$(arg name1) $(arg grip1)" output="screen" />
             </group>
             <group ns='$(arg name2)'>
                 <node name="cart_pos2" pkg="nodes" type="cart_pos.py" args="$(arg name2) $(arg grip2)" output="screen" /> 
             
                 <node name="phantom_controller2" pkg="nodes" type="phantom.py" args="$(arg name2) $(arg grip2)" output="screen" />
+            
+                <node name="controller2" pkg="nodes" type="controller.py" args="$(arg name2) $(arg grip2)" output="screen" />
             </group>
         </group>
     </group>
 
     <!-- phantom nodes -->
-    <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="log"/> 
+    <!-- <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="log"/>  -->
+    <node name="interface" pkg="nodes" type="interface.py" args="$(arg name1) $(arg name2) $(arg number)" output="screen"/> 
 
 </launch>
