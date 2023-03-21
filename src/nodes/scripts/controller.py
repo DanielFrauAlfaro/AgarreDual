@@ -55,10 +55,10 @@ class Controller():
                 self.grip_pub.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
 
             else:
-                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_finger_1_joint_1/command", Float64, queue_size=10 ))
-                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_finger_2_joint_1/command", Float64, queue_size=10 ))
-                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_finger_middle_joint_1/command", Float64, queue_size=10 ))
-                self.grip_pub.append(rospy.Publisher("/" + name + "/gripper_palm_finger_1_joint/command", Float64, queue_size=10 ))
+                self.grip_pub.append(rospy.Publisher("/" + name + "/finger_1_joint_1_controller/command", Float64, queue_size=10 ))
+                self.grip_pub.append(rospy.Publisher("/" + name + "/finger_2_joint_1_controller/command", Float64, queue_size=10 ))
+                self.grip_pub.append(rospy.Publisher("/" + name + "/finger_middle_joint_1_controller/command", Float64, queue_size=10 ))
+                self.grip_pub.append(rospy.Publisher("/" + name + "/palm_finger_1_joint_controller/command", Float64, queue_size=10 ))
         
 
         # ------ Subscribers ------
@@ -70,7 +70,7 @@ class Controller():
         
         # Median filter for each joint        
         self.__smooth = [[], [], [], [], [], []]
-        self.__size_filt = 4
+        self.__size_filt = 1
 
         for i in range(6):
             for j in range(self.__size_filt):
