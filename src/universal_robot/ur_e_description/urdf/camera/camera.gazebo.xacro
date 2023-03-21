@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   
-  <xacro:macro name="camera_gazebo_v0">
-	 <gazebo reference="camera_link">
-          <sensor type="camera" name="robot_camera2">
+  <xacro:macro name="camera_gazebo_v0" params="prefix">
+	 <gazebo reference="${prefix}_camera_link">
+          <sensor type="camera" name="${prefix}_robot_camera">
             <update_rate>30.0</update_rate>
-            <camera name="robot_camera">
+            <camera name="${prefix}_robot_camera">
               <pose>0 0 0 0 0 0</pose>
               <horizontal_fov>1.3962634</horizontal_fov>
               <image>
@@ -26,10 +26,10 @@
             <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
               <alwaysOn>true</alwaysOn>
               <updateRate>0.0</updateRate>
-              <cameraName>robot_camera</cameraName>
+              <cameraName>${prefix}_robot_camera</cameraName>
               <imageTopicName>image_raw</imageTopicName>
               <cameraInfoTopicName>camera_info</cameraInfoTopicName>
-              <frameName>camera_link</frameName>
+              <frameName>${prefix}_camera_link</frameName>
               <hackBaseline>0.0</hackBaseline>
               <distortionK1>0.0</distortionK1>
               <distortionK2>0.0</distortionK2>
