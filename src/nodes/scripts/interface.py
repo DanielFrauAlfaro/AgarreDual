@@ -3,83 +3,123 @@
 import cv2
 import numpy as np
 import rospy
-from std_msgs.msg import Int32
-from geometry_msgs.msg import Pose
+import sys
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge
 
-size = (550, 850, 3)
+# Bridge from ROS Image message to OpenCV
+bridge = CvBridge()
 
-name_1 = "ur5_1"
-name_2 = "ur5_2"
+# Resize dimensions
+dim = (400, 240)
 
-state1 = 0
-state2 = 0
+# List of images
+images = [[None, None, None],
+          [None, None, None]]
 
-prev_x1, prev_y1, prev_z1 = 0.5095, 0.1334, 0.7347
-prev_roll1, prev_pitch1, prev_yaw1 = 1.57225, 1.07, -0.00166
+# List of flags
+start = [[False, False, False], 
+         [False, False, False]]
 
-prev_x2, prev_y2, prev_z2 = 0.5095, 0.1334, 0.7347
-prev_roll2, prev_pitch2, prev_yaw2 = 1.57225, 1.07, -0.00166
+# Image callbacks: raise esach flag, transform the message and adds borders
+def robot1_y_camera_cb(data):
+    global dim, images, bridge, start, space
 
-modes = []
-modes.append("Position")
-modes.append("Orientation")
-modes.append("Gripper")
+    start[0][0] = True
+    im = bridge.imgmsg_to_cv2(data)
 
-zeros = np.zeros(size, dtype="uint8")
+    im= cv2.copyMakeBorder(im,5,5,5,2.5,cv2.BORDER_CONSTANT,value = [0,0,255])
 
-def cart_pos1(data):
-    global prev_x1, prev_y1, prev_z1
-    global prev_roll1, prev_pitch1, prev_yaw1
+    images[0][0] = cv2.resize(im, dim)
 
-    prev_x1 = data.position.x
-    prev_y1 = data.position.y
-    prev_z1 = data.position.z
+def robot1_x_camera_cb(data):
+    global dim, images, bridge, start
 
-    prev_roll1 = data.orientation.x
-    prev_pitch1 = data.orientation.y
-    prev_yaw1 = data.orientation.z
-
-def cart_pos2(data):
-    global prev_x2, prev_y2, prev_z2
-    global prev_roll2, prev_pitch2, prev_yaw2
-
-    prev_x2 = data.position.x
-    prev_y2 = data.position.y
-    prev_z2 = data.position.z
-
-    prev_roll2 = data.orientation.x
-    prev_pitch2 = data.orientation.y
-    prev_yaw2 = data.orientation.z
-
-def state1_cb(data):
-    global state1
-
-    state1 = data.data
-
-def state2_cb(data):
-    global state2
-
-    state2 = data.data
-
-rospy.init_node("interface")
-rospy.Subscriber("/" + name_1 + "/state", Int32, state1_cb)
-rospy.Subscriber("/" + name_2 + "/state", Int32, state2_cb)
-
-rospy.Subscriber("/" + name_1 + "/cart_pos", Pose, cart_pos1)
-rospy.Subscriber("/" + name_2 + "/cart_pos", Pose, cart_pos2)
-
-
-while not rospy.is_shutdown():
-    cv2.imshow("Interface", zeros)
-
-    zeros = cv2.putText(zeros, "Mode UR5_1: " + modes[state1], (15,50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (128, 0, 128), 2, cv2.LINE_AA)
-    zeros = cv2.putText(zeros, "Mode UR5_2: " + modes[state2], (500,50), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (128, 0, 128), 2, cv2.LINE_AA)
-
-    zeros = cv2.putText(zeros, "X: " + str(round(prev_x1,2)) + "   Y: " + str(round(prev_y1,2)) + "   Z: " + str(round(prev_z1,2)), (15,100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (128, 128, 0), 1, cv2.LINE_AA)
-    zeros = cv2.putText(zeros, "Roll: " + str(round(prev_roll1,2)) + "  Pitch: " + str(round(prev_pitch1,2)) + "  Yaw: " + str(round(prev_yaw1,2)), (15,150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (128, 128, 0), 1, cv2.LINE_AA)
+    start[0][1] = True
+    im = bridge.imgmsg_to_cv2(data)
     
-    zeros = cv2.putText(zeros, "X: " + str(round(prev_x2,2)) + "   Y: " + str(round(prev_y2,2)) + "   Z: " + str(round(prev_z2,2)), (500,100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (128, 128, 0), 1, cv2.LINE_AA)
-    zeros = cv2.putText(zeros, "Roll: " + str(round(prev_roll2,2)) + "  Pitch: " + str(round(prev_pitch2,2)) + "  Yaw: " + str(round(prev_yaw2,2)), (500,150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (128, 128, 0), 1, cv2.LINE_AA)
-    
+    im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [0,0,255])
 
-    cv2.waitKey(1)
+    images[0][1] = cv2.resize(im, dim)
+
+def robot1_tool_camera_cb(data):
+    global dim, images, bridge, start
+
+    start[0][2] = True
+    im = bridge.imgmsg_to_cv2(data)
+
+    im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [0,0,255])
+
+    images[0][2] = cv2.resize(im, dim)
+
+def robot2_y_camera_cb(data):
+    global dim, images, bridge, start
+
+    start[1][0] = True
+    im = bridge.imgmsg_to_cv2(data)
+
+    im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [255,0,0])
+
+    images[1][0] = cv2.resize(im, dim)
+
+def robot2_x_camera_cb(data):
+    global dim, images, bridge, start
+
+    start[1][1] = True
+    im = bridge.imgmsg_to_cv2(data)
+    
+    im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [255,0,0])
+
+    images[1][1] = cv2.resize(im, dim)
+
+def robot2_tool_camera_cb(data):
+    global dim, images, bridge, start
+
+    start[1][2] = True
+    im = bridge.imgmsg_to_cv2(data)
+
+    im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [255,0,0])
+
+    images[1][2] = cv2.resize(im, dim)
+
+
+# ---- Main ----
+if __name__ == "__main__":
+    
+    # Arguments
+    name1 = sys.argv[1]
+    name2 = sys.argv[2]
+    n = int(sys.argv[3])
+    
+    # Node
+    rospy.init_node("interface")
+
+    # -------- Subscribers ---------
+    # Image topics for first robots
+    rospy.Subscriber("/" + name1 + "/y_robot_camera/image_raw", Image, robot1_y_camera_cb)
+    rospy.Subscriber("/" + name1 + "/x_robot_camera/image_raw", Image, robot1_x_camera_cb)
+    rospy.Subscriber("/" + name1 + "/tool_robot_camera/image_raw", Image, robot1_tool_camera_cb)
+
+    # If there are two robots, subscribe to the second robot's image topics
+    if n == 2:
+        rospy.Subscriber("/" + name2 + "/y_robot_camera/image_raw", Image, robot2_y_camera_cb)
+        rospy.Subscriber("/" + name2 + "/x_robot_camera/image_raw", Image, robot2_x_camera_cb)
+        rospy.Subscriber("/" + name2 + "/tool_robot_camera/image_raw", Image, robot2_tool_camera_cb)
+
+
+    # --- Infinite loop ---
+    while not rospy.is_shutdown():
+        
+        # If all flags are raised ...
+        if (n == 1 and start[0] == [True, True, True]) or (n == 2 and start == [[True, True, True], [True, True, True]]):
+            
+            # Concatenates all images
+            im_h_resize = cv2.hconcat([images[0][0], images[0][1], images[0][2]])
+            
+            if n == 2:
+                im_h_resize = cv2.vconcat(im_h_resize, cv2.hconcat([images[1][0], images[1][1], images[1][2]]))
+
+            # Shows the information
+            cv2.imshow("Test", im_h_resize)
+        
+        cv2.waitKey(1)
