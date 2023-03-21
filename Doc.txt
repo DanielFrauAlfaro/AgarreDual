@@ -670,10 +670,10 @@ preestablecidos durante otros estados además del suyo propio y el robot no pier
 
 TODO: 
     - Cambiar ur5.py en Pybullet --> Usar el controller.py en Pybullet --> que ur5_class solo
-    tenga el publisher de /joint_states y el subscriber de cada joint/command
-    - Poner dos cámaras en Gazebo fijas (Eje X e Y)
+    tenga el publisher de /joint_states y el subscriber de cada joint/command   - DONE
+    - Poner dos cámaras en Gazebo fijas (Eje X e Y) - DONE
     - Poner cámara móvil en el extremo      - DONE
-    - Hacer un launch para los lanzamientos de Gazebo y juntar los dos grupos
+    - Aumentar la fricción de los objetos
 
 
 INSTALL sudo apt-get install ros-noetic-soem
