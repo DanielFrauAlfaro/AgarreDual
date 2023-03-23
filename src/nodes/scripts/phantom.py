@@ -30,7 +30,7 @@ scale_roll = 12                    # Euler orientation movement scalation
 scale_pitch = 12
 scale_yaw = 12
 
-scale_grip_140 = 4.08              # Gripper movement scalation
+scale_grip_140 = 5.5              # Gripper movement scalation
 scale_grip = 15
 scale_grip_palm = 0.5
 
@@ -43,7 +43,7 @@ or_roll = -1.57                   # Euler orientation origin
 or_pitch = -0.00079                   
 or_yaw = -3.14 
 
-or_3f = 0.0495                     # 3f gripper origin
+or_3f = 0.0                    # 3f gripper origin
 
 
 # Previous positions and orientation in the main loop
@@ -89,8 +89,8 @@ KD_or = 0.06
 K_grip_2f = 10                     # 2f gripper joints gains
 KD_grip_2f = 0.05
 
-K_grip_3f = 10                     # 3f gripper joints gains
-KD_grip_3f = 0.05
+K_grip_3f = 5                     # 3f gripper joints gains
+KD_grip_3f = 0.0
 
 Ke = 70                             # Mode change gain 
 Kde = 0.2
@@ -402,11 +402,13 @@ if __name__ == "__main__":
             else:  
 
                 # Publishes the robot position
-                pub.publish(pose)
+                if state != 2:
+                    pub.publish(pose)
 
                 # Publishes the gripper position
-                for i in range(len(pub_grip)):
-                    pub_grip[i].publish(grip_pos[i]) 
+                else:
+                    for i in range(len(pub_grip)):
+                        pub_grip[i].publish(grip_pos[i]) 
 
 
                 if state == 0:
