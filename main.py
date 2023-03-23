@@ -3,7 +3,7 @@ import rospy
 import subprocess
 import dearpygui.dearpygui as dpg
 from math import pi
-from std_msgs.msg import Int32, String
+from std_msgs.msg import Int32, String, Bool
 import os
 
 # Start roscore process on the same terminal
@@ -50,10 +50,13 @@ tut_tags = ["tut_sim",  "tut_real", "tut_act", "tut_deact", "tut_act2", "tut_dea
 "tut_n", "tut_grip1", "tut_spa1", "tut_grip2", "tut_spa2", "tut_name1", "tut_name2", "tut_launch",
 "tut_ph_conf", "tut_ph_calib", "tut_spawn_name", "tut_add_obj", "tut_stop_sim", 
 "tut_x_slider", "tut_y_slider", "tut_z_slider", "tut_roll_slider", "tut_pitch_slider", 
-"tut_yaw_slider", "tut_sim_op"]
+"tut_yaw_slider", "tut_sim_op", "tut_add_int1", "tut_add_int2"]
 
 # Simulation Options
 sim_options = ["Gazebo", "Pybullet"]
+
+# Interface flag
+interf = [False, False]
 
 # -------------------- GUI callbacks -------------------------
 # Changes the overviw between real and simulation
@@ -157,13 +160,35 @@ def calib_ph(sender, app_data, user_data):
     subprocess.Popen('./Touch_Diagnostic')
 
 
-# Launch simulation button
+# Launch simulation button and configures the interface buttons
 def launch_sim(sender, app_data, user_data):
-    global is_launch
+    global is_launch, names, n, pybullet
 
     is_launch = True
     dpg.configure_item("conf_w", show=False)
     dpg.configure_item("exec_w", show=True)
+
+    # Configure interface button
+    if not pybullet:
+        dpg.configure_item("add_interface1", label="Activate " + names[0] + " interface")
+        dpg.configure_item("add_interface2", label="Activate " + names[1] + " interface")
+
+        dpg.configure_item("tut_text_interf1", default_value="Click to configure " + names[0] + " video")
+        dpg.configure_item("tut_text_interf2", default_value="Click to configure " + names[1] + " video")
+
+
+        if n == "1":
+            dpg.configure_item("tut_add_int1", show = True)
+            dpg.configure_item("tut_add_int2", show = False)
+
+            dpg.configure_item("add_interface1", show=True)
+            dpg.configure_item("add_interface2", show=False)
+        else:
+            dpg.configure_item("tut_add_int1", show = True)
+            dpg.configure_item("tut_add_int2", show = True)
+
+            dpg.configure_item("add_interface1", show=True)
+            dpg.configure_item("add_interface2", show=True)
 
 
 # --------------- Simulation callbacks -------------
@@ -268,7 +293,45 @@ def change_cb2(data):
     if n == "1" or n == "2":
         dpg.configure_item("change1", default_value = msg[data.data])
 
+def add_interf_1(sender, app_data, user_data):
+    global interf, names
 
+    pub_interf = rospy.Publisher("/" + names[0] + "/interface", Bool, queue_size=10)
+    interf[0] = not interf[0]
+
+    pub_interf.publish(interf[0])
+
+    if not interf[0]:
+        dpg.configure_item("tut_text_interf1", default_value="Click to activate " + names[0] + " video")
+
+        dpg.configure_item("add_interface1", label="Activate " + names[0] + " video")
+
+    else:
+        dpg.configure_item("tut_text_interf1", default_value="Click to deactivate " + names[0] + " video")
+
+        dpg.configure_item("add_interface1", label="Deactivate " + names[0] + " video")
+
+
+def add_interf_2(sender, app_data, user_data):
+    global interf, names
+
+    pub_interf = rospy.Publisher("/" + names[1] + "/interface", Bool, queue_size=10)
+    interf[1] = not interf[1]
+
+    pub_interf.publish(interf[1])
+
+    if not interf[1]:
+        dpg.configure_item("tut_text_interf2", default_value="Click to activate " + names[1] + " video")
+
+        dpg.configure_item("add_interface2", label="Activate" + names[1] + " video")
+
+    else:
+        dpg.configure_item("tut_text_interf2", default_value="Click to deactivate " + names[1] + " video")
+
+        dpg.configure_item("add_interface2", label="Deactivate" + names[1] + " video")
+
+
+    
 # --------------------------- GUI -------------------------------------
 with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
 
@@ -436,7 +499,20 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
     # Add object button
     dpg.add_button(label="Add Object", tag="add_obj", callback=add_obj_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_add_obj"):
-        dpg.add_text("Clcik to add the object to the simulation")
+        dpg.add_text("Click to add the object to the simulation")
+
+
+    dpg.add_separator()
+
+    dpg.add_button(label="Activate Robot 1 video", tag="add_interface1", show = False, callback=add_interf_1)
+    with dpg.tooltip(dpg.last_item(), tag="tut_add_int1"):
+        dpg.add_text("Click to add the robot 1 interface", tag="tut_text_interf1")
+
+    dpg.add_button(label="Activate Robot 2 video", tag="add_interface2", show = False, callback=add_interf_2)
+    with dpg.tooltip(dpg.last_item(), tag="tut_add_int2"):
+        dpg.add_text("Click to add the robot 2 interface", tag="tut_text_interf2")
+
+    dpg.add_separator()
 
     # Stop simulation
     dpg.add_button(label="Stop Simulation", tag="stop_sim", callback=stop_sim_cb)
@@ -561,6 +637,7 @@ if __name__ == "__main__":
                 pyb_sp_obj.publish(spawn_msg)
             
             is_spawn = False
+            
 
         # Renderizes the window
         dpg.render_dearpygui_frame()
