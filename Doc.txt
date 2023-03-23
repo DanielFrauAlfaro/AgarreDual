@@ -673,8 +673,17 @@ TODO:
     tenga el publisher de /joint_states y el subscriber de cada joint/command   - DONE
     - Poner dos cámaras en Gazebo fijas (Eje X e Y) - DONE
     - Poner cámara móvil en el extremo      - DONE
-    - Aumentar la fricción de los objetos
+    - Aumentar la fricción de los objetos   - DONE: sin mejoría, solo en Pybullet
 
+    El cambiar el ur5_class no se puede porque se satura con tantos subscribers y se tiene que poner solo para
+que reciba directamente la posición cartesiana.
+
+    - Crear un nodo que haga de controlador para la pinza del robot. Que sea capaz de controlar la pinza de 
+dos y tres dedos, de manera que sea transparente para los demás nodos.
+    - Modificar el "HOME" del controller para que solo publique una vez en el topic único del controlador de
+la pinza
+    - Modificar el nodo del Phantom para que los comandos de la pinza se publiquen en el topic único del
+controlador de la pinza
 
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
@@ -688,36 +697,60 @@ INSTALL sudo apt-get install ros-noetic-ros-controllers
 --------------------------------------------------------------------------------------------------
                         ESTADO DEL ARTE
 
-
+############################ IMPORTANTE #########################
+    - Método para calcular la CI de un robot de 6 GDL --> para la pinza de 3 dedos
+        https://www.frontiersin.org/articles/10.3389/fnbot.2022.791796/full
 
 Links:
+    - Mental transformations in Human-Robot Interaction: https://www.researchgate.net/figure/Sample-teleoperation-components-and-their-coordinate-frames_fig1_226165243
+        · Bases de la interacción humano robot
+        · Elementos de la teleoperación
+    
+    - Análisis de elementos en zona local y remota para la teleoperación del brazo robótico AL5A: https://dialnet.unirioja.es/servlet/articulo?codigo=5907116
+        · Elementos de la teleoperación
+        · Introducción
+    
+    - Teleoperación: técnicas, aplicaciones, entorno sensorial y teleoperacion inteligente: https://upcommons.upc.edu/bitstream/handle/2117/570/IOC-DT-P-2004-05.pdf
+        · Definición de teleoperación, telerrobótica, telemanipulación, ...
+        · Técnicas de teleoperación
+
+    - https://tesis.ipn.mx/bitstream/handle/123456789/185/camachorios.pdf?sequence=1&isAllowed=y
+        · Imagen de "Elementos de la teleoperación"
+
     - Shadow Space Modeling and Task Planning for Collision-free Cooperation of Dual Manipulators for Planar Task: https://link.springer.com/article/10.1007/s12555-018-0236-1
         · Método para la planificación de trayectorias con dos brazos robóticis
         · Evasión de colisiones
+    
     - Teleoperación de un brazo robot Kinova MICO2 a través de un dispositivo Omni Bundle: https://rua.ua.es/dspace/handle/10045/77712
         · Trabajo de teleoperación de un Kinova
         · Estructura de trabajo
         · Idea para el control de fuerzas
         · Cerrar bucles de control PID
+    
     - Experimental evaluation of magnified haptic feedback for robot-assisted needle insertion and palpation: https://onlinelibrary.wiley.com/doi/full/10.1002/rcs.1809?casa_token=lyiuUkXMm0sAAAAA%3Ad-5IaaZF66xAu0GZ9IcLRt_D_iwemnZsYkaf0n5Th22okqcmDOgaXHOSLjtzXJ_5tHaKubY4VaEZfeE
         · Teleoperación médica
         · Robótica compartida
         · Pasividad
+    
     - KONTUR-2: Force-feedback teleoperation from the international space station: https://ieeexplore.ieee.org/document/7487246
         · Feedback de fuerza
         · Teleoperación
         · NO SE PUEDE ACCEDER AL ATÍCULO
+    
     - Shared-Autonomy Control for Intuitive Bimanual Tele-Manipulation: https://ieeexplore.ieee.org/abstract/document/8625047?casa_token=GRWgO5RjOaoAAAAA:uBFHm_GJExJFxh1HuIkK3LVG6tvOjpasat0aNddHPd_1SOPrsfwR7y2DO-87KquuWwljS4sfyg
         · Control de dos roots con los dos brazos
         · Sensores sEMG para reconocimiento de gestos de mano
         · IMU para obtención de posiciones y orientaciones
+    
     - Improvement of operability in remote robot control with force feedback: https://ieeexplore.ieee.org/abstract/document/7398509?casa_token=SWpv-FKCtt8AAAAA:uoZ4i2dH_YJYuxX8IXyxH61l8WP3BkRhF9v7yDMJru0gpXtbrntqQd84V8haMux4aqOW1t2Eig
         · Realimentación de esfuerzos
         · Mejora de la calidad de la manipulación
         · Medidas de la mejora
         · Métodos de control de fuerzas
+    
     - Force feedback based gripper control on a robotic arm: https://www.researchgate.net/publication/307435905_Force_feedback_based_gripper_control_on_a_robotic_arm
         · Realimenración de esfuerzos
+    
     - Haptic Feedback in Robot-Assisted Minimally Invasive Surgery: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2701448/
         · Robótica asistiva en operaciones
         · Realimentación de esfuerzos y realimentación táctil
@@ -845,6 +878,11 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
     - Referencia de ROSLAUNCH para Python: http://wiki.ros.org/roslaunch/API%20Usage
     - DearPyGui GUI: https://dearpygui.readthedocs.io/en/latest/documentation/item-value.html
     - Subprocess documentation: https://docs.python.org/3/library/subprocess.html
+    - Add friction to URDF: http://wiki.ros.org/urdf/Tutorials/Adding%20Physical%20and%20Collision%20Properties%20to%20a%20URDF%20Model
+    - Technical report Adaptive Finger: https://motion.cs.illinois.edu/papers/IUCS-TR711-Franchi-gripper.pdf
+    - Specs 3f Robotiq: https://robotiq.com/products/3-finger-adaptive-robot-gripper?ref=nav_product_new_button
+    - Gazebo Plugin tutorials, Bumper: https://classic.gazebosim.org/tutorials?tut=ros_gzplugins#Bumper
+    - Bumper plugin under specified conditions: https://answers.gazebosim.org/question/22501/bumper-plugin-only-working-with-single-collision-tag/
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
