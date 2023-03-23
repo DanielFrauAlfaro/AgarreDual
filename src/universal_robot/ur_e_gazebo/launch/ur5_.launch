@@ -18,7 +18,7 @@
   <group ns="ur5_2">
     <!-- send robot urdf to param server -->
     <include file="$(find ur_e_description)/launch/ur5e_upload.launch">
-      <arg name="grip" value="4f"/>
+      <arg name="grip" value="3f"/>
     </include>
     
     <!-- push robot_description to factory and spawn robot in gazebo -->
