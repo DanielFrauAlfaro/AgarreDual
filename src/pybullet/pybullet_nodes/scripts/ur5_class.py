@@ -131,15 +131,7 @@ class UR5e:
 
 
         # ------ Subscribers ------
-        # Reference robot cartesian pose
-        self.__joints_com = []
-        self.__joints_com.append(rospy.Subscriber('/' + self.name + '/shoulder_pan_joint_position_controller/command', Float64, self._joint_1_cb))
-        self.__joints_com.append(rospy.Subscriber('/' + self.name + '/shoulder_lift_joint_position_controller/command', Float64, self._joint_2_cb))
-        self.__joints_com.append(rospy.Subscriber('/' + self.name + '/elbow_joint_position_controller/command', Float64, self._joint_3_cb))
-        self.__joints_com.append(rospy.Subscriber('/' + self.name + '/wrist_1_joint_position_controller/command', Float64, self._joint_4_cb))
-        self.__joints_com.append(rospy.Subscriber('/' + self.name + '/wrist_2_joint_position_controller/command', Float64, self._joint_5_cb))
-        self.__joints_com.append(rospy.Subscriber('/' + self.name + '/wrist_3_joint_position_controller/command', Float64, self._joint_6_cb))
-
+        rospy.Subscriber("/" + self.name + "/pose", Pose, self.pose_cb)
 
         # Gripper position callbacks
         if grip == "2f_140":
@@ -206,6 +198,7 @@ class UR5e:
 
             self.j_state.position[cont] = aux[0]
             self.j_state.velocity[cont] = aux[1]
+            self.j_state.effort[cont] = aux[-1]
 
             cont = cont + 1
 
@@ -217,6 +210,7 @@ class UR5e:
             
             self.j_state.position[cont] = aux[0]
             self.j_state.velocity[cont] = aux[1]
+            self.j_state.effort[cont] = aux[-1]
 
             cont = cont + 1
 
@@ -370,44 +364,24 @@ class UR5e:
                                 targetPosition=data.data,
                                 physicsClientId=self.client)
 
-    def _joint_1_cb(self, data):
-        p.setJointMotorControl2(bodyIndex=self.ur5, 
-                                jointIndex=self.ur5_joints_id[0], 
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=data.data,
-                                physicsClientId=self.client)
+    def pose_cb(self, data):
+        # Gets message data
+        x = data.position.x                                 
+        y = data.position.y
+        z = data.position.z
+            
+        roll = data.orientation.x
+        pitch = data.orientation.y
+        yaw = data.orientation.z
 
-    def _joint_2_cb(self, data):
-        p.setJointMotorControl2(bodyIndex=self.ur5, 
-                                jointIndex=self.ur5_joints_id[1], 
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=data.data,
-                                physicsClientId=self.client)
-        
-    def _joint_3_cb(self, data):
-        p.setJointMotorControl2(bodyIndex=self.ur5, 
-                                jointIndex=self.ur5_joints_id[2], 
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=data.data,
-                                physicsClientId=self.client)
-    
-    def _joint_4_cb(self, data):
-        p.setJointMotorControl2(bodyIndex=self.ur5, 
-                                jointIndex=self.ur5_joints_id[3], 
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=data.data,
-                                physicsClientId=self.client)
-        
-    def _joint_5_cb(self, data):
-        p.setJointMotorControl2(bodyIndex=self.ur5, 
-                                jointIndex=self.ur5_joints_id[4], 
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=data.data,
-                                physicsClientId=self.client)
-        
-    def _joint_6_cb(self, data):
-        p.setJointMotorControl2(bodyIndex=self.ur5, 
-                                jointIndex=self.ur5_joints_id[5], 
-                                controlMode=p.POSITION_CONTROL,
-                                targetPosition=data.data,
-                                physicsClientId=self.client)
+        # Builds up homogeneus matrix
+        T = SE3(x, y, z)
+        T_ = SE3.RPY(roll, pitch, yaw, order='yxz')
+
+        self.T = T * T_
+
+        # Computes inverse kinematics
+        q = self.__ur5.ikine_LMS(self.T,q0 = self.j_state.position[0:6])       # Inversa: obtiene las posiciones articulares a través de la posición
+
+        # Applies the joint action
+        self.apply_action(q.q)
