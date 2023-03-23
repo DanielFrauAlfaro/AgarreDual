@@ -156,7 +156,6 @@ if __name__ == "__main__":
             
         # Advances the simulation
         p.stepSimulation()
-        # render()
         r.sleep()
         
 
