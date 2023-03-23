@@ -51,7 +51,7 @@ class Controller():
         # List of gripper joint publishers according to the gripper type
         self.grip_pub = []
         if grip != "":
-            if grip == "2f":
+            if grip == "2f_140":
                 self.grip_pub.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
 
             else:
@@ -70,7 +70,7 @@ class Controller():
         
         # Median filter for each joint        
         self.__smooth = [[], [], [], [], [], []]
-        self.__size_filt = 1
+        self.__size_filt = 3
 
         for i in range(6):
             for j in range(self.__size_filt):
