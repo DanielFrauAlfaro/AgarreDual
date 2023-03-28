@@ -5,55 +5,98 @@ from std_msgs.msg import Float32, Float64, Float32MultiArray
 import sys
 from math import pi
 
-# Se controla tanto la pinza de tres dedos como la de dos dedos
 
-# Suscripciones:
-#   - grip_pos: la posición de las articulaciones de la pinaz
-#   - grip_torque: torque de las articulaciones de la pinza
-#   - grip_cmd: recibir el comando de la pinza
-
-# Publishers:
-#   - command: topic para los comandos de cada dedo de cada pinza
-#   - grip_state: publica el estado de la pinza [0, 255]
-
+# Controller class
 class GripperController():
     def __init__(self, name, model, finger):
-        # ------ Publishers ------
-        self.joint_pub = []
+        
+        # Model: 3f or 2f_140
+        self.model = model
+        
+        # If the finger is the middle, assigns a '3'
+        self.finger = 0
 
-        if model == "3f":
+        if finger != "middle":
+            self.finger = int(finger)
+        
+        else:
+            self.finger = 3
+
+
+        # Publishers and subscribers for each gripper model
+        self.joint_pub = []
+        self.cmd = []
+
+        if self.model == "3f":
             self.joint_pub.append(rospy.Publisher("/" + name + "/finger_" + finger + "_joint_1_controller/command", Float64, queue_size=10))
             self.joint_pub.append(rospy.Publisher("/" + name + "/finger_" + finger + "_joint_2_controller/command", Float64, queue_size=10))
             self.joint_pub.append(rospy.Publisher("/" + name + "/finger_" + finger + "_joint_3_controller/command", Float64, queue_size=10))
+            
+            rospy.Subscriber("/" + name + "/grip_torque", Float32MultiArray, self.torque_cb)
+
+            self.cmd = [0.0, 0.0, 0.0]
+
 
         elif model == "2f_140":
             self.joint_pub.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10))
+            self.cmd = [0.0]
 
-        self.state = rospy.Publisher("/" + name + "/grip_state", Float32, queue_size=10)
+        # Subscriber for the command topic
+        rospy.Subscriber("/" + name + "/grip_cmd", Float64, self.cmd_cb)
+        
+
+        # State machine thresholds
+        self.th = [110, 140, 240, 255]
+
+        # Finger joints torque
+        self.g_torque = [0, 0, 0,
+                         0, 0, 0,
+                         0, 0, 0]
+
+        # Maximum and minimum rotation (in radians)
+        self.max_rot = [1.22, pi/2.0, -0.0523]
+        self.min_rot = [0.0495, 0.0, -0.96]
+
+        # Constants
+        self.m1 = self.max_rot[0] / self.th[1] 
+        self.m2 = self.max_rot[1] / (self.th[2] - self.th[1])
 
 
-        # ------ Subscribers ------
-        rospy.Subscriber("/" + name + "/grip_cmd", Float32, self.cmd_cb)
-        rospy.Subscriber("/" + name + "/grip_pos", Float32MultiArray, self.pos_cb)
-        rospy.Subscriber("/" + name + "/grip_torque", Float32MultiArray, self.torque_cb)
-
-        th = [110, 140, 240, 255]
-
+    # Command callback
     def cmd_cb(self, data):
-        pass
+        
+        # Gets the data
+        g = data.data
 
-    def pos_cb(self, data):
-        pass
+        # According to the model applies an action
+        if self.model == "3f":
 
+            # Control without obstacles
+            if g >= 0.0 and g <= self.th[1]:
+                self.cmd[0] = self.m1 * g
+                self.cmd[1] = self.min_rot[1]
+                self.cmd[2] = max(-self.m1 * g, self.min_rot[2])
+
+            elif g <= self.th[2]:
+                self.cmd[0] = self.max_rot[0]
+                self.cmd[1] = self.m2 * (g - self.th[1])
+                self.cmd[2] = self.min_rot[2]
+
+            else:
+                self.cmd[0] = self.max_rot[0]
+                self.cmd[1] = self.max_rot[1]
+                self.cmd[2] = self.min_rot[2]
+
+        elif self.model == "2f_140":
+            self.cmd[0] = data.data
+
+
+        # Publish the values
+        for i in range(len(self.cmd)):
+            self.joint_pub[i].publish(self.cmd[i])
+
+
+    # Torque callback
     def torque_cb(self, data):
-        pass
+        self.g_torque = data.data[3 * (self.finger - 1) : 3 * self.finger]
 
-if __name__ == "__main__":
-
-    name = sys.argv[1]
-    model = sys.argv[2]
-    finger = int(sys.argv[3])
-
-    grip_ctr = GripperController(name, model, finger)
-
-    rospy.spin()
