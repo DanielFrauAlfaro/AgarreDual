@@ -67,6 +67,9 @@
                 <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" />  
                 
                 <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />            
+                
+                <node name="gripper_controller" pkg="nodes" type="main_gripper_controller.py" args="$(arg name1) $(arg grip1)" output="screen" />
+
             </group>
         </group>
 
@@ -75,16 +78,45 @@
                 <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" /> 
 
                 <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+
+                <node name="gripper_controller1" pkg="nodes" type="main_gripper_controller.py" args="$(arg name1) $(arg grip1)" output="screen" />
+            
             </group>
             <group ns='$(arg name2)'>
                 <node name="cart_pos2" pkg="nodes" type="cart_pos.py" args="$(arg name2) $(arg grip2)" output="screen" /> 
             
                 <node name="phantom_controller2" pkg="nodes" type="phantom.py" args="$(arg name2) $(arg grip2)" output="screen" />            
+            
+                <node name="gripper_controller2" pkg="nodes" type="main_gripper_controller.py" args="$(arg name2) $(arg grip2)" output="screen" />
             </group>
         </group>
     </group>
 
     <!-- phantom nodes -->
-    <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="log"/> 
-    
+    <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5.json" output="log"> 
+        <remap from="/ur5_2/servo_cf" to="/$(arg name1)/servo_cf"/>
+        <remap from="/ur5_2/cart_pos" to="/$(arg name1)/cart_pos"/>
+        <remap from="/ur5_2/button1" to="/$(arg name1)/button1" />
+        <remap from="/ur5_2/button2" to="/$(arg name1)/button2" />
+
+        <remap from="/ur5_2/body/servo_cf" to="/$(arg name1)/body/servo_cf"/>
+        <remap from="/ur5_2/change" to="/$(arg name1)/change"/>
+        <remap from="/ur5_2/error" to="/$(arg name1)/error"/>
+        <remap from="/ur5_2/hold" to="/$(arg name1)/hold"/>
+        <remap from="/ur5_2/measured_cf" to="/$(arg name1)/measured_cf"/>
+        <remap from="/ur5_2/measured_cp" to="/$(arg name1)/measured_cp"/>
+        <remap from="/ur5_2/measured_cv" to="/$(arg name1)/measured_cv"/>
+        <remap from="/ur5_2/measured_js" to="/$(arg name1)/measured_js"/>
+        <remap from="/ur5_2/move_cp" to="/$(arg name1)/move_cp"/>
+        <remap from="/ur5_2/operating_state" to="/$(arg name1)/operating_state"/>
+        <remap from="/ur5_2/servo_ci" to="/$(arg name1)/servo_ci"/>
+        <remap from="/ur5_2/servo_cp" to="/$(arg name1)/servo_cp"/>
+        <remap from="/ur5_2/setpoint_cp" to="/$(arg name1)/setpoint_cp"/>
+        <remap from="/ur5_2/state_command" to="/$(arg name1)/state_command"/>
+        <remap from="/ur5_2/status" to="/$(arg name1)/status"/>
+        <remap from="/ur5_2/tip/measured_cp" to="/$(arg name1)/tip/measured_cp"/>
+        <remap from="/ur5_2/use_gravity_compensation" to="/$(arg name1)/use_gravity_compensation"/>
+        <remap from="/ur5_2/warning" to="/$(arg name1)/warning"/>
+
+    </node>
 </launch>
