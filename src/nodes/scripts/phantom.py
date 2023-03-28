@@ -1,6 +1,6 @@
 #! /usr/bin/python3
 
-from std_msgs.msg import Float64, Int32, Float32MultiArray
+from std_msgs.msg import Float64, Int32, Float32
 from geometry_msgs.msg import PoseStamped, WrenchStamped, Pose
 from sensor_msgs.msg import Joy
 import rospy
@@ -19,7 +19,7 @@ pose = Pose()                      # End effector position
 wrench = WrenchStamped()           # Phantom wrench
 
 # Joint position of the gripper
-grip_pos = []
+grip_pos = 0.0
 
 # Movements scalation
 scale_x = 2                        # Cartesian movement scalation
@@ -30,9 +30,9 @@ scale_roll = 12                    # Euler orientation movement scalation
 scale_pitch = 12
 scale_yaw = 12
 
-scale_grip_140 = 5.5              # Gripper movement scalation
-scale_grip = 15
-scale_grip_palm = 0.5
+scale_grip = 0
+scale_grip_3f = 1342.1                # Gripper movement scalation: 255 / 0.19
+scale_grip_2f = 5.5
 
 # Origin
 or_x = 0.4921                      # Cartesian origin
@@ -51,7 +51,7 @@ prev_x, prev_y, prev_z = or_x, or_y, or_z
 prev_roll, prev_pitch, prev_yaw = or_roll, or_pitch, or_yaw
 
 # Previous position of the gripper
-prev_grip_pos = []
+prev_grip_pos = 0.0
 
 
 # Modes and Flags
@@ -86,11 +86,11 @@ KD = 0.2
 K_or = 9                          # Orientational gain
 KD_or = 0.06
 
-K_grip_2f = 10                     # 2f gripper joints gains
+K_grip_2f = 10.0                    # 2f gripper joints gains
 KD_grip_2f = 0.05
 
-K_grip_3f = 5                     # 3f gripper joints gains
-KD_grip_3f = 0.0
+K_grip_3f = 0.1                     # 3f gripper joints gains
+KD_grip_3f = 0.003
 
 Ke = 70                             # Mode change gain 
 Kde = 0.2
@@ -147,7 +147,7 @@ def cb(data):
     global prev_roll, prev_pitch, prev_yaw
     global prev_pose_phantom, act_pose_phantom
     global grip_pos
-    global scale_grip_140, scale_grip
+    global scale_grip
     global state_3f
     global grip
     global prev, interval
@@ -184,18 +184,9 @@ def cb(data):
                 prev_pose_phantom.orientation = data.pose.position
                 
             # 2.3 --
-            elif state == 2:
-                if grip == "2f":
-                    grip_pos[0] = data.pose.position.y * scale_grip_140
+            elif state == 2 and data.pose.position.y >= 0.0:
+                grip_pos = data.pose.position.y * scale_grip
                 
-                else:
-                    if state_3f == 0:
-                        grip_pos[0] = or_3f + data.pose.position.x * scale_grip
-                        grip_pos[1] = or_3f + data.pose.position.y * scale_grip
-                        grip_pos[2] = or_3f + data.pose.position.z * scale_grip
-
-                    elif state_3f == 1:
-                        grip_pos[3] = data.pose.position.y * scale_grip_palm
 
 
 # Button 1 callback
@@ -221,28 +212,17 @@ def cb_bt2(data):
     global change
     global state, state_3f
     
-    # If it is in the state 2 and is not changing
-    if state == 2 and not change:
-        if data.buttons[0] == 1:
-            state_3f = state_3f + 1     # Changes the gripper sub - state
-            change = True
-            
-            # If the number exceeds the total state, returns to state 0
-            if state_3f > 1:
-                state_3f = 0
-
     # If it is in another case, goes to the previous state 
-    else:
-        if data.buttons[0] == 1:
-            state = state - 1
-            change = True
+    if data.buttons[0] == 1:
+        state = state - 1
+        change = True
 
-            # If the number exceeds under the total state, returns to state 2
-            if state < 0:
-                state = 2
+        # If the number exceeds under the total state, returns to state 2
+        if state < 0:
+            state = 2
 
-    # Publisher the change
-    pub_change[0].publish(-(state + 1))
+        # Publisher the change
+        pub_change[0].publish(-(state + 1))
 
 
 # Robot cartesian position feedback
@@ -266,15 +246,12 @@ def cart_pos(data):
 
 # Gripper position callback
 def grip_pos_cb(data):
-    global grip
     global prev_grip_pos
 
-    for i in range(len(data.data)):
-        prev_grip_pos[i] = data.data[i]
+    prev_grip_pos = data.data
 
 
-
-# Main
+# ---- Main ----
 if __name__ == "__main__":
 
     # If there are arguments, starts the function
@@ -282,19 +259,13 @@ if __name__ == "__main__":
         
         # Initializes the robot name and gripper type
         name = sys.argv[1]
-        grip = ""
-
-        if sys.argv[2] == '3f':
-            grip = "3f"
-            grip_pos = [or_3f, or_3f, or_3f, 0.0]
-            prev_grip_pos = [or_3f, or_3f, or_3f, 0.0]
-        elif sys.argv[2] == '2f_140':
-            grip = "2f"
-            grip_pos = [0.0]
-            prev_grip_pos = [0.0]
-        else:
-            grip = ""
+        grip = sys.argv[2] 
         
+        # Adjusts gripper scales
+        if grip == "3f":
+            scale_grip = scale_grip_3f
+        elif grip == "2f_140":
+            scale_grip = scale_grip_2f
 
         # Node
         rospy.init_node(name + "_phantom_ctr")
@@ -322,21 +293,12 @@ if __name__ == "__main__":
         rospy.Subscriber('/' + name + '/cart_pos', Pose, cart_pos)
         
         # Gripper postion feedback
-        rospy.Subscriber("/" + name + "/grip_pos", Float32MultiArray, grip_pos_cb)
+        rospy.Subscriber("/" + name + "/grip_state", Float32, grip_pos_cb)
         
-        # Gripper publisher: the lists is filled with Publisher according to the gripper type
-        pub_grip = []
+        # Gripper publisher
+        pub_grip = rospy.Publisher("/" + name + "/grip_cmd", Float64, queue_size=10)
 
-        if grip != "":
-            if grip == "2f":
-                pub_grip.append(rospy.Publisher("/" + name + "/gripper/command", Float64, queue_size=10 ))
 
-            else:
-                pub_grip.append(rospy.Publisher("/" + name + "/finger_1_joint_1_controller/command", Float64, queue_size=10 ))
-                pub_grip.append(rospy.Publisher("/" + name + "/finger_2_joint_1_controller/command", Float64, queue_size=10 ))
-                pub_grip.append(rospy.Publisher("/" + name + "/finger_middle_joint_1_controller/command", Float64, queue_size=10 ))
-                pub_grip.append(rospy.Publisher("/" + name + "/palm_finger_1_joint_controller/command", Float64, queue_size=10 ))
-        
         # Time
         t = time.time()
 
@@ -372,22 +334,11 @@ if __name__ == "__main__":
                     ez = (prev_pose_phantom.orientation.z - act_pose_phantom.position.z)
 
                 elif state == 2:
-                    if grip == "2f":
-                        ex = (0.0 - act_pose_phantom.position.x)
-                        ey = (prev_grip_pos[0] / scale_grip_140 - act_pose_phantom.position.y)
-                        ez = (0.0 - act_pose_phantom.position.z)
+                    ex = (0.0 - act_pose_phantom.position.x)
+                    ey = (prev_grip_pos / scale_grip - act_pose_phantom.position.y)
+                    ez = (0.0 - act_pose_phantom.position.z)
 
-                    else:
-                        if state_3f == 0:
-                            ex = (prev_grip_pos[0] / scale_grip - act_pose_phantom.position.x)
-                            ey = (prev_grip_pos[1] / scale_grip - act_pose_phantom.position.y)
-                            ez = (prev_grip_pos[2] / scale_grip - act_pose_phantom.position.z)
-
-                        elif state_3f == 1:
-                            ex = (0.0 - act_pose_phantom.position.x)
-                            ey = (0.0 - act_pose_phantom.position.y)
-                            ez = (prev_grip_pos[3] / scale_grip_palm - act_pose_phantom.position.z)
-
+                
 
                 # If the Phantom end effector is within the previous position, 
                 #   ends the mode changing state
@@ -402,13 +353,10 @@ if __name__ == "__main__":
             else:  
 
                 # Publishes the robot position
-                if state != 2:
-                    pub.publish(pose)
+                pub.publish(pose)
 
                 # Publishes the gripper position
-                else:
-                    for i in range(len(pub_grip)):
-                        pub_grip[i].publish(grip_pos[i]) 
+                pub_grip.publish(grip_pos) 
 
 
                 if state == 0:
@@ -436,27 +384,15 @@ if __name__ == "__main__":
                     ey0 = (0 - act_pose_phantom.position.y) * 10
                     ez0 = (0 - act_pose_phantom.position.z) * 10
 
-                    if grip == "2f":
-                        ey = (prev_grip_pos[0] - grip_pos[0]) 
-                            
-                    else:
-                        if state_3f == 0:
-                            ex = (prev_grip_pos[0] - grip_pos[0])
-                            ey = (prev_grip_pos[1] - grip_pos[1])
-                            ez = (prev_grip_pos[2] - grip_pos[2])
-
-                        elif state_3f == 1:
-                            ey = (prev_grip_pos[3] - grip_pos[3])
-
+                    ey = (prev_grip_pos - grip_pos) 
+                    
                     # If some coordinate is negative, the error is the one between the 
                     #   origin and the actual position
-                    if act_pose_phantom.position.x < 0.0:
-                        ex = ex0
                     if act_pose_phantom.position.y < 0.0:
                         ey = ey0
-                    if act_pose_phantom.position.z < 0.0:
-                        ez = ez0
 
+                        if grip == "3f":
+                            ey = ey0 * 50
 
             # Depending on the mode, some gains are applied
             k = 0
@@ -475,13 +411,16 @@ if __name__ == "__main__":
                 kd = KD_or
             
             elif state == 2:
-                if grip == "2f":
+                if grip == "2f_140":
                     k = K_grip_2f
                     kd = KD_grip_2f
             
                 elif grip == "3f":
                     k = K_grip_3f
-                    kd = KD_grip_3f 
+                    kd = KD_grip_3f
+
+                    ez = ez * 50
+                    ex = ex * 50
             
 
             # Computes the forces
