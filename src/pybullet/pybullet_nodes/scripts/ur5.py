@@ -89,7 +89,7 @@ def render():
     plt.pause(1/fps) 
 
 
-# Main
+# ---- Main ----
 if __name__ == "__main__":
 
     # Node 
