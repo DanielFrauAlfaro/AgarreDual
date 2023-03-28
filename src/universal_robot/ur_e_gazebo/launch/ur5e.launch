@@ -20,7 +20,7 @@
     <node name="controller_spawner_2f" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="gripper" />
 
     <rosparam file="$(find ur_e_gazebo)/controller/ur5_controller_params_pid_2f.yaml" command="load"/>
-    <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
+    <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />  
   </group>
 
   <group if="$(eval arg('grip')=='3f')">
@@ -29,6 +29,7 @@
 
     <rosparam file="$(find ur_e_gazebo)/controller/ur5_controller_params_pid.yaml" command="load"/>
     <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="shoulder_pan_joint_position_controller shoulder_lift_joint_position_controller elbow_joint_position_controller wrist_1_joint_position_controller wrist_2_joint_position_controller wrist_3_joint_position_controller joint_state_controller" />
+  
   </group>
 
   <!-- robot state publisher -->
@@ -37,5 +38,6 @@
   <!-- robot controller -->
   <node name="controller" pkg="nodes" type="controller.py" args="$(arg robot_name) $(arg grip)" output="screen" />
   <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg robot_name) $(arg grip)" output="screen" />  
-
+  <node name="gripper_controller" pkg="nodes" type="main_gripper_controller.py" args="$(arg robot_name) $(arg grip)" output="screen" />
+            
 </launch>
