@@ -685,6 +685,39 @@ la pinza
     - Modificar el nodo del Phantom para que los comandos de la pinza se publiquen en el topic único del
 controlador de la pinza
 
+
+    - En definitiva, la pinza se mueve según un sistema de codificaciones, que va entre [0, 255], 
+transformado respecto al eje Z (Y en coordenadas locales del Phantom) del movimiento del operador
+
+
+
+    Se ha cambiado el modo de funcionamiento de la pinza de tres dedos; ahora se controlan las tres articulaciones
+de los tres dedos, sin haber un mimic. Se aplica el modelado de la pinza de tres dedos a partir de una máquina de estados.
+    Para el controlador de la pinza se ha hecho lo mismo que con los scripts de Pybullet; se ha creado un nodo maestro 
+desde el que se declaran los controladores para cada dedo en función del modelo:
+    - Si se trata de la pinza de dos dedos, solo se crea un objeto de la clase
+    - Si es la de tres dedos, se generan tres controladores diferentes, una para cada dedo independiente, aunque los
+    tres estás suscritos al mismo topic de control, de manera que todos los dedos se cierran al mismo tiempo y 
+    se controlan a la vez.
+
+    Los demás nodos se han ajustado a este paradigma, de manera que en el caso del feedback de posición de los dedos
+de la pinza no se envía la posición de las tres articulaciones base de cada dedo, sino que se incorpora el modelado de 
+los dedos y se calcula el valor.
+    Además, el nodo del Phantom se ha modificado para que no tenga en cuenta que pinza está controlando, de manera que 
+el movimiento de control solo sea en un eje y cierre cualquier pinza que se tenga. Lo único que se deben ajustar las escalas 
+a la hora de enviar los movimientos, así como las ganancias. En este último caso, es importante recalcar que la pinza de tres
+dedos tiene un rango de [0, 255] por los errores que se produzcan en este dominio serán mayores de los que se tienen articualarmente
+(del orden de las décimas o las centésimas). Así, se redujo la ganancia aplicada, lo que dejó los limitadores de movimiento 
+de los ejes X y Z del Phantom con ganancias bajas, ya que estos trabajan en el espacio de movimientos del Phantom. Por ello,
+se multiplica el error cometido en estos ejes para aplicar una fuerza significativa al operador.
+
+
+
+MEJORAS:
+    - Quitar vibración de el wrist (creo que es el wrist_3) de la pinza de 2 dedos
+    - Meter el filtro de media móvil en el controlador cartesiano de Pybullet y probarlo
+
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
@@ -697,29 +730,8 @@ INSTALL sudo apt-get install ros-noetic-ros-controllers
 --------------------------------------------------------------------------------------------------
                         ESTADO DEL ARTE
 
-############################ IMPORTANTE #########################
-    - Método para calcular la CI de un robot de 6 GDL --> para la pinza de 3 dedos
-        https://www.frontiersin.org/articles/10.3389/fnbot.2022.791796/full
 
 Links:
-    - Mental transformations in Human-Robot Interaction: https://www.researchgate.net/figure/Sample-teleoperation-components-and-their-coordinate-frames_fig1_226165243
-        · Bases de la interacción humano robot
-        · Elementos de la teleoperación
-    
-    - Análisis de elementos en zona local y remota para la teleoperación del brazo robótico AL5A: https://dialnet.unirioja.es/servlet/articulo?codigo=5907116
-        · Elementos de la teleoperación
-        · Introducción
-    
-    - Teleoperación: técnicas, aplicaciones, entorno sensorial y teleoperacion inteligente: https://upcommons.upc.edu/bitstream/handle/2117/570/IOC-DT-P-2004-05.pdf
-        · Definición de teleoperación, telerrobótica, telemanipulación, ...
-        · Técnicas de teleoperación
-
-    - https://tesis.ipn.mx/bitstream/handle/123456789/185/camachorios.pdf?sequence=1&isAllowed=y
-        · Imagen de "Elementos de la teleoperación"
-
-    - Shadow Space Modeling and Task Planning for Collision-free Cooperation of Dual Manipulators for Planar Task: https://link.springer.com/article/10.1007/s12555-018-0236-1
-        · Método para la planificación de trayectorias con dos brazos robóticis
-        · Evasión de colisiones
     
     - Teleoperación de un brazo robot Kinova MICO2 a través de un dispositivo Omni Bundle: https://rua.ua.es/dspace/handle/10045/77712
         · Trabajo de teleoperación de un Kinova
@@ -727,51 +739,124 @@ Links:
         · Idea para el control de fuerzas
         · Cerrar bucles de control PID
     
-    - Experimental evaluation of magnified haptic feedback for robot-assisted needle insertion and palpation: https://onlinelibrary.wiley.com/doi/full/10.1002/rcs.1809?casa_token=lyiuUkXMm0sAAAAA%3Ad-5IaaZF66xAu0GZ9IcLRt_D_iwemnZsYkaf0n5Th22okqcmDOgaXHOSLjtzXJ_5tHaKubY4VaEZfeE
-        · Teleoperación médica
-        · Robótica compartida
-        · Pasividad
     
-    - KONTUR-2: Force-feedback teleoperation from the international space station: https://ieeexplore.ieee.org/document/7487246
-        · Feedback de fuerza
-        · Teleoperación
-        · NO SE PUEDE ACCEDER AL ATÍCULO
     
-    - Shared-Autonomy Control for Intuitive Bimanual Tele-Manipulation: https://ieeexplore.ieee.org/abstract/document/8625047?casa_token=GRWgO5RjOaoAAAAA:uBFHm_GJExJFxh1HuIkK3LVG6tvOjpasat0aNddHPd_1SOPrsfwR7y2DO-87KquuWwljS4sfyg
-        · Control de dos roots con los dos brazos
-        · Sensores sEMG para reconocimiento de gestos de mano
-        · IMU para obtención de posiciones y orientaciones
-    
-    - Improvement of operability in remote robot control with force feedback: https://ieeexplore.ieee.org/abstract/document/7398509?casa_token=SWpv-FKCtt8AAAAA:uoZ4i2dH_YJYuxX8IXyxH61l8WP3BkRhF9v7yDMJru0gpXtbrntqQd84V8haMux4aqOW1t2Eig
-        · Realimentación de esfuerzos
-        · Mejora de la calidad de la manipulación
-        · Medidas de la mejora
-        · Métodos de control de fuerzas
-    
-    - Force feedback based gripper control on a robotic arm: https://www.researchgate.net/publication/307435905_Force_feedback_based_gripper_control_on_a_robotic_arm
-        · Realimenración de esfuerzos
-    
-    - Haptic Feedback in Robot-Assisted Minimally Invasive Surgery: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2701448/
-        · Robótica asistiva en operaciones
-        · Realimentación de esfuerzos y realimentación táctil
-        · Háptica
+PDF de referencia: https://upcommons.upc.edu/bitstream/handle/2117/570/IOC-DT-P-2004-05.pdf
 
+----------------------------------------------------------------------------------------------
+Cambios a realizar:
+    - La introducción estructurarla como:
+        1. Introducción
+            1.1. Descripción del tema -> lo que hay escrito
+            1.2. Estructura de los contenidos -> explicar que contiene cada apartado del trabajo
+----------------------------------------------------------------------------------------------
 
 Conceptos interesantes a investigar:
-    - Pasividad:
-        · https://web.mat.upc.edu/carles.batlle/Passive%20Control%20Theory%20I.pdf
-        · https://www3.nd.edu/~lemmon/courses/ee580/lectures/chapter10.pdf
-            - Libros que explican que es la pasividad
-    - Retroalimentación de fuerzas
-        · 
-    - Teleoperación
-    - Háptica
-        · Kinestesia
-        · Táctil
-    - Robótica compartida / control compartido
-    - Campos de aplicación de la teleoperación, retroalimentación de fuerzas, control compartido, ...
+
+    - Definiciones:
+        - Teleoperación
+            · Este link está en otro apartado arriba: https://upcommons.upc.edu/bitstream/handle/2117/570/IOC-DT-P-2004-05.pdf
+            · Tipos de teleoperacion, elementos de la teleoperacion: http://catarina.udlap.mx/u_dl_a/tales/documentos/lmt/padilla_m_o/capitulo2.pdf
+        
+        - Realidad virtual:
+            · Definición de realidad virtual: https://www.britannica.com/technology/virtual-reality
+        
+        - Realidad aumentada:
+            · Definición y comparativa con la realidad virtual: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6232426/
+
+        - Háptica:
+            · Definición de la RAE: https://dle.rae.es/h%C3%A1ptico
+            · https://www.ultraleap.com/company/news/blog/what-is-haptic-feedback/
+            · https://onlinelibrary.wiley.com/doi/10.1002/admt.201900042
+            · https://educandotumirada.es/propiocepcion-vestibular-kinestesia-los-sentidos-desconocidos/
+
+        - Robótica compartida / control compartido
+            · Definición: https://www.sciencedirect.com/science/article/pii/S2405896316320547
+        
+        - Control posicion - posicion, ...:
+            · Definición: http://catarina.udlap.mx/u_dl_a/tales/documentos/lmt/padilla_m_o/capitulo2.pdf
+            · https://hal.science/hal-02123753/document
+            · Control Tricanal: https://ieeexplore.ieee.org/abstract/document/7319488
+
+
+    - Elementos de la teleoperacion:
+        - Análisis de elementos en zona local y remota para la teleoperación del brazo robótico AL5A: https://dialnet.unirioja.es/servlet/articulo?codigo=5907116
+            · Elementos de la teleoperación
+            · Introducción
+        - Mental transformations in Human-Robot Interaction: https://www.researchgate.net/figure/Sample-teleoperation-components-and-their-coordinate-frames_fig1_226165243
+            · Bases de la interacción humano robot
+            · Elementos de la teleoperación
+        - Imagen Elementos de la teleoperacion: A survey of environment-, operator-, and task-adapted controllers for teleoperation systems: https://www.sciencedirect.com/science/article/pii/S0957415810000735
+
+
+    - Perspectiva histórica:
+        · http://catarina.udlap.mx/u_dl_a/tales/documentos/lmt/padilla_m_o/capitulo0.pdf
+        · YA MENCIONADO EN OTROS APARTADOS: https://upcommons.upc.edu/bitstream/handle/2117/570/IOC-DT-P-2004-05.pdf
+        · Historia de la teleoperacion bilateral: https://www.sciencedirect.com/science/article/pii/S0005109806002871
+        · Historia de la teleoperacion: https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=40c616d53b322101b5cc8a8687a2d2b9cba166df
+        · PUNTO DE ARRIBA: importante para la historia de la teleoperacion a partir de los años 70
+
+        · Barco de Tesla: https://patents.google.com/patent/US613809A/en
+        · Imagen Bote Tesla: https://br.pinterest.com/pin/92605336060768438/?amp_client_id=CLIENT_ID%28_%29&mweb_unauth_id=%7B%7Bdefault.session%7D%7D&amp_url=https%3A%2F%2Fbr.pinterest.com%2Famp%2Fpin%2F92605336060768438%2F
+        
+        · Imagen M1 Goertz: https://alchetron.com/Raymond-Goertz
+        · Imagen E1 Goertz: https://www.researchgate.net/figure/Telemanipulateur-maitre-esclave-de-Goertz-en-1954_fig29_281161126
+
+        · Remote manipulation with transmission delay: https://ieeexplore.ieee.org/abstract/document/6591253
+        · Supervisory control of remote manipulation: https://ieeexplore.ieee.org/abstract/document/5217126
+
+        · Stability and transparency in bilateral teleoperation: https://ieeexplore.ieee.org/abstract/document/371336
+
+
+    - Áreas de aplicación:
+        · Indústria
+            - Shared Teleoperation for Nuclear Plant Robotics Using Interactive Virtual Guidance Generation and Shared Autonomy Approaches: https://ieeexplore.ieee.org/document/8441814
+            - Teleoperation of an Industrial Robot in an Active Production Line: https://www.sciencedirect.com/science/article/pii/S2405896315009921
+            - Advanced teleoperation and control system for industrial robots based on augmented virtuality and haptic feedback: https://www.sciencedirect.com/science/article/pii/S0278612521000492
+        
+        · Medicina Quirúrgica:
+            - Haptic Feedback in Robot-Assisted Minimally Invasive Surgery: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2701448/
+                · Robótica asistiva en operaciones
+                · Realimentación de esfuerzos y realimentación táctil
+                · Háptica
+            - Experimental evaluation of magnified haptic feedback for robot-assisted needle insertion and palpation: https://onlinelibrary.wiley.com/doi/full/10.1002/rcs.1809?casa_token=lyiuUkXMm0sAAAAA%3Ad-5IaaZF66xAu0GZ9IcLRt_D_iwemnZsYkaf0n5Th22okqcmDOgaXHOSLjtzXJ_5tHaKubY4VaEZfeE
+                · Teleoperación médica
+                · Robótica compartida
+                · Pasividad
+            - The Role of Direct and Visual Force Feedback in Suturing Using a 7-DOF Dual-Arm Teleoperated System: https://ieeexplore.ieee.org/abstract/document/7589098
+
+        · Robótica Espacial:
+            - KONTUR-2: Force-feedback teleoperation from the international space station: https://ieeexplore.ieee.org/document/7487246
+                · Feedback de fuerza
+                · Teleoperación
+                · NO SE PUEDE ACCEDER AL ARTÍCULO
+
+        · Robótica Submarina:
+
+        · Otras áreas e investigaciones:
+            - Improvement of operability in remote robot control with force feedback: https://ieeexplore.ieee.org/abstract/document/7398509?casa_token=SWpv-FKCtt8AAAAA:uoZ4i2dH_YJYuxX8IXyxH61l8WP3BkRhF9v7yDMJru0gpXtbrntqQd84V8haMux4aqOW1t2Eig
+                · Realimentación de esfuerzos
+                · Mejora de la calidad de la manipulación
+                · Medidas de la mejora
+                · Métodos de control de fuerzas
+            - Force feedback based gripper control on a robotic arm: https://www.researchgate.net/publication/307435905_Force_feedback_based_gripper_control_on_a_robotic_arm
+                · Realimenración de esfuerzos
+            - Shared-Autonomy Control for Intuitive Bimanual Tele-Manipulation: https://ieeexplore.ieee.org/abstract/document/8625047?casa_token=GRWgO5RjOaoAAAAA:uBFHm_GJExJFxh1HuIkK3LVG6tvOjpasat0aNddHPd_1SOPrsfwR7y2DO-87KquuWwljS4sfyg
+                · Control de dos roots con los dos brazos
+                · Sensores sEMG para reconocimiento de gestos de mano
+                · IMU para obtención de posiciones y orientaciones
+            - Shadow Space Modeling and Task Planning for Collision-free Cooperation of Dual Manipulators for Planar Task: https://link.springer.com/article/10.1007/s12555-018-0236-1
+                · Método para la planificación de trayectorias con dos brazos robóticis
+                · Evasión de colisiones
+    
 --------------------------------------------------------------------------------------------------
 
+    - Reunión con Santiago:
+        - Resolucion TFG: 20 de junio
+        - Resolución Evaluación: 21 dejunio
+        - Puedo hacer la preinscripcion si me faltan 9 créditos y el TFG aunque no tenga el título
+
+--------------------------------------------------------------------------------------------------
 
 
 
