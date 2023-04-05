@@ -1,0 +1,9 @@
+{
+    "devices":
+    [
+        {
+            "name": "Default Device",
+            "rename": "ur5_2"
+        }
+    ]
+}
