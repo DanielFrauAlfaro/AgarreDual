@@ -147,25 +147,36 @@ class Controller():
             # Updates the time
             self.__prev2 = time.time()   
 
+            end = [False, False, False, False, False, False]
+
             # Gets all the joint position values iterating the message
             for i in range(len(data.name)):
                 if data.name[i] == "shoulder_lift_joint":
                     self.__q[0] = data.position[i]
+                    end[0] = True
 
                 elif data.name[i] == "shoulder_pan_joint":
                     self.__q[1] = data.position[i]
+                    end[1] = True
 
                 elif data.name[i] == "elbow_joint":
                     self.__q[2] = data.position[i]
+                    end[2] = True
 
                 elif data.name[i] == "wrist_1_joint":
                     self.__q[3] = data.position[i]
+                    end[3] = True
 
                 elif data.name[i] == "wrist_2_joint":
                     self.__q[4] = data.position[i]
+                    end[4] = True
 
                 elif data.name[i] == "wrist_3_joint":
                     self.__q[5] = data.position[i]
+                    end[5] = True
+
+                if end == [True, True, True, True, True, True]:
+                    break
            
            
 # ---- Main ----
