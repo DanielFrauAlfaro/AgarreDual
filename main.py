@@ -93,12 +93,21 @@ def n_robots(sender, app_data, user_data):
     if n == "0":
         dpg.configure_item("ur51", show=False)
         dpg.configure_item("ur52", show=False)
+
+        dpg.configure_item("change1", show=False)
+        dpg.configure_item("change2", show=False)
     elif n == "1":
         dpg.configure_item("ur51", show=True)
         dpg.configure_item("ur52", show=False)
+
+        dpg.configure_item("change1", show=True)
+        dpg.configure_item("change2", show=False)
     else:
         dpg.configure_item("ur51", show=True)
         dpg.configure_item("ur52", show=True)
+
+        dpg.configure_item("change1", show=True)
+        dpg.configure_item("change2", show=True)
 
 
 # Gripper option and robot name - 1
@@ -170,8 +179,8 @@ def launch_sim(sender, app_data, user_data):
 
     # Configure interface button
     if not pybullet:
-        dpg.configure_item("add_interface1", label="Activate " + names[0] + " interface")
-        dpg.configure_item("add_interface2", label="Activate " + names[1] + " interface")
+        dpg.configure_item("add_interface1", label="Activate " + names[0] + " video")
+        dpg.configure_item("add_interface2", label="Activate " + names[1] + " video")
 
         dpg.configure_item("tut_text_interf1", default_value="Click to configure " + names[0] + " video")
         dpg.configure_item("tut_text_interf2", default_value="Click to configure " + names[1] + " video")
@@ -290,8 +299,8 @@ def change_cb2(data):
            "CHANGE: " + names[1] + " to: ORIENTATION coordinates ...",
            "CHANGE: " + names[1] + " to: POSITION coordinates ..."]
 
-    if n == "1" or n == "2":
-        dpg.configure_item("change1", default_value = msg[data.data])
+    if n == "2":
+        dpg.configure_item("change2", default_value = msg[data.data])
 
 def add_interf_1(sender, app_data, user_data):
     global interf, names
@@ -323,12 +332,12 @@ def add_interf_2(sender, app_data, user_data):
     if not interf[1]:
         dpg.configure_item("tut_text_interf2", default_value="Click to activate " + names[1] + " video")
 
-        dpg.configure_item("add_interface2", label="Activate" + names[1] + " video")
+        dpg.configure_item("add_interface2", label="Activate " + names[1] + " video")
 
     else:
         dpg.configure_item("tut_text_interf2", default_value="Click to deactivate " + names[1] + " video")
 
-        dpg.configure_item("add_interface2", label="Deactivate" + names[1] + " video")
+        dpg.configure_item("add_interface2", label="Deactivate " + names[1] + " video")
 
 
     
