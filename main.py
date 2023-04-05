@@ -535,6 +535,9 @@ if __name__ == "__main__":
             aux.data = -1
             change_cb1(aux)
 
+            if n == "2":
+                change_cb2(aux)
+
             # Initializes the roslaunch object with the selected arguments
             uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
             roslaunch.configure_logging(uuid)
