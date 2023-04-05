@@ -714,9 +714,17 @@ se multiplica el error cometido en estos ejes para aplicar una fuerza significat
 
 
 MEJORAS:
-    - Quitar vibración de el wrist (creo que es el wrist_3) de la pinza de 2 dedos
-    - Meter el filtro de media móvil en el controlador cartesiano de Pybullet y probarlo
+    - Meter el plugin de Gazebo para la detección de colisiones
+    - Si funciona, cambiar el controlador de la pinza para que cambie el estado y se adapte
+    - Si funciona, añadir la máquina de estados al cart_pos
 
+    - Si funciona, adaptar todas las funcionalidades a Pybullet
+
+
+FUNCIONA CON 2:
+    - Comprobar frecuencia en Pybullet -> iba bien al principio pero al final se jode
+    - Problema con el tiempo de simulación en Gazebo, 10% del tiempo real, va muy mal
+    - Comprobar algoritmo pinza de tres dedos
 
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
@@ -743,13 +751,6 @@ Links:
     
 PDF de referencia: https://upcommons.upc.edu/bitstream/handle/2117/570/IOC-DT-P-2004-05.pdf
 
-----------------------------------------------------------------------------------------------
-Cambios a realizar:
-    - La introducción estructurarla como:
-        1. Introducción
-            1.1. Descripción del tema -> lo que hay escrito
-            1.2. Estructura de los contenidos -> explicar que contiene cada apartado del trabajo
-----------------------------------------------------------------------------------------------
 
 Conceptos interesantes a investigar:
 
@@ -781,11 +782,7 @@ Conceptos interesantes a investigar:
 
     - Elementos de la teleoperacion:
         - Análisis de elementos en zona local y remota para la teleoperación del brazo robótico AL5A: https://dialnet.unirioja.es/servlet/articulo?codigo=5907116
-            · Elementos de la teleoperación
-            · Introducción
         - Mental transformations in Human-Robot Interaction: https://www.researchgate.net/figure/Sample-teleoperation-components-and-their-coordinate-frames_fig1_226165243
-            · Bases de la interacción humano robot
-            · Elementos de la teleoperación
         - Imagen Elementos de la teleoperacion: A survey of environment-, operator-, and task-adapted controllers for teleoperation systems: https://www.sciencedirect.com/science/article/pii/S0957415810000735
 
 
@@ -815,40 +812,82 @@ Conceptos interesantes a investigar:
             - Advanced teleoperation and control system for industrial robots based on augmented virtuality and haptic feedback: https://www.sciencedirect.com/science/article/pii/S0278612521000492
         
         · Medicina Quirúrgica:
+            - Definición Robótica Quirúrgica:
+                · https://www.mayoclinic.org/tests-procedures/robotic-surgery/about/pac-20394974
+
             - Haptic Feedback in Robot-Assisted Minimally Invasive Surgery: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2701448/
-                · Robótica asistiva en operaciones
-                · Realimentación de esfuerzos y realimentación táctil
-                · Háptica
             - Experimental evaluation of magnified haptic feedback for robot-assisted needle insertion and palpation: https://onlinelibrary.wiley.com/doi/full/10.1002/rcs.1809?casa_token=lyiuUkXMm0sAAAAA%3Ad-5IaaZF66xAu0GZ9IcLRt_D_iwemnZsYkaf0n5Th22okqcmDOgaXHOSLjtzXJ_5tHaKubY4VaEZfeE
-                · Teleoperación médica
-                · Robótica compartida
-                · Pasividad
             - The Role of Direct and Visual Force Feedback in Suturing Using a 7-DOF Dual-Arm Teleoperated System: https://ieeexplore.ieee.org/abstract/document/7589098
+            - Imagen: https://www.smithsonianmag.com/innovation/the-past-present-and-future-of-robotic-surgery-180980763/
 
         · Robótica Espacial:
+            - Mars 2020: https://mars.nasa.gov/mars2020/
+            - Teleoperation and Visualization Interfaces for Remote Intervention in Space: https://www.frontiersin.org/articles/10.3389/frobt.2021.747917/full
             - KONTUR-2: Force-feedback teleoperation from the international space station: https://ieeexplore.ieee.org/document/7487246
-                · Feedback de fuerza
-                · Teleoperación
-                · NO SE PUEDE ACCEDER AL ARTÍCULO
+            - Imagen: https://www.researchgate.net/figure/Teleoperation-of-a-continuous-robot-for-space-exploration-using-a-Virtual-Reality-headset_fig1_337779774
 
         · Robótica Submarina:
+            - Operaciones de rescate:
+                · https://www.ecagroup.com/en/business/eca-group-delivers-a-h300v-rov-for-search-rescue-operations-in-the-middle-east
+                · https://acsmships.com/wp-content/uploads/SBTM_SP006_Subsea-Rescue-Operations_rev02_18Jan24-small.pdf
 
+            - Underwater multilateral tele-operation control with constant time delays: https://es.overleaf.com/project/64077cad7f41bb89a8b9693e
+        
         · Otras áreas e investigaciones:
             - Improvement of operability in remote robot control with force feedback: https://ieeexplore.ieee.org/abstract/document/7398509?casa_token=SWpv-FKCtt8AAAAA:uoZ4i2dH_YJYuxX8IXyxH61l8WP3BkRhF9v7yDMJru0gpXtbrntqQd84V8haMux4aqOW1t2Eig
-                · Realimentación de esfuerzos
-                · Mejora de la calidad de la manipulación
-                · Medidas de la mejora
-                · Métodos de control de fuerzas
             - Force feedback based gripper control on a robotic arm: https://www.researchgate.net/publication/307435905_Force_feedback_based_gripper_control_on_a_robotic_arm
-                · Realimenración de esfuerzos
             - Shared-Autonomy Control for Intuitive Bimanual Tele-Manipulation: https://ieeexplore.ieee.org/abstract/document/8625047?casa_token=GRWgO5RjOaoAAAAA:uBFHm_GJExJFxh1HuIkK3LVG6tvOjpasat0aNddHPd_1SOPrsfwR7y2DO-87KquuWwljS4sfyg
-                · Control de dos roots con los dos brazos
-                · Sensores sEMG para reconocimiento de gestos de mano
-                · IMU para obtención de posiciones y orientaciones
-            - Shadow Space Modeling and Task Planning for Collision-free Cooperation of Dual Manipulators for Planar Task: https://link.springer.com/article/10.1007/s12555-018-0236-1
-                · Método para la planificación de trayectorias con dos brazos robóticis
-                · Evasión de colisiones
-    
+
+--------------------------------------------------------------------------------------------------
+    - Estructura de la metodología:
+        - Instrumentación:
+            - UR5e: tablas DH, especificaciones, ...
+                - Robotica colaborativa: https://www.edsrobotics.com/blog/robotica-colaborativa-que-es/
+                - Imagen robot UR5e: https://robotplus.es/ur5e/
+                - Especificaciones: https://www.universal-robots.com/media/1807465/ur5e-rgb-fact-sheet-landscape-a4.pdf
+                - Agoritmo DH:
+                    - https://maferstech.com/robotica-algoritmo-de-denavit-hartenberg-caso-de-estudio-ssrms/
+                    - https://personal.us.es/jcortes/Material/Material_archivos/Articulos%20PDF/RepresentDH.pdf
+                - DH UR5e: https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/
+            
+            - Robotiq 2F-140 Gripper:
+                - Imagen: https://www.active-robots.com/agc-grp-2f140-robotiq-two-finger-gripper.html
+                - Especificaciones / página del fabricante: https://robotiq.com/support/2f85-140-adaptive-robot-gripper
+
+            - Robotiq 3F Adaptive Robot Gripper:
+                - Imagen: https://www.doosanrobotics.com/en/Mate/MateDetail/952f4150-a46c-e911-a836-000d3a07fbb4
+                - Especificaciones / página del fabricante: https://robotiq.com/es/productos/pinza-robotica-adaptable-de-3-dedos
+
+            - Phantom Omni: DH, especificaciones, ...
+                - Descripción:
+                    - https://www.3dsystems.com/haptics-devices/touch
+                    - https://www.or3d.co.uk/products/hardware/haptic-devices/geomagic-touch/
+                    - https://www.3dcadportal.com/phantom-omni.html
+
+                - Especificaciones: https://www.researchgate.net/publication/220869088_A_3D_Simulation_of_a_Game_of_Billiards_Using_a_Haptic_Device
+
+        - Organización del proyecto:
+            - Mención a la publicación del sistema dual inteligente
+            - Asignatura Teleoperación:https://cvnet.cpd.ua.es/Guia-Docente/GuiaDocente/Index?wcodest=C211&wcodasi=33734&wlengua=es&scaca=2022-23
+            - Lucidchart: diagrama organizativo: https://www.lucidchart.com/pages/es/landing?utm_source=google&utm_medium=cpc&utm_campaign=_chart_es_tier1_mixed_search_brand_exact_&km_CPC_CampaignId=1487565747&km_CPC_AdGroupID=56488588774&km_CPC_Keyword=lucidchart&km_CPC_MatchType=e&km_CPC_ExtensionID=&km_CPC_Network=g&km_CPC_AdPosition=&km_CPC_Creative=284415987027&km_CPC_TargetID=kwd-33511936169&km_CPC_Country=20267&km_CPC_Device=c&km_CPC_placement=&km_CPC_target=&gclid=EAIaIQobChMIuO3xvJ2O_gIViZ93Ch22tA_FEAAYASAAEgJsBPD_BwE
+
+        - Algoritmos de control:
+            - Referencia al Marco teórico.
+            - Control Posición - Posición
+                - Diferencias cinemáticas
+                - Aplicación de usuario:
+                    - Dataset de objetos de Yale: https://registry.opendata.aws/ycb-benchmarks/
+        
+        - Plataforma:
+            - ROS: paradigma ROS, controladores, ...
+            - Lenguaje de programación: Python
+            - Software del Phantom y paquete de jhu-saw
+            - Estructura de carpetas
+            - Interfaz de usuario
+            - Simuladores: adaptaciones, nodos maestros
+                - Gazebo
+                - Pybullet
+            - Implementación del control: reflexion de esfuerzos
 --------------------------------------------------------------------------------------------------
 
     - Reunión con Santiago:
