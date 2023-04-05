@@ -56,7 +56,7 @@ tut_tags = ["tut_sim",  "tut_real", "tut_act", "tut_deact", "tut_act2", "tut_dea
 sim_options = ["Gazebo", "Pybullet"]
 
 # Interface flag
-interf = [False, False]
+interf = False
 
 # -------------------- GUI callbacks -------------------------
 # Changes the overviw between real and simulation
@@ -294,11 +294,11 @@ def add_interf(sender, app_data, user_data):
     global interf, names
 
     pub_interf = rospy.Publisher("/interface", Bool, queue_size=10)
-    interf[0] = not interf[0]
+    interf = not interf
 
-    pub_interf.publish(interf[0])
+    pub_interf.publish(interf)
 
-    if not interf[0]:
+    if not interf:
         dpg.configure_item("tut_text_interf", default_value="Click to activate video")
 
         dpg.configure_item("add_interface", label="Activate video")
