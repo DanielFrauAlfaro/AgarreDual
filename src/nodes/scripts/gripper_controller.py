@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import rospy
-from std_msgs.msg import Float32, Float64, Float32MultiArray
-import sys
+from std_msgs.msg import Float64
+from gazebo_msgs.msg import ContactsState
+from control_msgs.msg import JointControllerState
 from math import pi
 
 
@@ -31,8 +32,6 @@ class GripperController():
             self.joint_pub.append(rospy.Publisher("/" + name + "/finger_" + finger + "_joint_1_controller/command", Float64, queue_size=10))
             self.joint_pub.append(rospy.Publisher("/" + name + "/finger_" + finger + "_joint_2_controller/command", Float64, queue_size=10))
             self.joint_pub.append(rospy.Publisher("/" + name + "/finger_" + finger + "_joint_3_controller/command", Float64, queue_size=10))
-            
-            rospy.Subscriber("/" + name + "/grip_torque", Float32MultiArray, self.torque_cb)
 
             self.cmd = [0.0, 0.0, 0.0]
 
@@ -48,10 +47,6 @@ class GripperController():
         # State machine thresholds
         self.th = [110, 140, 240, 255]
 
-        # Finger joints torque
-        self.g_torque = [0, 0, 0,
-                         0, 0, 0,
-                         0, 0, 0]
 
         # Maximum and minimum rotation (in radians)
         self.max_rot = [1.22, pi/2.0, -0.0523]
@@ -61,7 +56,7 @@ class GripperController():
         self.m1 = self.max_rot[0] / self.th[1] 
         self.m2 = self.max_rot[1] / (self.th[2] - self.th[1])
 
-
+        
     # Command callback
     def cmd_cb(self, data):
         
@@ -70,7 +65,7 @@ class GripperController():
 
         # According to the model applies an action
         if self.model == "3f":
-
+            
             # Control without obstacles
             if g >= 0.0 and g <= self.th[1]:
                 self.cmd[0] = self.m1 * g
@@ -94,9 +89,3 @@ class GripperController():
         # Publish the values
         for i in range(len(self.cmd)):
             self.joint_pub[i].publish(self.cmd[i])
-
-
-    # Torque callback
-    def torque_cb(self, data):
-        self.g_torque = data.data[3 * (self.finger - 1) : 3 * self.finger]
-
