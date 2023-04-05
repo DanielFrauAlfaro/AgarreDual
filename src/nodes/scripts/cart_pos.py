@@ -1,7 +1,8 @@
 #! /usr/bin/python3
 
 from std_msgs.msg import Float32MultiArray, Float32
-from geometry_msgs.msg import Pose, Wrench
+from geometry_msgs.msg import Pose
+from gazebo_msgs.msg import ContactsState
 from sensor_msgs.msg import JointState
 import rospy
 import numpy as np
@@ -51,6 +52,7 @@ grip = "2f_140"
 # Publishers
 pubs = []
 
+
 # Joint states callback
 def joint_state_cb(data):
     global q, prev, interval
@@ -91,41 +93,32 @@ def joint_state_cb(data):
             elif grip == "3f":
                 if data.name[i] == "gripper_finger_1_joint_1":
                     grip_pos[0]= data.position[i]
-                    grip_torque[0] = data.effort[i]
 
                 elif data.name[i] == "gripper_finger_1_joint_2":
                     grip_pos[1] = data.position[i]
-                    grip_torque[1] = data.effort[i]
                 
                 elif data.name[i] == "gripper_finger_1_joint_3":
                     grip_pos[2] = data.position[i]
-                    grip_torque[2] = data.effort[i]
-
                 
+
                 elif data.name[i] == "gripper_finger_2_joint_1":
                     grip_pos[3] = data.position[i]
-                    grip_torque[3] = data.effort[i]
                 
                 elif data.name[i] == "gripper_finger_2_joint_2":
                     grip_pos[4] = data.position[i]
-                    grip_torque[4] = data.effort[i]
                 
                 elif data.name[i] == "gripper_finger_2_joint_3":
                     grip_pos[5] = data.position[i]
-                    grip_torque[5] = data.effort[i]
 
 
                 elif data.name[i] == "gripper_finger_middle_joint_1":
                     grip_pos[6] = data.position[i]
-                    grip_torque[6] = data.effort[i]
 
                 elif data.name[i] == "gripper_finger_middle_joint_2":
                     grip_pos[7] = data.position[i]
-                    grip_torque[7] = data.effort[i]
 
                 elif data.name[i] == "gripper_finger_middle_joint_3":
                     grip_pos[8] = data.position[i]
-                    grip_torque[8] = data.effort[i]
                 
                 
         # Forward kinematics (CD)
@@ -145,30 +138,26 @@ def joint_state_cb(data):
         p.orientation.z = eul[2]
 
         # Builds up the gripper message
-        g_torque.data = grip_torque
-
         actual_grip_state = grip_state
 
         # Publish
         pubs[0].publish(p)
 
         if grip == "3f":
-            pubs[1].publish(g_torque)
-
             actual_grip_state = 255
 
             for i in range(3):
                 grip_state = grip_pos[3*i] / (1.22 / 140)
 
-                if round(grip_state,0) >= 140:
-                    grip_state = grip_pos[3*i + 1] / ((pi/2) / 100) + 140
+                if round(grip_state,0) > 128:
+                    grip_state = grip_pos[3*i + 1] / ((pi/2.0) / 100.0) + 140.0
                 
                 if grip_state < actual_grip_state:
-                    actual_grip_state = grip_state
+                    actual_grip_state = grip_state    
 
         grip_state = actual_grip_state
 
-        pubs[2].publish(grip_state)
+        pubs[1].publish(grip_state)
 
         # Updates the time 
         prev = time.time()
@@ -191,9 +180,7 @@ if __name__ == '__main__':
             grip_pos = [0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0,
                         0.0, 0.0, 0.0]
-            grip_torque = [0.0, 0.0, 0.0,
-                           0.0, 0.0, 0.0,
-                           0.0, 0.0, 0.0]
+            
 
         # Node
         rospy.init_node(name + "_cart_pos")
@@ -204,7 +191,6 @@ if __name__ == '__main__':
         
         # If there is a gripper, creates a publisher for the joint gripper position
         if grip != "none":
-            pubs.append(rospy.Publisher("/" + name + '/grip_torque', Float32MultiArray, queue_size=10))
             pubs.append(rospy.Publisher("/" + name + "/grip_state", Float32, queue_size=10))
 
         # ------ Subscriber ------
