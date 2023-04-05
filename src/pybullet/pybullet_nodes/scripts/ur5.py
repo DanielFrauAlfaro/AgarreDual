@@ -145,7 +145,7 @@ if __name__ == "__main__":
     rospy.Subscriber("/object_spawn", String, spawn_cb)
 
     # Rate
-    r = rospy.Rate(100)
+    r = rospy.Rate(50)
 
     # Control loop
     while not rospy.is_shutdown():

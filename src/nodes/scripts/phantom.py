@@ -303,7 +303,7 @@ if __name__ == "__main__":
         t = time.time()
 
         # Rate
-        r = rospy.Rate(18)
+        r = rospy.Rate(13)
 
         # Initializes errors
         ex = 0
