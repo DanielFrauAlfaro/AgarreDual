@@ -712,19 +712,10 @@ de los ejes X y Z del Phantom con ganancias bajas, ya que estos trabajan en el e
 se multiplica el error cometido en estos ejes para aplicar una fuerza significativa al operador.
 
 
-
-MEJORAS:
-    - Meter el plugin de Gazebo para la detección de colisiones
-    - Si funciona, cambiar el controlador de la pinza para que cambie el estado y se adapte
-    - Si funciona, añadir la máquina de estados al cart_pos
-
-    - Si funciona, adaptar todas las funcionalidades a Pybullet
-
-
 FUNCIONA CON 2:
-    - Comprobar frecuencia en Pybullet -> iba bien al principio pero al final se jode
-    - Problema con el tiempo de simulación en Gazebo, 10% del tiempo real, va muy mal
-    - Comprobar algoritmo pinza de tres dedos
+    - Comprobar frecuencia en Pybullet -> iba bien al principio pero al final se jode -> Done -> Bajar las frecuencias de Pybullet y Phantom
+    - Problema con el tiempo de simulación en Gazebo, 10% del tiempo real, va muy mal -> No hay solucion a priori
+    - Comprobar algoritmo pinza de tres dedos  -> Done
 
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
