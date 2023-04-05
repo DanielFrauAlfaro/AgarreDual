@@ -22,7 +22,7 @@ images = [[None, None, None],
 start = [[False, False, False], 
          [False, False, False]]
 
-show = [False, False]
+show = False
 
 # Image callbacks: raise esach flag, transform the message and adds borders
 def robot1_y_camera_cb(data):
@@ -90,15 +90,11 @@ def robot2_tool_camera_cb(data):
 
 
 # Callbacks for interface activation
-def interface1_cb(data):
+def interface_cb(data):
     global show
 
-    show[0] = data.data
+    show = data.data
 
-def interface2_cb(data):
-    global show
-
-    show[1] = data.data
 
 
 # ---- Main ----
@@ -119,7 +115,7 @@ if __name__ == "__main__":
     rospy.Subscriber("/" + name1 + "/tool_robot_camera/image_raw", Image, robot1_tool_camera_cb)
 
     # Interface activation callback
-    rospy.Subscriber("/" + name1 + "/interface", Bool, interface1_cb)
+    rospy.Subscriber("/interface", Bool, interface_cb)
 
     # If there are two robots, subscribe to the second robot's image topics
     if n == 2:
@@ -127,7 +123,6 @@ if __name__ == "__main__":
         # rospy.Subscriber("/" + name2 + "/x_robot_camera/image_raw", Image, robot2_x_camera_cb)
         rospy.Subscriber("/" + name2 + "/tool_robot_camera/image_raw", Image, robot2_tool_camera_cb)
 
-        rospy.Subscriber("/" + name2 + "/interface", Bool, interface2_cb)
     
 
 
@@ -136,15 +131,18 @@ if __name__ == "__main__":
         
         # If all flags are raised ...
         if (n == 1 and start[0] == [True, False, True]) or (n == 2 and start == [[True, False, True], [True, False, True]]):
-            if show[0]:
+            if show:
                 # Concatenates all images
-                im_h_resize = cv2.hconcat([images[0][0],  images[0][2]])
-        
-            if show[1] and n == 2:
-                im_h_resize = cv2.vconcat(im_h_resize, cv2.hconcat([images[1][0], images[1][1], images[1][2]]))
+                if n == 2:
+                    aux1 = cv2.hconcat([images[0][0],  images[0][2]])
+                    aux2 = cv2.hconcat([images[1][0],  images[1][2]])
+
+                    im_h_resize = cv2.vconcat([aux1, aux2])
+
+                elif n == 1:
+                    im_h_resize = cv2.hconcat([images[0][0],  images[0][2]])
 
             # Shows the information
-            if True in show:
                 cv2.imshow("Robots Video", im_h_resize)
             
             else:
