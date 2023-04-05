@@ -380,9 +380,7 @@ if __name__ == "__main__":
                 elif state == 2:
                     ex = (0 - act_pose_phantom.position.x) * 10
                     ez = (0 - act_pose_phantom.position.z) * 10
-                    ex0 = (0 - act_pose_phantom.position.x) * 10
                     ey0 = (0 - act_pose_phantom.position.y) * 10
-                    ez0 = (0 - act_pose_phantom.position.z) * 10
 
                     ey = (prev_grip_pos - grip_pos) 
                     
@@ -392,7 +390,7 @@ if __name__ == "__main__":
                         ey = ey0
 
                         if grip == "3f":
-                            ey = ey0 * 50
+                            ey = ey0 * 80
 
             # Depending on the mode, some gains are applied
             k = 0
@@ -419,8 +417,8 @@ if __name__ == "__main__":
                     k = K_grip_3f
                     kd = KD_grip_3f
 
-                    ez = ez * 50
-                    ex = ex * 50
+                    ez = ez * 80
+                    ex = ex * 80
             
 
             # Computes the forces
