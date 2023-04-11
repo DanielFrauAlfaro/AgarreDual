@@ -717,6 +717,35 @@ FUNCIONA CON 2:
     - Problema con el tiempo de simulación en Gazebo, 10% del tiempo real, va muy mal -> No hay solucion a priori
     - Comprobar algoritmo pinza de tres dedos  -> Done
 
+
+    - RESPUESTA A FRECUENCIA: al aumentar la frecuencia se ralentizn las dos simulaciones pero por como funciona cada una esto tiene varios efectos:
+        - Gazebo: al aumentar la frecuencia del Phantom se ralentiza la simulación, pero es mejor aumentarla para evitar oscilaciones en
+        el feedback de fuerzas. Es más consistente que vaya más despacio que el Phantom oscile sin control. No pasa nada porque con un 
+        robot ya funciona suficientemente lento. (18 o 13 Hz)
+
+        - Pybullet: es mejor mantenerlo un poco bajo, ya que se ralentiza demasiado. El feedback de posición está hecho manualmente, por lo que se satura
+        por los callbacks de las suscripciones a los topics. Por otro lado, en un principio Pybullet es un simulador más ligero, por lo que funciona a tiempo
+        real sino se le somete a grandes cargas. Por ello, se puede reducir la frecuencia de funcionamiento tanto del Phantom como del script 
+        maestro de Pybullet.
+
+
+Movimientos del rosbag: se han registrado los movimientos de los robots en todos los modos en ambos simuladores:
+    - Posición: cuadrado empezando moviendo hacia un lado en YZ
+    - Orientación: primero movimiento en Pitch, luego movimiento en Roll y luego intento en Yaw
+    - Gripper: cerrar y abrir dos veces (en Gazbeo muy mal) 
+
+C++:
+    - Se esta intentando hacer algunos de los nodos en c++, para ver si así mejora el rendimiento del sistema. Los
+    nodos que se podrían traducir serían:
+        - El phantom
+        - El main_gripper_controller
+        - El gripper_controll (fusionado con el main_gripper_controller)
+        - La interface
+
+    
+    - Alternativamente, se puede hacer un servidor con el ur5, de manera que todo estuviera en c++ y ese servidor en Python,
+    el servicio consistiría en pedir tanto la CI como la CD dependiendo del nodo, los cuales estarán en c++.
+
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
 INSTALL sudo apt-get install ros-noetic-socketcat-interface
@@ -848,6 +877,7 @@ Conceptos interesantes a investigar:
             - Robotiq 3F Adaptive Robot Gripper:
                 - Imagen: https://www.doosanrobotics.com/en/Mate/MateDetail/952f4150-a46c-e911-a836-000d3a07fbb4
                 - Especificaciones / página del fabricante: https://robotiq.com/es/productos/pinza-robotica-adaptable-de-3-dedos
+                - Modos de funcionamiento: https://www.doosanrobotics.com/en/Mate/MateDetail/952f4150-a46c-e911-a836-000d3a07fbb4
 
             - Phantom Omni: DH, especificaciones, ...
                 - Descripción:
@@ -864,10 +894,12 @@ Conceptos interesantes a investigar:
 
         - Algoritmos de control:
             - Referencia al Marco teórico.
-            - Control Posición - Posición
-                - Diferencias cinemáticas
-                - Aplicación de usuario:
-                    - Dataset de objetos de Yale: https://registry.opendata.aws/ycb-benchmarks/
+            - Control Posición - Posición:
+                - PID: https://www.picuino.com/es/control-pid.html
+                
+            - Diferencias cinemáticas:
+            - Aplicación de usuario:
+                - Dataset de objetos de Yale: https://registry.opendata.aws/ycb-benchmarks/
         
         - Plataforma:
             - ROS: paradigma ROS, controladores, ...
@@ -879,6 +911,60 @@ Conceptos interesantes a investigar:
                 - Gazebo
                 - Pybullet
             - Implementación del control: reflexion de esfuerzos
+
+    - Estructura del Desarrollo:
+        - Plataformas:
+            - Imagen ROS generic: https://vnav.mit.edu/labs/lab2/ros101.html
+            - Lenguaje Python: rospy
+            - Plataforma principal: ROS
+
+            - Gazebo: https://classic.gazebosim.org/tutorials?tut=ros_overview
+            - Pybullet: 
+                - Pagina oficial: https://pybullet.org/wordpress/
+                - Documentación: https://docs.google.com/document/d/10sXEhzFRSnvFcl3XxNGhnD4N2SedqwdAvK3dsihxVUA/edit#heading=h.2ye70wns7io3
+
+        - Modelos en simulacion:
+            - UR5e:
+                - Github: https://github.com/ros-industrial/universal_robot
+        - UR5e:
+
+            - Controlador articular:
+                - RQT: http://wiki.ros.org/rqt
+                - Controller manager: http://wiki.ros.org/controller_manager
+                
+            - Controlador cartesiano:
+                - MoveIt: https://moveit.ros.org/
+                - KDL: http://wiki.ros.org/kdl
+                - Python Robotic Toolbox (instalar): https://pypi.org/project/roboticstoolbox-python/
+                - Python Robotic Toolbox (DOC): https://petercorke.github.io/robotics-toolbox-python/intro.html
+                - Matlab: https://pypi.org/project/roboticstoolbox-python/
+                - geometry_msgs/Pose: http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Pose.html
+                - Pynput: https://pypi.org/project/pynput/
+
+            - Controlador de las pinzas.
+
+        - Nodos de sensorización.
+            - Proycto de la cámara: 
+                - Youtube: https://www.youtube.com/watch?v=_flpwM8yyVM
+                - Drive: https://drive.google.com/drive/folders/1UOMQqy8-8ZJSghNB0NJNaDTcKZLZa2QI
+
+        - Phantom:
+            - Aplicaciones del fabricante:
+            - Proyecto de jhu - saw:
+                - GitHub jhu - saw: https://github.com/jhu-saw/sawSensablePhantom
+                - Otros proyectos:
+                    - https://github.com/danepowell/phantom_omni
+                    - https://github.com/fsuarez6/phantom_omni
+                    - https://github.com/jdrew1303/ros_geomagic_touch_phantom_omni
+
+            - Proyecto de GitHub jhu - saw: como funciona, objetivo
+            
+
+        - Aplicación de usuario:   
+            - Funcionalidades: Implementación
+        
+        - Interfaz de vídeo: feedback visual
+
 --------------------------------------------------------------------------------------------------
 
     - Reunión con Santiago:
