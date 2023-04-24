@@ -21,7 +21,7 @@
 
 namespace
 {
-static const unsigned THREAD_SLEEP_TIME = 10000;  // 10 ms
+static const unsigned THREAD_SLEEP_TIME = 10000;  // 10ms
 static const unsigned EC_TIMEOUTMON = 500;
 
 void handleErrors()
