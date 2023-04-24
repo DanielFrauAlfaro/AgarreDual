@@ -32,7 +32,8 @@ scale_yaw = 12
 
 scale_grip = 0
 scale_grip_3f = 1342.1                # Gripper movement scalation: 255 / 0.19
-scale_grip_2f = 5.5
+scale_grip_2f = 4
+# Comprobar el 4 en vez de 5.5
 
 # Origin
 or_x = 0.4921                      # Cartesian origin
@@ -120,7 +121,7 @@ The robot reference system is different than the one of the Phantom -->
   - y_robot = x_phantom
   - z_robot = y_phantom
   
-Two variables: 
+Three variables: 
   - pose: position commands to the controller
   - prev_pose_phantom: previous state of the Phantom
      - .position: prevoius position
@@ -280,6 +281,9 @@ if __name__ == "__main__":
         # System changes and state
         pub_change.append(rospy.Publisher("/" + name + "/change", Int32, queue_size=10))
 
+        # Gripper publisher
+        pub_grip = rospy.Publisher("/" + name + "/grip_cmd", Float64, queue_size=10)
+
 
         # ------ Subscribers -----
         # Phantom cartesian position
@@ -295,15 +299,13 @@ if __name__ == "__main__":
         # Gripper postion feedback
         rospy.Subscriber("/" + name + "/grip_state", Float32, grip_pos_cb)
         
-        # Gripper publisher
-        pub_grip = rospy.Publisher("/" + name + "/grip_cmd", Float64, queue_size=10)
 
 
         # Time
         t = time.time()
 
         # Rate
-        r = rospy.Rate(13)
+        r = rospy.Rate(18)
 
         # Initializes errors
         ex = 0

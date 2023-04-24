@@ -22,7 +22,7 @@ images = [[None, None, None],
 start = [[False, False, False], 
          [False, False, False]]
 
-show = False
+show = True
 
 # Image callbacks: raise esach flag, transform the message and adds borders
 def robot1_y_camera_cb(data):
@@ -123,8 +123,6 @@ if __name__ == "__main__":
         # rospy.Subscriber("/" + name2 + "/x_robot_camera/image_raw", Image, robot2_x_camera_cb)
         rospy.Subscriber("/" + name2 + "/tool_robot_camera/image_raw", Image, robot2_tool_camera_cb)
 
-    
-
 
     # --- Infinite loop ---
     while not rospy.is_shutdown():
@@ -149,3 +147,5 @@ if __name__ == "__main__":
                 cv2.destroyAllWindows()
         
         cv2.waitKey(1)
+
+    cv2.destroyAllWindows()

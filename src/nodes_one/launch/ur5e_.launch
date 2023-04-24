@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name='origin' default='-x 0 -y 0 -z 0.0'/>
+  <arg name='robot_name' default='ur5'/>
+  <arg name="number" default="2"/>
+  <arg name="grip" default="2f_140"/>
+
+  <!-- send robot urdf to param server -->
+  <include file="$(find ur_e_description)/launch/ur5e_upload.launch">
+    <arg name="grip" value="$(arg grip)"/>
+  </include>
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model $(arg robot_name) $(arg origin) -model $(arg robot_name) -J shoulder_lift_joint -1.5 -J elbow_joint 1.0 -J wrist_2_joint 1.57 -J gripper_palm_finger_1_joint 0 -J gripper_finger_1_joint_1 0 -J gripper_finger_1_joint_2 0 -J gripper_finger_1_joint_3 0 -J gripper_finger_2_joint_1 0 -J gripper_finger_2_joint_2 0 -J gripper_finger_2_joint_3 0 -J gripper_finger_middle_joint_1 0 -J gripper_finger_middle_joint_2 0 -J gripper_finger_middle_joint_3 0" respawn="false" output="screen" />
+
+
+  <!-- evaluate '3f' argument for 3f or 2f gripper spawning; model and controllers -->
+  <group if="$(eval arg('grip')=='2f_140')">
+    <rosparam file="$(find ur_e_gazebo)/controller/gripper_controller_robotiq.yaml" command="load"/>
+    <node name="controller_spawner_2f" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="gripper" />
+
+    <rosparam file="$(find ur_e_gazebo)/controller/ur5_group_2f.yaml" command="load"/>
+    <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="arm_controller joint_state_controller" />       
+    
+    <node name="gripper_controller" pkg="nodes_cpp" type="main_gripper_controller_2f" args="$(arg robot_name) $(arg grip)" output="screen" />
+  </group>
+
+  <group if="$(eval arg('grip')=='3f')">
+    <rosparam file="$(find ur_e_gazebo)/controller/ur5_group_3f_1.yaml" command="load"/>
+
+    <node name="robotiq_controller_spawner_3f" pkg="controller_manager" type="spawner" args="gripper_controller" respawn="true" output="screen"/>
+
+    <rosparam file="$(find ur_e_gazebo)/controller/ur5_group.yaml" command="load"/>
+    <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="arm_controller joint_state_controller" />       
+    
+    <node name="gripper_controller" pkg="nodes_cpp" type="main_gripper_controller" args="$(arg robot_name) $(arg grip)" output="screen" />
+  </group>
+
+  <!-- robot state publisher -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" respawn="false" output="screen"/>
+  
+  <!-- robot controller -->
+  <node name="controller" pkg="nodes_one" type="controller.py" args="$(arg robot_name) $(arg grip)" output="screen" />
+  
+  <!-- feedback node -->
+  <node name="cart_pos" pkg="nodes_one" type="cart_pos.py" args="$(arg robot_name) $(arg grip)" output="screen" />  
+         
+</launch>

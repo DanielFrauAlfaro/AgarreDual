@@ -1,5 +1,5 @@
 # http://ros.org/doc/groovy/api/catkin/html/user_guide/supposed.html
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(robotiq_3f_gripper_control)
 find_package(catkin REQUIRED COMPONENTS
   controller_manager
@@ -13,7 +13,10 @@ find_package(catkin REQUIRED COMPONENTS
   std_srvs
   robotiq_3f_gripper_articulated_msgs
 )
-
+find_package(Boost REQUIRED
+  COMPONENTS
+  filesystem thread
+)
 find_package(PkgConfig)
 
 catkin_python_setup()
@@ -74,6 +77,7 @@ add_executable(robotiq_3f_gripper_can_node
 
 target_link_libraries(robotiq_3f_gripper_can_node
   ${PROJECT_NAME}
+  ${Boost_LIBRARIES}
   ${catkin_LIBRARIES}
 )
 

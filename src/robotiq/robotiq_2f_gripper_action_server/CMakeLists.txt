@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(robotiq_2f_gripper_action_server)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
   INCLUDE_DIRS include
-  CATKIN_DEPENDS actionlib actionlib_msgs robotiq_2f_gripper_control roscpp
+  CATKIN_DEPENDS actionlib actionlib_msgs robotiq_2f_gripper_control roscpp control_msgs
 )
 
 include_directories(include)
@@ -28,9 +28,7 @@ add_executable(robotiq_2f_gripper_action_server_node
     include/robotiq_2f_gripper_action_server/robotiq_2f_gripper_action_server.h)
 
 add_dependencies(robotiq_2f_gripper_action_server_node
-  robotiq_2f_gripper_action_server_generate_messages_cpp
-  ${robotiq_2f_gripper_action_server_EXPORTED_TARGETS}
-  ${robotiq_2f_gripper_control_EXPORTED_TARGETS})
+  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
  target_link_libraries(robotiq_2f_gripper_action_server_node
    ${catkin_LIBRARIES}
@@ -42,8 +40,7 @@ add_executable(robotiq_2f_gripper_action_server_client_test
 )
 
 add_dependencies(robotiq_2f_gripper_action_server_client_test
-  robotiq_2f_gripper_action_server_generate_messages_cpp
-  ${robotiq_action_server_EXPORTED_TARGETS})
+  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
  target_link_libraries(robotiq_2f_gripper_action_server_client_test
    ${catkin_LIBRARIES}

@@ -8,7 +8,7 @@
       <spinning_friction value="0.001"/>
       <rolling_friction value="0.001"/>
       <contact_cfm value="0.5"/>
-      <contact_erp value="0.5"/>
+      <contact_erp value="1"/>
     </contact>
     <inertial>
        <origin rpy="0 0 0.0" xyz="-0.005 0.013 0.0"/>

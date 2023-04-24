@@ -1,20 +1,18 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 import numpy as np
-
-import roslib
-roslib.load_manifest('robotiq_2f_gripper_control')
-
 import rospy
 from robotiq_2f_gripper_control.msg import Robotiq2FGripper_robot_output as outputMsg
 from robotiq_2f_gripper_control.msg import Robotiq2FGripper_robot_input as inputMsg
 
+
 class RobotiqCGripper(object):
     def __init__(self):
         self.cur_status = None
-        self.status_sub = rospy.Subscriber('Robotiq2FGripperRobotInput', inputMsg,
-                                           self._status_cb)
-        self.cmd_pub = rospy.Publisher('Robotiq2FGripperRobotOutput', outputMsg)
+        self.status_sub = rospy.Subscriber(
+            "Robotiq2FGripperRobotInput", inputMsg, self._status_cb
+        )
+        self.cmd_pub = rospy.Publisher("Robotiq2FGripperRobotOutput", outputMsg)
 
     def _status_cb(self, msg):
         self.cur_status = msg
@@ -24,7 +22,7 @@ class RobotiqCGripper(object):
         r = rospy.Rate(30)
         start_time = rospy.get_time()
         while not rospy.is_shutdown():
-            if (timeout >= 0. and rospy.get_time() - start_time > timeout):
+            if timeout >= 0.0 and rospy.get_time() - start_time > timeout:
                 return False
             if self.cur_status is not None:
                 return True
@@ -51,11 +49,11 @@ class RobotiqCGripper(object):
 
     def get_pos(self):
         po = self.cur_status.gPO
-        return np.clip(0.087/(13.-230.)*(po-230.), 0, 0.087)
+        return np.clip(0.087 / (13.0 - 230.0) * (po - 230.0), 0, 0.087)
 
     def get_req_pos(self):
         pr = self.cur_status.gPR
-        return np.clip(0.087/(13.-230.)*(pr-230.), 0, 0.087)
+        return np.clip(0.087 / (13.0 - 230.0) * (pr - 230.0), 0, 0.087)
 
     def is_closed(self):
         return self.cur_status.gPO >= 230
@@ -72,7 +70,9 @@ class RobotiqCGripper(object):
         r = rospy.Rate(30)
         start_time = rospy.get_time()
         while not rospy.is_shutdown():
-            if (timeout >= 0. and rospy.get_time() - start_time > timeout) or self.is_reset():
+            if (
+                timeout >= 0.0 and rospy.get_time() - start_time > timeout
+            ) or self.is_reset():
                 return False
             if self.is_stopped():
                 return True
@@ -83,7 +83,9 @@ class RobotiqCGripper(object):
         r = rospy.Rate(30)
         start_time = rospy.get_time()
         while not rospy.is_shutdown():
-            if (timeout >= 0. and rospy.get_time() - start_time > timeout) or self.is_reset():
+            if (
+                timeout >= 0.0 and rospy.get_time() - start_time > timeout
+            ) or self.is_reset():
                 return False
             if not self.is_stopped():
                 return True
@@ -106,7 +108,7 @@ class RobotiqCGripper(object):
         r = rospy.Rate(30)
         start_time = rospy.get_time()
         while not rospy.is_shutdown():
-            if timeout >= 0. and rospy.get_time() - start_time > timeout:
+            if timeout >= 0.0 and rospy.get_time() - start_time > timeout:
                 return False
             if self.is_ready():
                 return True
@@ -128,9 +130,9 @@ class RobotiqCGripper(object):
         cmd = outputMsg()
         cmd.rACT = 1
         cmd.rGTO = 1
-        cmd.rPR = int(np.clip((13.-230.)/0.087 * pos + 230., 0, 255))
-        cmd.rSP = int(np.clip(255./(0.1-0.013) * (vel-0.013), 0, 255))
-        cmd.rFR = int(np.clip(255./(100.-30.) * (force-30.), 0, 255))
+        cmd.rPR = int(np.clip((13.0 - 230.0) / 0.087 * pos + 230.0, 0, 255))
+        cmd.rSP = int(np.clip(255.0 / (0.1 - 0.013) * (vel - 0.013), 0, 255))
+        cmd.rFR = int(np.clip(255.0 / (100.0 - 30.0) * (force - 30.0), 0, 255))
         self.cmd_pub.publish(cmd)
         rospy.sleep(0.1)
         if block:
@@ -159,6 +161,7 @@ class RobotiqCGripper(object):
             return True
         return self.goto(-1.0, vel, force, block=block, timeout=timeout)
 
+
 def main():
     rospy.init_node("robotiq_2f_gripper_ctrl_test")
     gripper = RobotiqCGripper()
@@ -166,14 +169,15 @@ def main():
     if gripper.is_reset():
         gripper.reset()
         gripper.activate()
-    print gripper.close(block=True)
+    print(gripper.close(block=True))
     while not rospy.is_shutdown():
-        print gripper.open(block=False)
+        print(gripper.open(block=False))
         rospy.sleep(0.11)
         gripper.stop()
-        print gripper.close(block=False)
+        print(gripper.close(block=False))
         rospy.sleep(0.1)
         gripper.stop()
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

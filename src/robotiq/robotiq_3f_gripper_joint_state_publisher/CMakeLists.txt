@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(robotiq_3f_gripper_joint_state_publisher)
 
 ## Find catkin macros and libraries
@@ -34,7 +34,8 @@ include_directories(
 add_executable(robotiq_3f_gripper_joint_states src/robotiq_3f_gripper_joint_states.cpp)
 
 ## Add cmake target dependencies of the executable/library
-add_dependencies(robotiq_3f_gripper_joint_states robotiq_3f_gripper_control_generate_messages_cpp)
+add_dependencies(robotiq_3f_gripper_joint_states
+  ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(robotiq_3f_gripper_joint_states
@@ -46,4 +47,3 @@ install(TARGETS robotiq_3f_gripper_joint_states
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
-

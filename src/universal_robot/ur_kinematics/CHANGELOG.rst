@@ -2,16 +2,30 @@
 Changelog for package ur_kinematics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-1.2.7 (2019-11-23)
+1.3.1 (2022-11-11)
 ------------------
-* Modernize python 2 codes (`#457 <https://github.com/ros-industrial/universal_robot/issues/457>`_)
-* Contributors: cclauss, gavanderhoorn
 
-1.2.6 (2019-11-19)
+1.3.0 (2022-11-10)
 ------------------
-* Simplify FK equations (`#372 <https://github.com/ros-industrial/universal_robot/issues/372>`_)
-* Migrated all package.xml files to format=2 (`#439 <https://github.com/ros-industrial/universal_robot/issues/439>`_)
-* Contributors: Felix Mauch, Levi Armstrong, Qiang Qiu
+* Merge melodic-devel-staging `#617 <https://github.com/ros-industrial/universal_robot/issues/617>`_ from ros-industrial/melodic-devel-staging
+* Update ur kinematics (`#616 <https://github.com/ros-industrial/universal_robot/issues/616>`_)
+  * Add ur_kinematics parameter sets for all e-Series robots
+  * Add a README with a notice to ur_kinematics
+  * Set correct IKFast plugin name in kinematics.yaml
+  * Add ignore files for releasing ur_kinematics
+  Since the state of this package questionable at the current point, let's
+  disable releasing it for now.
+* Increase minimum CMake version to allow builds on Focal Fossa (Noetic) (`#586 <https://github.com/ros-industrial/universal_robot/issues/586>`_)
+* Merge pull request `#501 <https://github.com/ros-industrial/universal_robot/issues/501>`_ from gavanderhoorn/port_kinetic-devel_missing
+  Cherry-pick missing commits from kinetic-devel into melodic-devel
+* Use print() function in both Python 2 and Python 3
+  Legacy __print_\_ statements are syntax errors in Python 3 but __print()_\_ function works as expected in both Python 2 and Python 3.
+* Merge pull request `#372 <https://github.com/ros-industrial/universal_robot/issues/372>`_ from qqfly/patch-1
+  simplify FK equations
+* migrated all package.xml files to format=2 (`#439 <https://github.com/ros-industrial/universal_robot/issues/439>`_)
+* Merge branch 'kinetic-devel' into patch-1
+* simplify FK equations
+* Contributors: Felix Exner (fexner), Felix Mauch, G.A. vd. Hoorn, Levi Armstrong, Nadia Hammoudeh García, Qiang Qiu, cclauss
 
 1.2.5 (2019-04-05)
 ------------------

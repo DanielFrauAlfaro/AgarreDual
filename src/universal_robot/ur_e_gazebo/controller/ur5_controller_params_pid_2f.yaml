@@ -1,6 +1,6 @@
 joint_state_controller:
   type: joint_state_controller/JointStateController
-  publish_rate: 150
+  publish_rate: 40
 
 # USAR ESTE CONTROLADOR CON UNA hardware_interface DE TIPO effortJointInterface
 shoulder_pan_joint_position_controller:

@@ -737,14 +737,161 @@ Movimientos del rosbag: se han registrado los movimientos de los robots en todos
 C++:
     - Se esta intentando hacer algunos de los nodos en c++, para ver si así mejora el rendimiento del sistema. Los
     nodos que se podrían traducir serían:
-        - El phantom
-        - El main_gripper_controller
-        - El gripper_controll (fusionado con el main_gripper_controller)
-        - La interface
+        - El phantom - DONE
+        - El main_gripper_controller - DONE
+        - El gripper_controll (fusionado con el main_gripper_controller) - DONE
+        - La interface  - DONE
 
     
     - Alternativamente, se puede hacer un servidor con el ur5, de manera que todo estuviera en c++ y ese servidor en Python,
     el servicio consistiría en pedir tanto la CI como la CD dependiendo del nodo, los cuales estarán en c++.
+        - DONE per con un nodo
+
+
+Normal: más de 50 pero con bajadas alrededor del 44
+Ones: picos de 58 - 60 y bajadas hasta 48
+C++: alrededor del 53, con picos de 57 y bajas de 49
+
+Con Phantom:
+	- C++: va a tirones
+	- Ones: va bien  -> EL ELEGIDO
+	- Normal: va bien, pero más lento que ones
+---------------------
+Memoria:
+    - Desarrollo:
+    	- Real
+            - Adaptación de nodos
+
+    - Resultados
+        - Manipulación:
+            - Vídeos, imágenes de agarres
+
+        - Resultados en real
+            - Cartesiano
+            - Fuerza
+        
+
+    - Instrucciones en real
+        - Instalación:
+            - Paquetes del UR5e
+
+        - Compilación
+
+        - Ejecución:
+            - Lanzamiento de nodos del real
+            - Real
+------------------------
+- Topics:
+    - /pos_joint_traj_controller/command
+        Type: trajectory_msgs/JointTrajectory
+    
+    - /pos_joint_traj_controller/follow_joint_trajectory/goal
+        Type: control_msgs/FollowJointTrajectoryActionGoal
+
+
+
+------------------------
+Conexion real:
+    - Primero enchufar las pantallas y la toma de corriente del robot
+    - Luego, estar conectado al router, este al switch y este al controlador
+    - Enchufar pantalla  y boton verde fisico
+
+    - Boton rojo en la pantalla, y luego on, luego start (poner bien el payload para que sea 3F)
+    - se desfrena el robot y los motores reciben corriente
+
+
+    - Calibrar: se genera un fichero de calibración para el robot, una vez
+
+    - Conexion: se lanza la conexion al robot. Se debe cambiar la IP del HOST del robot. 
+        - En programa ver la IP del HOST cual está 
+        - Installation -> URCaps : cambiar IP
+        - Play
+        - En el terminal del launch, ver que pone lo de "Ready to take commands"
+
+Apagar real:
+    - Matar terminales
+    - Mover el robot a HOME:
+        - Aguantar posición para moverlo
+    - Cuando llegue a home, apgar y discard changes
+    - Desconectar brazo del enchufe y pantalla
+
+
+VNC:
+    - Comando: vncviewer 172.18.34.201 (ip del robot)
+    - contraseña: easybot
+
+Comandos:
+    Calibration: roslaunch ur_calibration calibration_correction.launch robot_ip:=172.18.34.201 target_filename:="/home/daniel/Desktop/calibration.yaml"
+    Conectarse: roslaunch ur_robot_driver ur5e_bringup.launch robot_ip:=172.18.34.201 kinematics_config:="/home/daniel/Desktop/calibration.yaml"
+    Moveit: roslaunch ur5e_moveit_config move_group.launch 
+    RVIZ - Moveit: roslaunch ur5e_moveit_config moveit_rviz.launch rviz_config:=$(rospack find ur5e_moveit_config)/launch/moveit.rviz
+
+
+
+----------- Pinza de dos dedos 2F - 140 -----------
+http://wiki.ros.org/robotiq/Tutorials/Control%20of%20a%202-Finger%20Gripper%20using%20the%20Modbus%20RTU%20protocol%20%28ros%20kinetic%20and%20newer%20releases%29
+
+La pinza de dos dedos se conecta por USB desde el BLUE. Además, hay que conectar la pinza al BLUE con el cable correspondiente. Para darle energía tiene que estar el BLUE enchufado. 
+Para ello, conectar la toma de alimentación del BLUE (el cable que está más escondido) a la alimentación por corriente. Luego, coger el cable USB con un fixo amarillo y con un alargador
+de USB conectarlo al PC. Luego, se lanza:
+	
+	rosrun robotiq_2f_gripper_control Robotiq2FGripperRtuNode.py /dev/ttyUSB0
+	
+Con el número de USB que corresponda (normalmente es el 0). Esto lanza el nodo de la pinza, a la vez que establece la conexión via cable USB con la misma.
+En teoria los topics ya están lanzados, pero se puede lanzar un programa de ejemplo con:
+
+	rosrun robotiq_2f_gripper_control Robotiq2FGripperSimpleController.py
+	  
+ 
+     USB amarillo (con el lazo amarillo)
+     
+    Ver USBs: dmseg | grep tty -> comprobar que la pinza está conectada al USB0 o a cual de ellos
+    Permisos de puertos extra: sudo chmod -R 777 /dev/ttyUSB0
+	
+	Al lanzar las cosas, se crea el nodo de la pinza, led a azul
+	
+	robotiq_2f_gripper_control/Robotiq2FGripper_robot_input
+	Robotiq2FGripperRobotOutput: robotiq_2f_gripper_control/Robotiq2FGripper_robot_output
+	
+	El mensaje tiene muchos campos, pero el que interesa es el rPRA para mandar en el OUTPUT y el gPRA para mandar en el input 
+	
+	Programa de ejemplo:
+		- Salir: CTRL D
+	
+	
+
+
+------------ Pinza 3f ---------------
+http://wiki.ros.org/robotiq/Tutorials/Control%20of%20a%203-Finger%20Gripper%20using%20the%20Modbus%20TCP%20Protocol
+
+La pinza de tres dedos se conecta via Ethernet (IP: 172.18.34.220), por lo que está dentro de la red local del laboratorio. La pinza recibe la alimentación del brazo manipulador 
+UR5e, por lo que este debe estar encendido y funcionando (ver apartados anteriores). Simplemente, estar conectados a la red local con el UR5e enchufado. Para lanzar el nodo de la pinza
+y el controlador de la misma se debe ejcutar el siguiente comando:
+
+	rosrun robotiq_3f_gripper_control Robotiq3FGripperTcpNode.py
+	
+Al igual que con la pinza de dos dedos, se tiene un programa de ejemplo para mandar comandos. Este nodo se ejecuta con el siguiente comando:
+
+	rosrun robotiq_3f_gripper_control Robotiq3FGripperSimpleController.py
+	
+	
+	
+
+/Robotiq3FGripperRobotOutput: robotiq_3f_gripper_articulated_msgs/Robotiq3FGripperRobotOutput:
+robotiq_3f_gripper_articulated_msgs/Robotiq3FGripperRobotInput:
+
+
+	Salir del programa de ejemplo: CTRL D
+	
+	
+	
+
+---------------------------------------- 
+Real:
+	- Probar el controller_.py con MoveIt! y los sliders -> en simulación va muy lento, probar en el real -> NO HIZO FALTA
+	- Probar el ik.py con la Robotic Toolbox con el sistema de acciones y los sliders -> probar también en simulación, a ver que tal -> FUNCIONA
+
+
 
 INSTALL sudo apt-get install ros-noetic-soem
 INSTALL sudo apt-get install ros-noetic-moveit
@@ -807,7 +954,7 @@ Conceptos interesantes a investigar:
 
 
     - Perspectiva histórica:
-        · http://catarina.udlap.mx/u_dl_a/tales/documentos/lmt/padilla_m_o/capitulo0.pdf
+        · EL DE PADILLA RARO: http://catarina.udlap.mx/u_dl_a/tales/documentos/lmt/padilla_m_o/capitulo0.pdf
         · YA MENCIONADO EN OTROS APARTADOS: https://upcommons.upc.edu/bitstream/handle/2117/570/IOC-DT-P-2004-05.pdf
         · Historia de la teleoperacion bilateral: https://www.sciencedirect.com/science/article/pii/S0005109806002871
         · Historia de la teleoperacion: https://citeseerx.ist.psu.edu/document?repid=rep1&type=pdf&doi=40c616d53b322101b5cc8a8687a2d2b9cba166df
@@ -878,6 +1025,7 @@ Conceptos interesantes a investigar:
                 - Imagen: https://www.doosanrobotics.com/en/Mate/MateDetail/952f4150-a46c-e911-a836-000d3a07fbb4
                 - Especificaciones / página del fabricante: https://robotiq.com/es/productos/pinza-robotica-adaptable-de-3-dedos
                 - Modos de funcionamiento: https://www.doosanrobotics.com/en/Mate/MateDetail/952f4150-a46c-e911-a836-000d3a07fbb4
+                - TechReport: https://www.researchgate.net/publication/278158284_Use_of_Hybrid_Systems_to_model_the_RobotiQ_Adaptive_Gripper
 
             - Phantom Omni: DH, especificaciones, ...
                 - Descripción:
@@ -926,6 +1074,8 @@ Conceptos interesantes a investigar:
         - Modelos en simulacion:
             - UR5e:
                 - Github: https://github.com/ros-industrial/universal_robot
+        
+            - 2F - 140
         - UR5e:
 
             - Controlador articular:
@@ -938,13 +1088,12 @@ Conceptos interesantes a investigar:
                 - Python Robotic Toolbox (instalar): https://pypi.org/project/roboticstoolbox-python/
                 - Python Robotic Toolbox (DOC): https://petercorke.github.io/robotics-toolbox-python/intro.html
                 - Matlab: https://pypi.org/project/roboticstoolbox-python/
-                - geometry_msgs/Pose: http://docs.ros.org/en/noetic/api/geometry_msgs/html/msg/Pose.html
                 - Pynput: https://pypi.org/project/pynput/
 
             - Controlador de las pinzas.
 
         - Nodos de sensorización.
-            - Proycto de la cámara: 
+            - Proyecto de la cámara: 
                 - Youtube: https://www.youtube.com/watch?v=_flpwM8yyVM
                 - Drive: https://drive.google.com/drive/folders/1UOMQqy8-8ZJSghNB0NJNaDTcKZLZa2QI
 
@@ -957,13 +1106,32 @@ Conceptos interesantes a investigar:
                     - https://github.com/fsuarez6/phantom_omni
                     - https://github.com/jdrew1303/ros_geomagic_touch_phantom_omni
 
-            - Proyecto de GitHub jhu - saw: como funciona, objetivo
+            - Nodo del Phantom Omni
             
 
         - Aplicación de usuario:   
+            - DearPyGui: https://dearpygui.readthedocs.io/en/latest/documentation/item-value.html
+            - Subprocess documentation: https://docs.python.org/3/library/subprocess.html
+            - Referencia de ROSLAUNCH para Python: http://wiki.ros.org/roslaunch/API%20Usage
+    
             - Funcionalidades: Implementación
         
-        - Interfaz de vídeo: feedback visual
+
+    - Estructura de los Resultados:
+        - Resultados articulares
+
+        - Resultados cartesianos
+
+        - Resultados de realimentación de esfuerzos
+
+        - Rendimiento del bucle
+
+    - Estructura de las Instrucciones:
+        - Instrucciones de instalación:
+            - Instalar ROS: http://wiki.ros.org/noetic/Installation/Ubuntu
+            - Referencia a la página de jhu - saw
+            - Referencia a la página de OpenHaptics
+            - Guia OpenHaptics instalacion: https://s3.amazonaws.com/dl.3dsystems.com/binaries/Sensable/Linux/Installation+Instructions_2022.pdf
 
 --------------------------------------------------------------------------------------------------
 
@@ -1087,5 +1255,3 @@ git clone https://github.com/UniversalRobots/Universal_Robots_ROS_Driver.git src
 
   - Conexión con Matlab:
     - Definir en el Linux ROS_IP=mi_ip y ROS_MASTER_URI=http://mi_ip:11311
-
-

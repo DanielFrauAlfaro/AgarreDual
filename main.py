@@ -42,6 +42,11 @@ is_spawn = False        # Flag to spawn a model
 change1 = True          # Variable to detect if the robot's 1 state is changing
 change2 = True          # Variable to detect if the robot's 2 state is changing
 
+calibration_file1 = "/home/daniel/Desktop/calibration.yaml"  # Route of the calibration file for the UR5e 1
+calibration_file2 = "/home/daniel/Desktop/calibration.yaml"  # Route of the calibration file for the UR5e 2
+ip1 = "172.18.34.201"   # IP directions for the robots
+ip2 = "172.18.34.200"
+
 # List of possibles states
 state_list = ["position", "rotation", "gripper"]
 
@@ -50,24 +55,51 @@ tut_tags = ["tut_sim",  "tut_real", "tut_act", "tut_deact", "tut_act2", "tut_dea
 "tut_n", "tut_grip1", "tut_spa1", "tut_grip2", "tut_spa2", "tut_name1", "tut_name2", "tut_launch",
 "tut_ph_conf", "tut_ph_calib", "tut_spawn_name", "tut_add_obj", "tut_stop_sim", 
 "tut_x_slider", "tut_y_slider", "tut_z_slider", "tut_roll_slider", "tut_pitch_slider", 
-"tut_yaw_slider", "tut_sim_op", "tut_add_int"]
+"tut_yaw_slider", "tut_sim_op", "tut_add_int", "tut_calib1", "tut_calib2", "tut_ip1", "tut_ip2", "tut_calib_ur51", "tut_calib_ur52"]
 
 # Simulation Options
 sim_options = ["Gazebo", "Pybullet"]
+real = False
 
 # Interface flag
 interf = False
+is_interf = False
 
 # -------------------- GUI callbacks -------------------------
 # Changes the overviw between real and simulation
 def change2simulation(sender, app_data, user_data):
-    # TODO: hacer el cambio de visibilidad
-    dpg.configure_item("Simulation", show=True)
-    dpg.configure_item("Real", show=False)
+    global real
+
+    dpg.configure_item("Project", label="Simulation")
+    dpg.configure_item("select_sim", show=True)
+    dpg.configure_item("spawn_pos1", show=True)
+    dpg.configure_item("spawn_pos2", show=True)
+
+    dpg.configure_item("calibration_file1", show=False)
+    dpg.configure_item("calibration_file2", show=False)
+    dpg.configure_item("ip1", show=False)
+    dpg.configure_item("ip2", show=False)
+    dpg.configure_item("calib_ur51", show=False)
+    dpg.configure_item("calib_ur52", show=False)
+    real = False
+
+    
 
 def change2real(sender, app_data, user_data):
-    dpg.configure_item("Real", show=True)
-    dpg.configure_item("Simulation", show=False)
+    global real
+    
+    dpg.configure_item("Project", label="Real")
+    dpg.configure_item("select_sim", show=False)
+    dpg.configure_item("spawn_pos1", show=False)
+    dpg.configure_item("spawn_pos2", show=False)
+
+    dpg.configure_item("calibration_file1", show=True)
+    dpg.configure_item("calibration_file2", show=True) 
+    dpg.configure_item("ip1", show=True)
+    dpg.configure_item("ip2", show=True)
+    dpg.configure_item("calib_ur51", show=True)
+    dpg.configure_item("calib_ur52", show=True)
+    real = True
 
 
 # Activate and deactivate tutorial messages
@@ -109,6 +141,16 @@ def n_robots(sender, app_data, user_data):
         dpg.configure_item("change1", show=True)
         dpg.configure_item("change2", show=True)
 
+# Calibration file route
+def calib1_cb(sender, app_data, user_data):
+    global calibration_file1
+
+    calibration_file1 = dpg.get_value(sender)
+
+def calib2_cb(sender, app_data, user_data):
+    global calibration_file2
+
+    calibration_file2 = dpg.get_value(sender)
 
 # Gripper option and robot name - 1
 def grip1_cb(sender, app_data, user_data):
@@ -147,6 +189,17 @@ def spawn_ur52(sender, app_data, user_data):
     pos = dpg.get_value(sender)
     positions[1] = [str(pos[0]), str(pos[1]), str(pos[2])]
 
+# Select an IP direction for both robots
+def ip1_cb(sender, app_data, user_data):
+    global ip1
+
+    ip1 = dpg.get_value(sender)
+
+def ip2_cb(sender, app_data, user_data):
+    global ip2
+
+    ip2 = dpg.get_value(sender)
+
 
 # Select to launch simulation with Pybullet
 def sim_op(sender, app_data, user_data):
@@ -161,6 +214,48 @@ def sim_op(sender, app_data, user_data):
         pybullet = True
 
 
+# Calibrate the robots
+def calib_ur5_1_cb(sender, app_data, user_data):
+    global calibration_file1, ip1
+
+    # Initializes the roslaunch object with the selected arguments
+    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid)
+
+    calib_str = "target_filename:=" + calibration_file1
+    ip_str = "robot_ip:=" + ip1
+
+    cli_args = ['src/Universal_Robots_ROS_Driver/ur_calibration/launch/calibration_correction.launch', ip_str, calib_str]
+
+    roslaunch_args = cli_args[1:]
+    roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
+
+    launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+
+    # Executes the launch
+    launch.start()
+
+
+def calib_ur5_2_cb(sender, app_data, user_data):
+    global calibration_file2, ip2
+
+    # Initializes the roslaunch object with the selected arguments
+    uuid = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid)
+
+    calib_str = "target_filename:=" + calibration_file2
+    ip_str = "robot_ip:=" + ip2
+
+    cli_args = ['src/Universal_Robots_ROS_Driver/ur_calibration/launch/calibration_correction.launch', ip_str, calib_str]
+
+    roslaunch_args = cli_args[1:]
+    roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
+
+    launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
+
+    # Executes the launch
+    launch.start()
+
 # Configure and calibration of the Phantom buttons
 def conf_ph(sender, app_data, user_data):
     subprocess.Popen('./Touch_Setup')
@@ -171,21 +266,52 @@ def calib_ph(sender, app_data, user_data):
 
 # Launch simulation button and configures the interface buttons
 def launch_sim(sender, app_data, user_data):
-    global is_launch, names, n, pybullet
+    global is_launch, names, n, pybullet, real
 
     is_launch = True
     dpg.configure_item("conf_w", show=False)
     dpg.configure_item("exec_w", show=True)
 
-    # Configure interface button
-    if not pybullet:
-        dpg.configure_item("add_interface", label="Activate video")
+    if not real:
+        dpg.configure_item("exec_w", label="Simulation Going")
+        
+        dpg.configure_item("spawnables_obj", show=True)
+        dpg.configure_item("pos_obj_text", show=True)
+        dpg.configure_item("or_obj_text", show=True)
+        dpg.configure_item("x", show=True)
+        dpg.configure_item("y", show=True)
+        dpg.configure_item("z", show=True)
+        dpg.configure_item("roll", show=True)
+        dpg.configure_item("pitch", show=True)
+        dpg.configure_item("yaw", show=True)
+        dpg.configure_item("add_obj", show=True)
 
-        dpg.configure_item("tut_text_interf", default_value="Click to configure video")
+        # Configure interface button
+        if not pybullet:
+            dpg.configure_item("add_interface", label="Activate video")
+
+            dpg.configure_item("tut_text_interf", default_value="Click to configure video")
 
 
-        dpg.configure_item("tut_add_int", show = True)
-        dpg.configure_item("add_interface", show=True)
+            dpg.configure_item("tut_add_int", show = True)
+            dpg.configure_item("add_interface", show=True)
+        
+        else:
+            dpg.configure_item("tut_add_int", show = False)
+            dpg.configure_item("add_interface", show=False)
+
+    else:
+        dpg.configure_item("exec_w", label="Project Going")
+        dpg.configure_item("spawnables_obj", show=False)
+        dpg.configure_item("pos_obj_text", show=False)
+        dpg.configure_item("or_obj_text", show=False)
+        dpg.configure_item("x", show=False)
+        dpg.configure_item("y", show=False)
+        dpg.configure_item("z", show=False)
+        dpg.configure_item("roll", show=False)
+        dpg.configure_item("pitch", show=False)
+        dpg.configure_item("yaw", show=False)
+        dpg.configure_item("add_obj", show=False)
         
 
 # --------------- Simulation callbacks -------------
@@ -291,12 +417,11 @@ def change_cb2(data):
         dpg.configure_item("change2", default_value = msg[data.data])
 
 def add_interf(sender, app_data, user_data):
-    global interf, names
+    global interf, names, is_interf
 
-    pub_interf = rospy.Publisher("/interface", Bool, queue_size=10)
     interf = not interf
 
-    pub_interf.publish(interf)
+    is_interf = True
 
     if not interf:
         dpg.configure_item("tut_text_interf", default_value="Click to activate video")
@@ -310,7 +435,7 @@ def add_interf(sender, app_data, user_data):
 
 
     
-# --------------------------- GUI -------------------------------------
+# --------------------------------- GUI ---------------------------------
 with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
 
     # Menue Bar
@@ -336,7 +461,7 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
                 dpg.add_text("Click to deactivate tutorials")
 
     # Simulation header
-    with dpg.collapsing_header(label="Simulation", tag="Simulation", show=True, default_open=True):
+    with dpg.collapsing_header(label="Simulation", tag="Project", show=True, default_open=True):
         
         items = ("0", "1", "2")     # Number of robots
 
@@ -344,6 +469,7 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
         dpg.add_combo(label="Number of Robots",indent=8,  default_value=n, items=items, width=50, callback=n_robots)
         with dpg.tooltip(dpg.last_item(), tag="tut_n"):
             dpg.add_text("Select the number of robots to spawn")
+
 
         # ------ Robot 1 options -------
         with dpg.tree_node(label="UR5 1", indent= 15,tag="ur51", default_open=True, show=(n=="1" or n=="2")):
@@ -356,14 +482,28 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
                 dpg.add_text("Select which gripper attach to the UR5 1")
 
             # Position selector
-            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[float(positions[0][0]),float(positions[0][1]),float(positions[0][2])], callback=spawn_ur51, format='%.2f')
+            dpg.add_input_doublex(label="Spawn Position", tag="spawn_pos1", width=160, size=3, default_value=[float(positions[0][0]),float(positions[0][1]),float(positions[0][2])], callback=spawn_ur51, format='%.2f')
             with dpg.tooltip(dpg.last_item(), tag="tut_spa1"):
                 dpg.add_text("Select XYZ position for the UR5 1")
 
+            dpg.add_input_text(label="IP", tag="ip1", default_value=ip1, callback=ip1_cb, width=110, show=False)
+            with dpg.tooltip(dpg.last_item(), tag="tut_ip1"):
+                dpg.add_text("Select an IP for the UR5 1")
+
             # Robot 1 name
-            dpg.add_input_text(label="Robot Name", tag="name1", default_value=names[0], callback=name1_cb)
+            dpg.add_input_text(label="Robot Name", tag="name1", default_value=names[0], callback=name1_cb, width=100)
             with dpg.tooltip(dpg.last_item(), tag="tut_name1"):
                 dpg.add_text("Select name for the UR5 1")
+
+            # Select calibration directory
+            dpg.add_input_text(label="Calib. file", tag="calibration_file1", width=250, default_value=calibration_file1, callback=calib1_cb, show=False)
+            with dpg.tooltip(dpg.last_item(), tag="tut_calib1"):
+                dpg.add_text("Select a calibration file for UR5e 1")
+
+            # UR5e calibration
+            dpg.add_button(label="Calibrate UR5e 1", tag="calib_ur51", callback=calib_ur5_1_cb, show=False)
+            with dpg.tooltip(dpg.last_item(), tag="tut_calib_ur51"):
+                dpg.add_text("Click to calibrate UR5e 1")
 
             dpg.add_separator()
 
@@ -379,34 +519,43 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
                 dpg.add_text("Select which gripper attach to the UR5 2")
 
             # Postion selector
-            dpg.add_input_doublex(label="Spawn Position", width=160, size=3, default_value=[float(positions[1][0]), float(positions[1][1]), float(positions[1][2])], callback=spawn_ur52, format='%.2f')
+            dpg.add_input_doublex(label="Spawn Position", tag="spawn_pos2", width=160, size=3, default_value=[float(positions[1][0]), float(positions[1][1]), float(positions[1][2])], callback=spawn_ur52, format='%.2f')
             with dpg.tooltip(dpg.last_item(), tag="tut_spa2"):
                 dpg.add_text("Select XYZ position for the UR5 2")
+
+            dpg.add_input_text(label="IP", tag="ip2", default_value=ip2, callback=ip2_cb, show=False)
+            with dpg.tooltip(dpg.last_item(), tag="tut_ip2"):
+                dpg.add_text("Select an IP for the UR5 2")
 
             # Robot 2 name
             dpg.add_input_text(label="Robot Name", tag="name2", default_value=names[1], callback=name2_cb)
             with dpg.tooltip(dpg.last_item(), tag="tut_name2"):
                 dpg.add_text("Select name for the UR5 2")
 
+            # Select calibration directory
+            dpg.add_input_text(label="Calib. file", tag="calibration_file2", default_value=calibration_file2, callback=calib2_cb, show=False)
+            with dpg.tooltip(dpg.last_item(), tag="tut_calib2"):
+                dpg.add_text("Select a calibration file for UR5e 2")
+
+            # UR5e calibration
+            dpg.add_button(label="Calibrate UR5e 2", tag="calib_ur52", callback=calib_ur5_2_cb, show=False)
+            with dpg.tooltip(dpg.last_item(), tag="tut_calib_ur52"):
+                dpg.add_text("Click to calibrate UR5e 2")
+
             dpg.add_separator()
 
 
         # Simulator selector
-        dpg.add_combo(label="Select Simulator", default_value=sim_options[1], items=sim_options, width=90, callback=sim_op)
+        dpg.add_combo(label="Select Simulator", tag="select_sim", default_value=sim_options[1], items=sim_options, width=90, callback=sim_op)
         with dpg.tooltip(dpg.last_item(), tag="tut_sim_op"):
             dpg.add_text("Click to select Pybullet simulator")
         
         # Launch button
-        dpg.add_button(label="Launch Simulation", tag="launch_sim", callback=launch_sim)
+        dpg.add_button(label="Launch Project", tag="launch_sim", callback=launch_sim)
         with dpg.tooltip(dpg.last_item(), tag="tut_launch"):
-            dpg.add_text("Clik to launch the simulation")
-        
+            dpg.add_text("Clik to launch the project")
 
-    # TODO: GUI PARA EL CASO DE MANEJO CON EL REAL
-    with dpg.collapsing_header(label="Real", tag="Real",default_open=True, show=False):
-        pass
 
-    
     # Phantom configuration and calibration buttons
     dpg.add_button(label="Configure Phantom", tag="conf_ph1", callback=conf_ph)
     with dpg.tooltip(dpg.last_item(), tag="tut_ph_conf"):
@@ -432,7 +581,7 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
                 dpg.add_text("Click to deactivate tutorials")
     
     # Select objects to spawn
-    dpg.add_combo(label="Spawnables Objects",indent=8,  default_value="Masterchef can", items=spawnables_show, width=160, callback=spawn_names_cb)
+    dpg.add_combo(label="Spawnables Objects", tag="spawnables_obj",indent=8,  default_value="Masterchef can", items=spawnables_show, width=160, callback=spawn_names_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_spawn_name"):
         dpg.add_text("Select an object to spawn")
 
@@ -443,30 +592,30 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
     # Select the object position and orientation in the world
     dpg.add_text(tag="pos_obj_text", default_value="Master Chef Can Position")
 
-    dpg.add_slider_double(label="X", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_x)
+    dpg.add_slider_double(label="X", tag="x", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_x)
     with dpg.tooltip(dpg.last_item(), tag="tut_x_slider"):
         dpg.add_text("Choose desired X position")
 
-    dpg.add_slider_double(label="y", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_y)
+    dpg.add_slider_double(label="y", tag="y", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_y)
     with dpg.tooltip(dpg.last_item(), tag="tut_y_slider"):
         dpg.add_text("Choose desired y position")
 
-    dpg.add_slider_double(label="Z", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_z)
+    dpg.add_slider_double(label="Z", tag="z", default_value=0.0, min_value=-1, max_value=1, callback=spawn_obj_z)
     with dpg.tooltip(dpg.last_item(), tag="tut_z_slider"):
         dpg.add_text("Choose desired Z position")
 
 
     dpg.add_text(tag="or_obj_text", default_value="Macter Chef Can Orientation")
 
-    dpg.add_slider_double(label="Roll", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_roll)
+    dpg.add_slider_double(label="Roll", tag="roll", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_roll)
     with dpg.tooltip(dpg.last_item(), tag="tut_roll_slider"):
         dpg.add_text("Choose desired ROLL orientation")
 
-    dpg.add_slider_double(label="Pitch", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_pitch)
+    dpg.add_slider_double(label="Pitch", tag="pitch", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_pitch)
     with dpg.tooltip(dpg.last_item(), tag="tut_pitch_slider"):
         dpg.add_text("Choose desired pitch orientation")
         
-    dpg.add_slider_double(label="Yaw", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_yaw)
+    dpg.add_slider_double(label="Yaw", tag="yaw", default_value=0.0, min_value=-pi, max_value=pi, callback=spawn_obj_yaw)
     with dpg.tooltip(dpg.last_item(), tag="tut_yaw_slider"):
         dpg.add_text("Choose desired YAW orientation")
 
@@ -524,6 +673,20 @@ if __name__ == "__main__":
 
     launch = roslaunch.parent.ROSLaunchParent(uuid, roslaunch_file)
 
+
+
+    # Generate an ID for the launch
+    uuid_interf = roslaunch.rlutil.get_or_generate_uuid(None, False)
+    roslaunch.configure_logging(uuid_interf)
+
+
+    cli_args_interf = ['src/nodes/launch/interf.launch', "name1:=" + names[0], "name2:=" + names[1],"number:=" + n]
+
+    roslaunch_args_interf = cli_args_interf[1:]
+    roslaunch_file_interf = [(roslaunch.rlutil.resolve_launch_arguments(cli_args_interf)[0], roslaunch_args_interf)]
+
+    launch_interf = roslaunch.parent.ROSLaunchParent(uuid_interf, roslaunch_file_interf)
+
     # ---------- GUI loop --------
     while dpg.is_dearpygui_running():
         
@@ -549,11 +712,21 @@ if __name__ == "__main__":
             name2 = 'name2:=' + names[1]
 
             py = "sim_gaz:=true"
-
             if pybullet:
                 py = "sim_gaz:=false"
 
-            cli_args = ['src/universal_robot/ur_e_gazebo/launch/ur5_2.launch', 'number:=' + n,'grip1:=' + gripp[0],'grip2:=' + gripp[1], origin1, origin2, name1, name2, py]
+
+            real_str = "real:=false"
+            if real:
+                real_str = "real:=true"
+
+            calib_str1 = "calibration_file1:=" + calibration_file1
+            calib_str2 = "calibration_file2:=" + calibration_file2
+            ip_str1 = "ip1:=" + ip1
+            ip_str2 = "ip2:=" + ip2
+
+            cli_args = ['src/universal_robot/ur_e_gazebo/launch/ur5_2.launch', 'number:=' + n,'grip1:=' + gripp[0],
+                        'grip2:=' + gripp[1], origin1, origin2, name1, name2, py, real_str, calib_str1, calib_str2, ip_str1, ip_str2]
 
             roslaunch_args = cli_args[1:]
             roslaunch_file = [(roslaunch.rlutil.resolve_launch_arguments(cli_args)[0], roslaunch_args)]
@@ -576,6 +749,8 @@ if __name__ == "__main__":
         # If there has been a stop, shutdowns the simulation
         if is_stop_sim:
             launch.shutdown()
+            
+            launch_interf.shutdown()
 
             is_stop_sim = False
 
@@ -602,7 +777,7 @@ if __name__ == "__main__":
 
             # If the simulation is running in PyBullet ...
             else:
-                # ... publcihses in a topic with the name of the desired object
+                # ... publihses in a topic with the name of the desired object
                 pyb_sp_obj = (rospy.Publisher("/object_spawn", String, queue_size=10))
                 spawn_msg = String()
 
@@ -614,7 +789,23 @@ if __name__ == "__main__":
                 pyb_sp_obj.publish(spawn_msg)
             
             is_spawn = False
-            
+        
+        if is_interf:
+            if interf:
+                cli_args_interf = ['src/nodes/launch/interf.launch', "name1:=" + names[0], "name2:=" + names[1],"number:=" + n]
+
+                roslaunch_args_interf = cli_args_interf[1:]
+                roslaunch_file_interf = [(roslaunch.rlutil.resolve_launch_arguments(cli_args_interf)[0], roslaunch_args_interf)]
+
+                launch_interf = roslaunch.parent.ROSLaunchParent(uuid_interf, roslaunch_file_interf)
+
+                # Executes the launch
+                launch_interf.start()
+                is_interf = False
+
+            else:
+                launch_interf.shutdown()
+                is_interf = False
 
         # Renderizes the window
         dpg.render_dearpygui_frame()
