@@ -5,7 +5,7 @@
 <!-- =================================================================================== -->
 <robot name="ur5e_robot">
   <!--
-    Base UR robot series xacro macro.
+    Base UR robot series xacro macro
 
     NOTE: this is NOT a URDF. It cannot directly be loaded by consumers
     expecting a flattened '.urdf' file. See the top-level '.xacro' for that
