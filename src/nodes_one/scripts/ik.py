@@ -18,10 +18,7 @@ from std_msgs.msg import Duration
 
 rospy.init_node("controller")
 
-########## PONER EL NOMBRE REAL DEL SERVIDOR ##########
 client = actionlib.SimpleActionClient("ur5_2/trajectory_controller/follow_joint_trajectory", FollowJointTrajectoryAction)
-
-
 
 goal = FollowJointTrajectoryGoal()
 
