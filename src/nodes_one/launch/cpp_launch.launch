@@ -32,7 +32,7 @@
                 </include>
                 
                 <!-- phantom / master controller -->
-                <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+                <node name="phantom_controller" pkg="nodes_one" type="phantom" args="$(arg name1) $(arg grip1)" output="screen" />
                 
             </group>
         </group>
@@ -46,7 +46,7 @@
                     <arg name="robot_name" value="$(arg name1)"/>
                     <arg name='grip' value='$(arg grip1)' />
                 </include>
-                <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
+                <node name="phantom_controller" pkg="nodes_one" type="phantom" args="$(arg name1) $(arg grip1)" output="screen" />
             </group>
             <group ns='$(arg name2)'>
                 <include file='$(find nodes_one)/launch/ur5e_.launch'>
@@ -54,7 +54,7 @@
                     <arg name="robot_name" value="$(arg name2)"/>
                     <arg name='grip' value='$(arg grip2)' />
                 </include>
-                <node name="phantom_controller2" pkg="nodes" type="phantom.py" args="$(arg name2) $(arg grip2)" output="screen" />
+                <node name="phantom_controller2" pkg="nodes_one" type="phantom" args="$(arg name2) $(arg grip2)" output="screen" />
             </group>
         </group>
     </group>
@@ -68,13 +68,13 @@
         <group if="$(eval arg('number')==1)">
             <group ns='$(arg name1)'>  
                 <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" /> 
-                <node name="phantom_controller" pkg="nodes_cpp" type="phantom" args="$(arg name1) $(arg grip1)" output="screen" />            
+                <node name="phantom_controller" pkg="nodes_one" type="phantom" args="$(arg name1) $(arg grip1)" output="screen" />            
                 
                 <group if="$(eval arg('grip1')=='3f')">
-                    <node name="gripper_controller" pkg="nodes_cpp" type="main_gripper_controller" args="$(arg name1) $(arg grip1)" output="screen" />
+                    <node name="gripper_controller" pkg="nodes_one" type="main_gripper_controller" args="$(arg name1) $(arg grip1)" output="screen" />
                 </group>
                 <group if="$(eval arg('grip1')=='2f_140')">
-                    <node name="gripper_controller" pkg="nodes_cpp" type="main_gripper_controller_2f" args="$(arg name1) $(arg grip1)" output="screen" />
+                    <node name="gripper_controller" pkg="nodes_one" type="main_gripper_controller_2f" args="$(arg name1) $(arg grip1)" output="screen" />
                 </group>
             </group>
         </group>
@@ -83,25 +83,24 @@
         <group if="$(eval arg('number')==2)">
             <group ns='$(arg name1)'>
                 <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" /> 
-
-                <node name="phantom_controller" pkg="nodes_cpp" type="phantom" args="$(arg name1) $(arg grip1)" output="screen" />
+                <node name="phantom_controller" pkg="nodes_one" type="phantom" args="$(arg name1) $(arg grip1)" output="screen" />
 
                 <group if="$(eval arg('grip1')=='3f')">
-                    <node name="gripper_controller1" pkg="nodes_cpp" type="main_gripper_controller" args="$(arg name1) $(arg grip1)" output="screen" />
+                    <node name="gripper_controller1" pkg="nodes_one" type="main_gripper_controller" args="$(arg name1) $(arg grip1)" output="screen" />
                 </group>
                 <group if="$(eval arg('grip1')=='2f_140')">
-                    <node name="gripper_controller1" pkg="nodes_cpp" type="main_gripper_controller_2f" args="$(arg name1) $(arg grip1)" output="screen" />
+                    <node name="gripper_controller1" pkg="nodes_one" type="main_gripper_controller_2f" args="$(arg name1) $(arg grip1)" output="screen" />
                 </group>
             </group>
             <group ns='$(arg name2)'> 
-                <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" /> 
-                <node name="phantom_controller2" pkg="nodes_cpp" type="phantom" args="$(arg name2) $(arg grip2)" output="screen" />            
+                <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="screen" />                 
+                <node name="phantom_controller2" pkg="nodes_one" type="phantom" args="$(arg name2) $(arg grip2)" output="screen" />            
             
                 <group if="$(eval arg('grip2')=='3f')">
-                    <node name="gripper_controller2" pkg="nodes_cpp" type="main_gripper_controller" args="$(arg name1) $(arg grip1)" output="screen" />
+                    <node name="gripper_controller2" pkg="nodes_one" type="main_gripper_controller" args="$(arg name1) $(arg grip1)" output="screen" />
                 </group>
                 <group if="$(eval arg('grip2')=='2f_140')">
-                    <node name="gripper_controller2" pkg="nodes_cpp" type="main_gripper_controller_2f" args="$(arg name1) $(arg grip1)" output="screen" />
+                    <node name="gripper_controller2" pkg="nodes_one" type="main_gripper_controller_2f" args="$(arg name1) $(arg grip1)" output="screen" />
                 </group>
             </group>
         </group>
