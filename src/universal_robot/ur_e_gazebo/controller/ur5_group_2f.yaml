@@ -28,4 +28,4 @@ arm_controller:
     pid: {p: 125, i: 0.0, d: 10, i_clmap_min: -200.0, i_clamp_max: 200.0}
 
   wrist_3_joint:
-    pid: {p: 30.0, i: 0.0, d: 3, i_clmap_min: -200.0, i_clamp_max: 200.0}
+    pid: {p: 25.0, i: 0.0, d: 3, i_clmap_min: -200.0, i_clamp_max: 200.0}
