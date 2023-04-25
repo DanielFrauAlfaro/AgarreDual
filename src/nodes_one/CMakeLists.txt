@@ -7,8 +7,16 @@ project(nodes_one)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED genmsg actionlib_msgs actionlib)
-
+find_package(catkin REQUIRED COMPONENTS
+  control_msgs
+  geometry_msgs
+  roscpp
+  sensor_msgs
+  std_msgs
+  genmsg
+  actionlib_msgs
+  actionlib
+)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -113,7 +121,7 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
 # include
-# ${catkin_INCLUDE_DIRS}
+ ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -200,3 +208,13 @@ include_directories(
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+
+
+add_executable(phantom src/phantom.cpp)
+target_link_libraries(phantom ${catkin_LIBRARIES})
+
+add_executable(main_gripper_controller src/main_gripper_controller.cpp)
+target_link_libraries(main_gripper_controller ${catkin_LIBRARIES})
+
+add_executable(main_gripper_controller_2f src/main_gripper_controller_2f.cpp)
+target_link_libraries(main_gripper_controller_2f ${catkin_LIBRARIES})
