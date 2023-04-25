@@ -22,7 +22,7 @@
     <rosparam file="$(find ur_e_gazebo)/controller/ur5_group_2f.yaml" command="load"/>
     <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="arm_controller joint_state_controller" />       
     
-    <node name="gripper_controller" pkg="nodes_cpp" type="main_gripper_controller_2f" args="$(arg robot_name) $(arg grip)" output="screen" />
+    <node name="gripper_controller" pkg="nodes_one" type="main_gripper_controller_2f" args="$(arg robot_name) $(arg grip)" output="screen" />
   </group>
 
   <group if="$(eval arg('grip')=='3f')">
@@ -33,7 +33,7 @@
     <rosparam file="$(find ur_e_gazebo)/controller/ur5_group.yaml" command="load"/>
     <node name="controller_spawner_robot" pkg="controller_manager" type="spawner" respawn="true" output="screen" args="arm_controller joint_state_controller" />       
     
-    <node name="gripper_controller" pkg="nodes_cpp" type="main_gripper_controller" args="$(arg robot_name) $(arg grip)" output="screen" />
+    <node name="gripper_controller" pkg="nodes_one" type="main_gripper_controller" args="$(arg robot_name) $(arg grip)" output="screen" />
   </group>
 
   <!-- robot state publisher -->
