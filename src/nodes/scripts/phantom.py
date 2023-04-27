@@ -32,7 +32,7 @@ scale_yaw = 12
 
 scale_grip = 0
 scale_grip_3f = 1342.1                # Gripper movement scalation: 255 / 0.19
-scale_grip_2f = 4
+scale_grip_2f = 5.5
 # Comprobar el 4 en vez de 5.5
 
 # Origin
@@ -267,6 +267,7 @@ if __name__ == "__main__":
             scale_grip = scale_grip_3f
         elif grip == "2f_140":
             scale_grip = scale_grip_2f
+            
 
         # Node
         rospy.init_node(name + "_phantom_ctr")
@@ -305,7 +306,7 @@ if __name__ == "__main__":
         t = time.time()
 
         # Rate
-        r = rospy.Rate(18)
+        r = rospy.Rate(5)
 
         # Initializes errors
         ex = 0
@@ -339,7 +340,7 @@ if __name__ == "__main__":
                     ex = (0.0 - act_pose_phantom.position.x)
                     ey = (prev_grip_pos / scale_grip - act_pose_phantom.position.y)
                     ez = (0.0 - act_pose_phantom.position.z)
-
+                    
                 
 
                 # If the Phantom end effector is within the previous position, 
@@ -357,8 +358,9 @@ if __name__ == "__main__":
                 # Publishes the robot position
                 pub.publish(pose)
 
-                # Publishes the gripper position
-                pub_grip.publish(grip_pos) 
+                if state == 2:
+                    # Publishes the gripper position
+                    pub_grip.publish(grip_pos) 
 
 
                 if state == 0:
@@ -385,6 +387,8 @@ if __name__ == "__main__":
                     ey0 = (0 - act_pose_phantom.position.y) * 10
 
                     ey = (prev_grip_pos - grip_pos) 
+
+                    
                     
                     # If some coordinate is negative, the error is the one between the 
                     #   origin and the actual position
