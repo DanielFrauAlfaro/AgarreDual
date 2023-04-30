@@ -24,9 +24,9 @@ int scale_x = 2;                        // Cartesian movement scalation
 int scale_y = 2;
 float scale_z = 3.5;
 
-int scale_roll = 12;                    // Euler orientation movement scalation
-int scale_pitch = 12;
-int scale_yaw = 12;
+int scale_roll = 15;                    // Euler orientation movement scalation
+int scale_pitch = 15;
+int scale_yaw = 15;
 
 float scale_grip = 0;                   // Gripper scalation
 float scale_grip_3f = 1342.1;
@@ -127,7 +127,7 @@ void cb(const geometry_msgs::PoseStamped::ConstPtr& data)
     auto now = std::chrono::high_resolution_clock::now();
     auto mseconds = std::chrono::duration_cast<std::chrono::milliseconds>(now - prev).count();
 
-    if(true)
+    if(mseconds > interval)
     {
         prev = std::chrono::high_resolution_clock::now();
         
@@ -305,7 +305,7 @@ int main(int argc, char **argv)
     auto t = std::chrono::high_resolution_clock::now();
 
     // Rate
-    ros::Rate r(30);
+    ros::Rate r(18);
 
     // Initializes errors
     float ex = 0.0;
@@ -348,10 +348,6 @@ int main(int argc, char **argv)
                 ex = (0.0 - act_pose_phantom.position.x);
                 ey = (prev_grip_pos / scale_grip - act_pose_phantom.position.y);
                 ez = (0.0 - act_pose_phantom.position.z);
-
-                std::cout<<ex<<std::endl;
-                std::cout<<ey<<std::endl;
-                std::cout<<ez<<std::endl;
             }
 
             // If the Phantom end effector is within the previous position, 
