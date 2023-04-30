@@ -101,7 +101,7 @@
             </group>
         </group>
     </group>
-<!-- 
+
     
     <group if="$(eval arg('number')==1)">
         <node name="phantom" pkg="sensable_phantom_ros" type="sensable_phantom" args="-D -j $(find saw_sensable_phantom_config)/sawSensablePhantomUR5_1.json" output="log"> 
@@ -182,6 +182,6 @@
             <remap from="/ur5_1/use_gravity_compensation" to="/$(arg name2)/use_gravity_compensation"/>
             <remap from="/ur5_1/warning" to="/$(arg name2)/warning"/>
         </node>
-    </group> -->
+    </group>
     
 </launch>
