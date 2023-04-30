@@ -2,6 +2,14 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="finger_tip" params="prefix fingerprefix stroke">
     <link name="${prefix}${fingerprefix}_finger_tip">
+      <contact>
+        <friction_anchor/>
+        <lateral_friction value="100"/>
+        <spinning_friction value="0.1"/>
+        <rolling_friction value="0.1"/>
+        <contact_cfm value="50"/>
+        <contact_erp value="100"/>
+      </contact>
       <inertial>
         <origin xyz="0.000299999999999317 0.0160078233491243 -0.0136945669206257" rpy="0 0 0" />
         <mass value="0.0104003125914103" />

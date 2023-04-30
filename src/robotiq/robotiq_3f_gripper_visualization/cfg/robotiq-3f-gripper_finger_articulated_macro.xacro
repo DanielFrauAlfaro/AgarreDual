@@ -10,6 +10,14 @@ finger(i.e. finger_1, etc...).
 
 		<!-- link list -->
 		<link name="${prefix}link_0">
+			<contact>
+				<friction_anchor/>
+				<lateral_friction value="100"/>
+				<spinning_friction value="0.1"/>
+				<rolling_friction value="0.1"/>
+				<contact_cfm value="50"/>
+				<contact_erp value="100"/>
+			</contact>
 			<visual>
 				<origin xyz="0.020 0 0" rpy="0 0 0"/>
 				<geometry>
@@ -35,6 +43,14 @@ finger(i.e. finger_1, etc...).
             </inertial>         
 		</link>
 		<link name="${prefix}link_1">
+			<contact>
+				<friction_anchor/>
+				<lateral_friction value="100"/>
+				<spinning_friction value="0.1"/>
+				<rolling_friction value="0.1"/>
+				<contact_cfm value="50"/>
+				<contact_erp value="100"/>
+			</contact>
 			<visual>
 				<origin xyz="0.050 -.028 0" rpy="0 0 -0.52"/>
 				<geometry>
@@ -61,6 +77,14 @@ finger(i.e. finger_1, etc...).
 			used to generate grap-it poses.  With the offset below the model appears visually
 			correct, but it is suspect.
 			-->
+			<contact>
+				<friction_anchor/>
+				<lateral_friction value="100"/>
+				<spinning_friction value="0.1"/>
+				<rolling_friction value="0.1"/>
+				<contact_cfm value="50"/>
+				<contact_erp value="100"/>
+			</contact>
 			<visual>
 				<origin xyz="0.039 0 0.0075" rpy="0 0 0"/>
 				<geometry>
@@ -82,6 +106,14 @@ finger(i.e. finger_1, etc...).
             </inertial>
 		</link>
 		<link name="${prefix}link_3">
+			<contact>
+				<friction_anchor/>
+				<lateral_friction value="100"/>
+				<spinning_friction value="0.1"/>
+				<rolling_friction value="0.1"/>
+				<contact_cfm value="50"/>
+				<contact_erp value="100"/>
+			</contact>
 			<visual>
 				<origin xyz="0 0 0" rpy="0 0 0.52"/>
 				<geometry>

@@ -4,6 +4,14 @@
 
   <xacro:macro name="outer_knuckle" params="prefix fingerprefix stroke">
     <link name="${prefix}${fingerprefix}_outer_knuckle">
+      <contact>
+        <friction_anchor/>
+        <lateral_friction value="100"/>
+        <spinning_friction value="0.1"/>
+        <rolling_friction value="0.1"/>
+        <contact_cfm value="50"/>
+        <contact_erp value="100"/>
+      </contact>
       <inertial>
         <origin xyz="-0.000200000000003065 0.0199435877845359 0.0292245259211331" rpy="0 0 0" />
         <mass value="0.00853198276973456" />
@@ -35,6 +43,14 @@
 
   <xacro:macro name="outer_finger" params="prefix fingerprefix stroke">
     <link name="${prefix}${fingerprefix}_outer_finger">
+      <contact>
+        <friction_anchor/>
+        <lateral_friction value="100"/>
+        <spinning_friction value="0.1"/>
+        <rolling_friction value="0.1"/>
+        <contact_cfm value="50"/>
+        <contact_erp value="100"/>
+      </contact>
       <inertial>
         <origin xyz="0.00030115855001899 0.0373907951953854 -0.0208027427000385" rpy="0 0 0" />
         <mass value="0.022614240507152" />
@@ -66,6 +82,14 @@
 
   <xacro:macro name="inner_knuckle" params="prefix fingerprefix stroke">
     <link name="${prefix}${fingerprefix}_inner_knuckle">
+      <contact>
+        <friction_anchor/>
+        <lateral_friction value="100"/>
+        <spinning_friction value="0.1"/>
+        <rolling_friction value="0.1"/>
+        <contact_cfm value="50"/>
+        <contact_erp value="100"/>
+      </contact>
       <inertial>
         <origin xyz="0.000123011831763771 0.0507850843201817 0.00103968640075166" rpy="0 0 0" />
         <mass value="0.0271177346495152" />
@@ -97,6 +121,14 @@
 
   <xacro:macro name="inner_finger" params="prefix fingerprefix stroke">
     <link name="${prefix}${fingerprefix}_inner_finger">
+      <contact>
+        <friction_anchor/>
+        <lateral_friction value="100"/>
+        <spinning_friction value="0.1"/>
+        <rolling_friction value="0.1"/>
+        <contact_cfm value="50"/>
+        <contact_erp value="100"/>
+      </contact>
       <inertial>
         <origin xyz="0.000299999999999317 0.0160078233491243 -0.0136945669206257" rpy="0 0 0" />
         <mass value="0.0104003125914103" />
@@ -187,6 +219,14 @@
   <!--finger tip-->
   <xacro:macro name="finger_tip" params="prefix fingerprefix stroke">
     <link name="${prefix}${fingerprefix}_finger_tip">
+      <contact>
+        <friction_anchor/>
+        <lateral_friction value="100"/>
+        <spinning_friction value="0.1"/>
+        <rolling_friction value="0.1"/>
+        <contact_cfm value="50"/>
+        <contact_erp value="100"/>
+      </contact>
       <inertial>
         <origin xyz="0.000299999999999317 0.0160078233491243 -0.0136945669206257" rpy="0 0 0" />
         <mass value="0.0104003125914103" />
