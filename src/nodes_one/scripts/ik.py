@@ -26,7 +26,7 @@ goal.trajectory.joint_names = ["shoulder_pan_joint", "shoulder_lift_joint", "elb
                                     "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
 
 p = [JointTrajectoryPoint()]
-p[0].positions = [0.0, -pi/2.0, pi/2.0, -pi/2.0, -pi/2.0, 0.0]
+p[0].positions = [-pi, -pi/2.0, pi/2.0, -pi/2.0, -pi/2.0, 0.0]
 p[0].velocities = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
 p[0].time_from_start = rospy.Duration(2.5)
@@ -52,7 +52,7 @@ ur5 = rtb.DHRobot([
             rtb.RevoluteDH(d = 0.0997, alpha=-pi/2.0),
             rtb.RevoluteDH(d = 0.0996)
         ], name="UR5e")
-# ur5.base = SE3.RPY(0,0,pi) 
+ur5.base = SE3.RPY(0,0,pi) 
 
 
 
@@ -90,6 +90,15 @@ def joint_state_cb(data):
         if end == [True, True, True, True, True, True]:
             break
 
+
+# Median filter for each joint        
+smooth = [[], [], [], [], [], []]
+size_filt = 6
+
+for i in range(6):
+    for j in range(size_filt):
+        smooth[i].append(q[i])
+
 def cb(data):
     global ur5
     global client, goal
@@ -112,11 +121,24 @@ def cb(data):
     q_ = ur5.ikine_LMS(T, q0 = q)
     qp = q_.q
 
-    qp[0] = qp[0] + pi
+    # if qp[0] > 0.0:
+    #     qp[0] = ((pi - qp[0]) + pi) * -1
+
+    for i in range(6):                              
+        smooth[i].pop(-1)
+        smooth[i].insert(0, qp[i])
+        qp[i] =  sum(smooth[i]) / size_filt
+
+    print(qp[0])
 
     goal.trajectory.points[0].time_from_start = rospy.Duration(0.01)
     goal.trajectory.points[0].positions = qp
 
+    # qp[0] = qp[0] + pi
+
+    
+
+    print(qp[0])
 
     client.send_goal(goal)
 
@@ -127,8 +149,8 @@ def home(key):
 
     if key == keyboard.Key.esc:
         
-        q = [pi, -pi/2.0, pi/2.0, -pi/2.0, -pi/2.0, 0.0]
-        qp = [pi, -pi/2.0, pi/2.0, -pi/2.0, -pi/2.0, 0.0]
+        q = [0.0, -pi/2.0, pi/2.0, -pi/2.0, -pi/2.0, 0.0]
+        qp = [0.0, -pi/2.0, pi/2.0, -pi/2.0, -pi/2.0, 0.0]
         
         # p = [JointTrajectoryPoint()]
 
@@ -143,7 +165,7 @@ def home(key):
 
 
 if __name__ == "__main__":
-    rospy.Subscriber("/ur5_2/pose_aux", Pose, cb)
+    rospy.Subscriber("/ur5_2/pose", Pose, cb)
     rospy.Subscriber('/joint_states', JointState, joint_state_cb)
 
     
