@@ -48,7 +48,6 @@ ur5 = rtb.DHRobot([
             rtb.RevoluteDH(d = 0.0997, alpha=-pi/2.0),
             rtb.RevoluteDH(d = 0.0996)
         ], name="UR5e")
-# ur5.base = SE3.RPY(0,0,pi) 
 ur5.tool = SE3(0.0, 0.0, 0.03)
 
 

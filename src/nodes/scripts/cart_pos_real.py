@@ -25,7 +25,6 @@ ur5 = rtb.DHRobot([
             rtb.RevoluteDH(d = 0.0996)
         ], name="UR5e")
 
-# ur5.base = SE3.RPY(0,0,pi)      # Rotate robot base so it matches Gazebo model
 ur5.tool = SE3(0.0, 0.0, 0.03)
 
 
