@@ -80,24 +80,7 @@ class Controller():
         self.t = time.time()
 
         
-# --------------------- Move the desired homogeneus transform -----------------
-    def __move(self, T):
-        # Computes inverse kinematics
-        q = self.__ur5.ikine_LMS(T,q0 = self.__q)       
-        self.__qp = q.q
-        
-        msg = Float64MultiArray()
 
-        # Applies median filter and publishes the joint values
-        for i in range(6):                              
-            self.__smooth[i].pop(-1)
-            self.__smooth[i].insert(0, self.__qp[i])
-            self.__qp[i] =  sum(self.__smooth[i]) / self.__size_filt
-        
-        msg.data = self.__qp
-        self.__joints_com[0].publish(msg)
-
-    
 # -------------------- Callback for the pose topic --------------------------
     def __callback(self, data):
         # When the interval has passed
