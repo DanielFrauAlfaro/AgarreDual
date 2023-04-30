@@ -3,24 +3,24 @@
     <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
     <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
     <arg name="gui" default="true" doc="Starts gazebo gui" />
-    <arg name="number" default="1"/>
+    <arg name="number" default="2"/>
     <arg name="name1" default="ur5_2" />
     <arg name="name2" default="ur5_1" />
     <arg name="origin1" default="-x -0.2 -y 0.8 -z 1.02"/>
     <arg name="origin2" default="-x -0.2 -y 0.1 -z 1.02"/>
     <arg name="grip1" default="3f"/>
-    <arg name="grip2" default="3f" />
+    <arg name="grip2" default="2f_140" />
     <arg name="sim_gaz" default="true" />
-    <arg name="real" default="false"/>
+    <arg name="real" default="true"/>
     <arg name="calibration_file1" default="/home/daniel/Desktop/calibration.yaml"/>
-    <arg name="calibration_file2" default="/home/daniel/Desktop/calibration.yaml"/>
+    <arg name="calibration_file2" default="/home/daniel/Desktop/calibration2.yaml"/>
     <arg name="ip1" default="172.18.34.201"/>
     <arg name="ip2" default="172.18.34.200"/>
 
 
     <group if="$(eval arg('real'))">
         <group if="$(eval arg('number')==1)">
-            <group ns='$(arg name1)'>
+            <!-- <group ns='$(arg name1)'>
                 <include file='$(find ur_robot_driver)/launch/ur5e_bringup.launch'>
                     <arg name="robot_ip" value="$(arg ip1)"/>
                     <arg name="kinematics_config" value='$(arg calibration_file1)'/>
@@ -31,17 +31,17 @@
                 <node name="gripper_1_2f" pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" args="/dev/ttyUSB0" output="screen"/>
             </group>
             <group if="$(eval arg('grip1')=='3f')">
-                <node name="gripper_1_3f" pkg="robotiq_3f_gripper_control" type="Robotiq3FGripperTcpNode.py" output="screen"/>
-            </group>
-
+                <node name="gripper_1_3f" pkg="robotiq_3f_gripper_control" type="Robotiq3FGripperTcpNode.py" args="172.18.34.220" output="screen"/>
+            </group> -->
+            <node name="phantom_controller" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
             <node name="controller_1" pkg="nodes" type="ik.py" args="$(arg name1)" output="log"/>
-            <node name="cart_pos_1" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="log"/>
-            <node name="grip_controller_1" g="nodes" type="main_gripper_controller_real.py" args="$(arg name1) $(arg grip1)" output="screen"/>
+            <node name="cart_pos_1" pkg="nodes" type="cart_pos_real.py" args="$(arg name1) $(arg grip1)" output="log"/>
+            <node name="grip_controller_1" pkg="nodes" type="main_gripper_controller_real.py" args="$(arg name1) $(arg grip1)" output="screen"/>
         </group>
 
         <group if="$(eval arg('number')==2)">
             <group ns='$(arg name1)'>
-                <include file='$(find ur_robot_driver)/launch/ur5e_bringup.launch'>
+                <!-- <include file='$(find ur_robot_driver)/launch/ur5e_bringup.launch'>
                     <arg name="robot_ip" value="$(arg ip1)"/>
                     <arg name="kinematics_config" value='$(arg calibration_file1)'/>
                 </include>
@@ -51,14 +51,14 @@
                 </group>
                 <group if="$(eval arg('grip1')=='3f')">
                     <node name="gripper_1_3f" pkg="robotiq_3f_gripper_control" type="Robotiq3FGripperTcpNode.py" output="screen"/>
-                </group>
-
+                </group> -->
+                <node name="phantom_controller1" pkg="nodes" type="phantom.py" args="$(arg name1) $(arg grip1)" output="screen" />
                 <node name="controller_1" pkg="nodes" type="ik.py" args="$(arg name1)" output="log"/>
-                <node name="cart_pos_1" pkg="nodes" type="cart_pos.py" args="$(arg name1) $(arg grip1)" output="log"/>
-                <node name="grip_controller_1" g="nodes" type="main_gripper_controller_real.py" args="$(arg name1) $(arg grip1)" output="screen"/>
+                <node name="cart_pos_1" pkg="nodes" type="cart_pos_real.py" args="$(arg name1) $(arg grip1)" output="log"/>
+                <node name="grip_controller_1" pkg="nodes" type="main_gripper_controller_real.py" args="$(arg name1) $(arg grip1)" output="screen"/>
             </group>
             <group ns='$(arg name2)'>
-                <include file='$(find ur_robot_driver)/launch/ur5e_bringup.launch'>
+                <!-- <include file='$(find ur_robot_driver)/launch/ur5e_bringup.launch'>
                     <arg name="robot_ip" value="$(arg ip2)"/>
                     <arg name="kinematics_config" value='$(arg calibration_file2)'/>
                 </include>
@@ -68,11 +68,11 @@
                 </group>
                 <group if="$(eval arg('grip2')=='3f')">
                     <node name="gripper_2_3f" pkg="robotiq_3f_gripper_control" type="Robotiq3FGripperTcpNode.py" output="screen"/>
-                </group>
-
-                <node name="controller_2" pkg="nodes" type="ik.py" args="$(arg name2)" output="log"/>
-                <node name="cart_pos_2" pkg="nodes" type="cart_pos.py" args="$(arg name2) $(arg grip2)" output="log"/>
-                <node name="grip_controller_2" g="nodes" type="main_gripper_controller_real.py" args="$(arg name2) $(arg grip2)" output="screen"/>
+                </group> -->
+                <node name="phantom_controller2" pkg="nodes" type="phantom.py" args="$(arg name2) $(arg grip2)" output="screen" />
+                <node name="controller_2" pkg="nodes" type="ik2.py" args="$(arg name2)" output="log"/>
+                <node name="cart_pos_2" pkg="nodes" type="cart_pos_real2.py" args="$(arg name2) $(arg grip2)" output="log"/>
+                <node name="grip_controller_2" pkg="nodes" type="main_gripper_controller_real.py" args="$(arg name2) $(arg grip2)" output="screen"/>
             </group>
         </group>
         
