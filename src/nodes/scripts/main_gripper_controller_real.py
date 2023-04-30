@@ -36,11 +36,11 @@ def cmd_cb(data):
 
     # According to the model, creates a message
     if model == "2f_140":
-        msg_2f.rPR = data.data
+        msg_2f.rPR = int(data.data)
         msg.append(msg_2f)
 
     elif model == "3f":
-        msg_3f.rPRA = data.data
+        msg_3f.rPRA = int(data.data)
         msg.append(msg_3f)
 
 
