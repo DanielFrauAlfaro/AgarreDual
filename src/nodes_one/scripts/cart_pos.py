@@ -86,7 +86,7 @@ def joint_state_cb(data):
 
             # Gripper joints: 2f or 3f
             elif grip == "2f_140" and data.name[i] == "finger_joint":
-                grip_state = data.position[i]
+                grip_state = data.position[i] * 990
 
             elif grip == "3f":
                 if data.name[i] == "gripper_finger_1_joint_1":
