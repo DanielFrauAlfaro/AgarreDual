@@ -43,6 +43,6 @@
   <node name="controller" pkg="nodes_one" type="controller.py" args="$(arg robot_name) $(arg grip)" output="screen" />
   
   <!-- feedback node -->
-  <node name="cart_pos" pkg="nodes_one" type="cart_pos.py" args="$(arg robot_name) $(arg grip)" output="screen" />  
+  <node name="cart_pos" pkg="nodes" type="cart_pos.py" args="$(arg robot_name) $(arg grip)" output="screen" />  
          
 </launch>
