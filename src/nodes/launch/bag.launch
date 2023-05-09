@@ -1,0 +1,9 @@
+<launch>
+    <arg name="number" default="1"/>
+    <arg name="name1" default="ur5_2"/>
+    <arg name="name2" default="ur5_1"/>
+    <arg name="name_bag" default="test"/>
+
+
+    <node name="bag" pkg="nodes" type="bag.py" args="$(arg number) $(arg name1) $(arg name2) $(arg name_bag)" output="screen"/>
+</launch>
