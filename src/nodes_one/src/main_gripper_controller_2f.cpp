@@ -10,7 +10,7 @@ std_msgs::Float64 cmd;
 // Command callback
 void cmd_cb_2f(const std_msgs::Float64::ConstPtr& data)
 {
-    cmd.data = data->data;
+    cmd.data = data->data / 364.0 ;
 }
 
 
