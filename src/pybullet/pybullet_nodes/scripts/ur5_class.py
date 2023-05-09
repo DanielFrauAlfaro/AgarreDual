@@ -267,7 +267,7 @@ class UR5e:
 
         c = []
         for joint_id in mimic_child_multiplier:
-            c.append(p.createConstraint(self.ur5, mimic_parent_id, self.ur5, joint_id, jointType=p.JOINT_GEAR, jointAxis=[0, 1, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0]))
+            c.append(p.createConstraint(self.ur5, mimic_parent_id, self.ur5, joint_id, jointType=p.JOINT_GEAR, jointAxis=[1, 0, 0], parentFramePosition=[0, 0, 0], childFramePosition=[0, 0, 0]))
 
         cont = 0
         for i in mimic_children_names:
