@@ -3,8 +3,9 @@ import rospy
 import subprocess
 import dearpygui.dearpygui as dpg
 from math import pi
-from std_msgs.msg import Int32, String, Bool
+from std_msgs.msg import Int32, String
 import os
+
 
 # Start roscore process on the same terminal
 subprocess.Popen('roscore')
@@ -64,6 +65,8 @@ real = False
 # Interface flag
 interf = False
 is_interf = False
+
+
 
 # -------------------- GUI callbacks -------------------------
 # Changes the overviw between real and simulation
@@ -313,6 +316,7 @@ def launch_sim(sender, app_data, user_data):
         dpg.configure_item("yaw", show=False)
         dpg.configure_item("add_obj", show=False)
         
+        
 
 # --------------- Simulation callbacks -------------
 
@@ -366,7 +370,6 @@ def spawn_obj_yaw(sender, app_data, user_data):
     
     pos = dpg.get_value(sender)
     positions_obj[1][2] = str(pos)
-
 
 # Button for object addition to the simulation
 def add_obj_cb(sender, app_data, user_data):
@@ -435,6 +438,7 @@ def add_interf(sender, app_data, user_data):
 
 
     
+
 # --------------------------------- GUI ---------------------------------
 with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
 
@@ -566,7 +570,7 @@ with dpg.window(label="Configuration", tag="conf_w", width=400, height=400):
         dpg.add_text("Click to calibrate the Phantom devices")
 
 
-# ---------------- Simulation going GUI -------------
+# ---------------- Project going GUI -------------
 with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, height=400):
     
     # Menu with tutorial options
@@ -622,7 +626,6 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
 
     dpg.add_separator()
 
-
     # Add object button
     dpg.add_button(label="Add Object", tag="add_obj", callback=add_obj_cb)
     with dpg.tooltip(dpg.last_item(), tag="tut_add_obj"):
@@ -631,6 +634,7 @@ with dpg.window(label="Simulation Going", show=False, tag="exec_w", width=400, h
 
     dpg.add_separator()
 
+    # Activate video interface
     dpg.add_button(label="Activate Robot video", tag="add_interface", show = False, callback=add_interf)
     with dpg.tooltip(dpg.last_item(), tag="tut_add_int"):
         dpg.add_text("Click to add the robot interface", tag="tut_text_interf")
@@ -675,7 +679,7 @@ if __name__ == "__main__":
 
 
 
-    # Generate an ID for the launch
+    # Generate an ID for the interface launch
     uuid_interf = roslaunch.rlutil.get_or_generate_uuid(None, False)
     roslaunch.configure_logging(uuid_interf)
 
@@ -686,6 +690,7 @@ if __name__ == "__main__":
     roslaunch_file_interf = [(roslaunch.rlutil.resolve_launch_arguments(cli_args_interf)[0], roslaunch_args_interf)]
 
     launch_interf = roslaunch.parent.ROSLaunchParent(uuid_interf, roslaunch_file_interf)
+
 
     # ---------- GUI loop --------
     while dpg.is_dearpygui_running():
@@ -754,6 +759,7 @@ if __name__ == "__main__":
 
             is_stop_sim = False
 
+
         # If there is an object to be spawn ...
         if is_spawn:
 
@@ -790,7 +796,9 @@ if __name__ == "__main__":
             
             is_spawn = False
         
+        # If the interface has to be published ...
         if is_interf:
+            # If the interface is shutdown, it launches it
             if interf:
                 cli_args_interf = ['src/nodes/launch/interf.launch', "name1:=" + names[0], "name2:=" + names[1],"number:=" + n]
 
@@ -803,9 +811,11 @@ if __name__ == "__main__":
                 launch_interf.start()
                 is_interf = False
 
+            # If the interface is on, it shuts it down
             else:
                 launch_interf.shutdown()
                 is_interf = False
+
 
         # Renderizes the window
         dpg.render_dearpygui_frame()
