@@ -1,0 +1,14 @@
+<launch>
+
+    <arg name="ip1" default="172.18.34.201"/>
+    <arg name="name" default="ur5_2"/>
+    <arg name="calibration" default="/home/daniel/Desktop/calibration.yaml"/>
+    
+    <group ns="$(arg name)">
+        <include file='$(find ur_robot_driver)/launch/ur52e_bringup.launch'>
+            <arg name="robot_ip" value="$(arg ip1)"/>
+            <arg name="kinematics_config" value="$(arg calibration)"/>
+        </include>
+    </group>
+
+</launch>
