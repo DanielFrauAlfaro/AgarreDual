@@ -15,12 +15,12 @@ bridge = CvBridge()
 dim = (400, 240)
 
 # List of images
-images = [[None, None, None],
-          [None, None, None]]
+images = [[None, None],
+          [None, None]]
 
 # List of flags
-start = [[False, False, False], 
-         [False, False, False]]
+start = [[False, False], 
+         [False, False]]
 
 show = True
 
@@ -36,16 +36,6 @@ def robot1_y_camera_cb(data):
 
     start[0][0] = True
 
-def robot1_x_camera_cb(data):
-    global dim, images, bridge, start
-
-    im = bridge.imgmsg_to_cv2(data)
-    
-    im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [0,0,255])
-
-    images[0][1] = cv2.resize(im, dim)
-
-    start[0][1] = True
 
 def robot1_tool_camera_cb(data):
     global dim, images, bridge, start
@@ -54,9 +44,9 @@ def robot1_tool_camera_cb(data):
 
     im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [0,0,255])
 
-    images[0][2] = cv2.resize(im, dim)
+    images[0][1] = cv2.resize(im, dim)
 
-    start[0][2] = True
+    start[0][1] = True
 
 def robot2_y_camera_cb(data):
     global dim, images, bridge, start
@@ -68,25 +58,15 @@ def robot2_y_camera_cb(data):
 
     images[1][0] = cv2.resize(im, dim)
 
-def robot2_x_camera_cb(data):
+def robot2_tool_camera_cb(data):
     global dim, images, bridge, start
 
     start[1][1] = True
     im = bridge.imgmsg_to_cv2(data)
-    
+
     im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [255,0,0])
 
     images[1][1] = cv2.resize(im, dim)
-
-def robot2_tool_camera_cb(data):
-    global dim, images, bridge, start
-
-    start[1][2] = True
-    im = bridge.imgmsg_to_cv2(data)
-
-    im= cv2.copyMakeBorder(im,5,5,5,5,cv2.BORDER_CONSTANT,value = [255,0,0])
-
-    images[1][2] = cv2.resize(im, dim)
 
 
 # Callbacks for interface activation
@@ -111,7 +91,6 @@ if __name__ == "__main__":
     # --------- Subscribers ---------
     # Image topics for first robots
     rospy.Subscriber("/" + name1 + "/y_robot_camera/image_raw", Image, robot1_y_camera_cb)
-    # rospy.Subscriber("/" + name1 + "/x_robot_camera/image_raw", Image, robot1_x_camera_cb)
     rospy.Subscriber("/" + name1 + "/tool_robot_camera/image_raw", Image, robot1_tool_camera_cb)
 
     # Interface activation callback
@@ -120,7 +99,6 @@ if __name__ == "__main__":
     # If there are two robots, subscribe to the second robot's image topics
     if n == 2:
         rospy.Subscriber("/" + name2 + "/y_robot_camera/image_raw", Image, robot2_y_camera_cb)
-        # rospy.Subscriber("/" + name2 + "/x_robot_camera/image_raw", Image, robot2_x_camera_cb)
         rospy.Subscriber("/" + name2 + "/tool_robot_camera/image_raw", Image, robot2_tool_camera_cb)
 
 
@@ -128,17 +106,17 @@ if __name__ == "__main__":
     while not rospy.is_shutdown():
         
         # If all flags are raised ...
-        if (n == 1 and start[0] == [True, False, True]) or (n == 2 and start == [[True, False, True], [True, False, True]]):
+        if (n == 1 and start[0] == [True, True]) or (n == 2 and start == [[True, True], [True, True]]):
             if show:
                 # Concatenates all images
                 if n == 2:
-                    aux1 = cv2.hconcat([images[0][0],  images[0][2]])
-                    aux2 = cv2.hconcat([images[1][0],  images[1][2]])
+                    aux1 = cv2.hconcat([images[0][0],  images[0][1]])
+                    aux2 = cv2.hconcat([images[1][0],  images[1][1]])
 
                     im_h_resize = cv2.vconcat([aux1, aux2])
 
                 elif n == 1:
-                    im_h_resize = cv2.hconcat([images[0][0],  images[0][2]])
+                    im_h_resize = cv2.hconcat([images[0][0],  images[0][1]])
 
             # Shows the information
                 cv2.imshow("Robots Video", im_h_resize)
