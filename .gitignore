@@ -61,3 +61,4 @@ CATKIN_IGNORE
 # End of https://www.toptal.com/developers/gitignore/api/ros
 Touch_Diagnostic
 Touch_Setup
+.vscode/settings.json
