@@ -152,12 +152,12 @@ class Controller():
             # Gets all the joint position values iterating the message
             for i in range(len(data.name)):
                 if data.name[i] == "shoulder_lift_joint":
-                    self.__q[0] = data.position[i]
-                    end[0] = True
-
-                elif data.name[i] == "shoulder_pan_joint":
                     self.__q[1] = data.position[i]
                     end[1] = True
+
+                elif data.name[i] == "shoulder_pan_joint":
+                    self.__q[0] = data.position[i]
+                    end[0] = True
 
                 elif data.name[i] == "elbow_joint":
                     self.__q[2] = data.position[i]
