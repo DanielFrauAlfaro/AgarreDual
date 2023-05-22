@@ -209,10 +209,6 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-
-add_executable(phantom src/phantom.cpp)
-target_link_libraries(phantom ${catkin_LIBRARIES})
-
 add_executable(main_gripper_controller src/main_gripper_controller.cpp)
 target_link_libraries(main_gripper_controller ${catkin_LIBRARIES})
 
