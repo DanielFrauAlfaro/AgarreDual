@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="grip" default="2f_140" doc="If true, limits joint range [-PI, PI] on all joints." />
+  
+  <param if="$(eval arg('grip')=='2f_140')" name="robot_description" command="$(find xacro)/xacro --inorder '$(find ur_e_description)/urdf/ur5e_robot.urdf.xacro'" />
+  <param if="$(eval arg('grip')=='3f')" name="robot_description" command="$(find xacro)/xacro --inorder '$(find ur_e_description)/urdf/ur5e_robot_3f.urdf.xacro'" />
+  <param if="$(eval arg('grip')=='4f')" name="robot_description" command="$(find xacro)/xacro --inorder '$(find ur_e_description)/urdf/ur5e_robot_4f.urdf.xacro'" />
+  <param if="$(eval arg('grip')=='none')" name="robot_description" command="$(find xacro)/xacro --inorder '$(find ur_e_description)/urdf/ur5e_robot_none.urdf.xacro'" />
+
+</launch>

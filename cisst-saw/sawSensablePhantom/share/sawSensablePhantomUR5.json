@@ -1,0 +1,13 @@
+{
+    "devices":
+    [
+        {
+            "name": "Default Device",
+            "rename": "ur5_2"
+        },
+        {
+            "name": "Default Device2",
+            "rename": "ur5_1"
+        }
+    ]
+}

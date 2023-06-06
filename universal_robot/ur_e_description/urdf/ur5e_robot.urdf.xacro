@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro" name="ur5e" >
+
+  <!-- common stuff -->
+  <xacro:include filename="$(find ur_e_description)/urdf/common.gazebo.xacro" />
+  
+  <!-- Cameras -->
+  <xacro:include filename="$(find ur_e_description)/urdf/camera/camera.urdf.xacro"/>
+
+  <!-- ur5e -->
+  <xacro:include filename="$(find ur_e_description)/urdf/ur5e.urdf.xacro" />
+
+  <!-- arm -->
+  <xacro:ur5e_robot prefix="" joint_limited="false"/>
+
+  <!-- world link and world joint-->
+  <link name="world" />
+
+  <joint name="world_joint" type="fixed">
+    <parent link="world" />
+    <child link = "base_link" />
+    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0" />
+  </joint>
+  
+  <!-- 2f gripper macro and robot / gripper fixed joint -->
+  <xacro:include filename="$(find robotiq_2f_140_gripper_visualization)/urdf/robotiq_arg2f_140_model_macro.xacro" /> 
+  <xacro:robotiq_arg2f_140 prefix="" />
+  <joint name="ur5_ee_link_gripper_base" type="fixed">
+    <parent link= "tool0" />
+    <child link = "robotiq_arg2f_base_link" />
+    <origin xyz=" 0.0 0.0 0.0" rpy="0.0 0.0 ${pi/2}" />
+  </joint>
+
+  <!-- Camera joints -->
+  <!-- Tool Camera -->
+  <xacro:camera_v0 prefix="tool" parent="tool0">
+	     <origin xyz="0.0 -0.1 0.03" rpy="0.0 -1.9 4.7226"/>
+  </xacro:camera_v0>
+  <xacro:camera_gazebo_v0 prefix="tool"/>
+
+  <!-- Y axis Camera-->
+  <xacro:camera_v0 prefix="y" parent="world">
+	     <origin xyz="0.5 0.6 0.17" rpy="0.0 0.0 4.712"/>
+  </xacro:camera_v0>
+  <xacro:camera_gazebo_v0 prefix="y"/>
+
+</robot>
