@@ -1,2 +1,0 @@
-extern int xgetf_(integer *kontrl);
-/*:ref: j4save_ 4 3 4 4 12 */

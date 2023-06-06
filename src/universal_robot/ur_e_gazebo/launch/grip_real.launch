@@ -1,5 +1,0 @@
-<launch>
-    <group ns="ur5_2">
-        <node name="grip_controller" pkg="robotiq_3f_gripper_control" type="Robotiq3FGripperTcpNode.py" args="172.18.34.220" output="screen"/>
-    </group>
-</launch>

@@ -1,4 +1,0 @@
-{
-  "name": "sawSensablePhantomAll",
-  "dependencies": ["cisst", "sawControllersAll"]
-}

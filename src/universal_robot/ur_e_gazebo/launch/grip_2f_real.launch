@@ -1,5 +1,0 @@
-<launch>
-    <group ns="ur5_1">
-        <node name="grip_2f_controller" pkg="robotiq_2f_gripper_control" type="Robotiq2FGripperRtuNode.py" args="/dev/ttyUSB0" output="screen"/>
-    </group>
-</launch>
